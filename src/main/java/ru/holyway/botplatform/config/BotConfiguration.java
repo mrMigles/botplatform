@@ -2,7 +2,9 @@ package ru.holyway.botplatform.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import ru.holyway.botplatform.core.FileSettings;
 import ru.holyway.botplatform.core.MessageHandler;
+import ru.holyway.botplatform.core.Settings;
 import ru.holyway.botplatform.skype.SkypeMessageHandler;
 
 /**
@@ -19,6 +21,11 @@ public class BotConfiguration {
     @Bean(name = "telegramMessageHandler")
     public MessageHandler telegramMessageHandler(){
         return new SkypeMessageHandler();
+    }
+
+    @Bean
+    public Settings settings(){
+        return new FileSettings();
     }
 
 }

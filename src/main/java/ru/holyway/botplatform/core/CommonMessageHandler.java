@@ -3,10 +3,10 @@ package ru.holyway.botplatform.core;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
-import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -26,13 +26,8 @@ public abstract class CommonMessageHandler implements MessageHandler {
 
     private Map<String, List<String>> learningDictionary = new HashMap<>();
 
-    private Map<String, Integer> answerProximity = new HashMap<>();
-
     private List<List<String>> simpleDictionary = new ArrayList<>();
     private List<String> list2Easy = new ArrayList<>();
-
-    private List<String> muteChats = new ArrayList<>();
-    private List<String> easyChats = new ArrayList<>();
 
     private Set<String> learningChats = new HashSet<>();
     private Map<String, List<String>> listCurrentLearning = new HashMap<>();
@@ -42,6 +37,9 @@ public abstract class CommonMessageHandler implements MessageHandler {
     private long lastStamp = 0;
 
     private Map<String, Integer> dictionarySize = new HashMap<>();
+
+    @Autowired
+    private Settings settings;
 
     public CommonMessageHandler() {
         init();
@@ -63,7 +61,7 @@ public abstract class CommonMessageHandler implements MessageHandler {
                 sendMessage(messageEntity, "О, братишка, я вернулся!");
                 return;
             }
-            if (!muteChats.contains(chatId)) {
+            if (!settings.getMuteChats().contains(chatId)) {
                 if (StringUtils.containsIgnoreCase(mes, "Пахом, учись")) {
                     sendMessage(messageEntity, "Приступил к обучению, пожалуйста, аккуратнее с выражениями.");
                     learningChats.add(chatId);
@@ -100,6 +98,20 @@ public abstract class CommonMessageHandler implements MessageHandler {
                     sendAnalize(messageEntity);
                     return;
                 }
+                if (StringUtils.containsIgnoreCase(mes, "/help")){
+                    sendMessage(messageEntity, "Ооой, я много что умею, ну хочешь я спою?\n" +
+                            "Пахом, [любая фраза] - и я попробую ответить\n" +
+                            "Пахом, учись - включить режим обучения\n" +
+                            "Пахом, отдыхай - выключить режим обучения и запомнить фразы\n" +
+                            "Пахом, забудь [n] - исключить последние n-фраз во время обучения\n" +
+                            "Пахом, анализ - бесполезная херота\n" +
+                            "Пахом, - - выключить для данного чата\n" +
+                            "Пахом, + - включить для данного чата\n" +
+                            "Пахом, умный - использовать обученные фразы\n" +
+                            "Пахом, глупый - использовать только заскриптованные фразы\n" +
+                            "Пахом, [0-100]% - установить вероятность случайного ответа в значение []");
+                    return;
+                }
                 if (learningChats.contains(chatId) && !StringUtils.containsIgnoreCase(mes, "Пахом,")) {
                     List<String> current = listCurrentLearning.get(chatId);
                     if (current == null) {
@@ -109,7 +121,7 @@ public abstract class CommonMessageHandler implements MessageHandler {
                     listCurrentLearning.put(chatId, current);
                     return;
                 }
-                if (StringUtils.containsIgnoreCase(mes, "Пахом,") && mes.endsWith("%")){
+                if (StringUtils.containsIgnoreCase(mes, "Пахом,") && mes.endsWith("%")) {
                     try {
                         Pattern pattern = Pattern.compile("\\d+");
                         Matcher matcher = pattern.matcher(mes);
@@ -117,13 +129,12 @@ public abstract class CommonMessageHandler implements MessageHandler {
                             String value = mes.substring(matcher.start(), matcher.end());
                             int ansPer = Integer.parseInt(value);
                             if (ansPer >= 0 && ansPer <= 100) {
-                                answerProximity.put(chatId, ansPer);
+                                settings.setProximityAnswer(chatId, ansPer);
                                 sendMessage(messageEntity, "ок");
                                 return;
                             }
                         }
-                    }
-                    catch (Exception e){
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
                     sendMessage(messageEntity, "Тебя разве не учили в 6м училище, что такое проценты?");
@@ -133,12 +144,12 @@ public abstract class CommonMessageHandler implements MessageHandler {
                     sendMessage(messageEntity, "о, уважаю, братишка!");
                     return;
                 }
-                if (StringUtils.containsIgnoreCase(mes, "Пахом, изи")) {
+                if (StringUtils.containsIgnoreCase(mes, "Пахом, умный")) {
                     addToEazy(chatId);
                     sendMessage(messageEntity, "Вот такой вот, хароший я.. да.");
                     return;
                 }
-                if (StringUtils.containsIgnoreCase(mes, "Пахом, гавно")) {
+                if (StringUtils.containsIgnoreCase(mes, "Пахом, глупый")) {
                     removeFromEazy(chatId);
                     sendMessage(messageEntity, "Ты блядь, уже не понимаешь, что ты поехавший?!");
                     return;
@@ -218,13 +229,11 @@ public abstract class CommonMessageHandler implements MessageHandler {
             GsonBuilder gson = new GsonBuilder();
             Type collectionType = new TypeToken<HashMap<String, List<String>>>() {
             }.getType();
-            learnWords = gson.create().fromJson(Files.newBufferedReader(Paths.get(getClass().getResource("learnDictionary").toURI()), StandardCharsets.UTF_8), collectionType);
+            learnWords = gson.create().fromJson(Files.newBufferedReader(Paths.get("C:\\storage\\learnDictionary"), StandardCharsets.UTF_8), collectionType);
 
             //learnWords = Files.readAllLines(Paths.get(getClass().getResource("copipasta.txt").toURI()), StandardCharsets.UTF_8);
-            simpleWords = Files.readAllLines(Paths.get(getClass().getResource("copipasta2.txt").toURI()), StandardCharsets.UTF_8);
+            simpleWords = Files.readAllLines(Paths.get("C:\\storage\\simpleDictionary"), StandardCharsets.UTF_8);
         } catch (IOException e) {
-            e.printStackTrace();
-        } catch (URISyntaxException e) {
             e.printStackTrace();
         }
         for (Map.Entry<String, List<String>> line : learnWords.entrySet()) {
@@ -258,10 +267,8 @@ public abstract class CommonMessageHandler implements MessageHandler {
     private void writeNew() {
         try {
             GsonBuilder gson = new GsonBuilder();
-            Files.write(Paths.get(getClass().getResource("learnDictionary").toURI()), gson.create().toJson(listCurrentLearning).getBytes());
+            Files.write(Paths.get(("C:\\storage\\learnDictionary")), gson.create().toJson(listCurrentLearning).getBytes());
         } catch (IOException e) {
-            e.printStackTrace();
-        } catch (URISyntaxException e) {
             e.printStackTrace();
         }
     }
@@ -285,7 +292,7 @@ public abstract class CommonMessageHandler implements MessageHandler {
         if (message.contains("пахом") || message.contains("Пахом")) {
             return true;
         }
-        int ansPerc = answerProximity.get(chatID) == null ? 15 : answerProximity.get(chatID);
+        int ansPerc = settings.getAnswerProximity().get(chatID) == null ? 15 : settings.getAnswerProximity().get(chatID);
         if (new Random().nextInt(100) > 100 - ansPerc) {
             return true;
         }
@@ -311,6 +318,7 @@ public abstract class CommonMessageHandler implements MessageHandler {
 
     private String generateZSAnswer(String mesage, String chatID) {
         if (isNeedReply(mesage, chatID)) {
+            mesage = mesage.replaceAll("Пахом,", "").replaceAll("пахом,", "");
             List<String> messageWords = getTokenizedMessage(mesage);
             List<String> answerList = getAnswersList(chatID);
             List<List<String>> questionList = getQuestionsList(chatID);
@@ -371,33 +379,33 @@ public abstract class CommonMessageHandler implements MessageHandler {
     }
 
     private void addToMute(String chatID) {
-        if (!muteChats.contains(chatID)) {
-            muteChats.add(chatID);
+        if (!settings.getMuteChats().contains(chatID)) {
+            settings.addMuteChat(chatID);
         }
 
     }
 
     private void removeFromMute(String chatID) {
-        if (muteChats.contains(chatID)) {
-            muteChats.remove(chatID);
+        if (settings.getMuteChats().contains(chatID)) {
+            settings.removeMuteChat(chatID);
         }
     }
 
     private void addToEazy(String chatID) {
-        if (!easyChats.contains(chatID)) {
-            easyChats.add(chatID);
+        if (!settings.getEasyChats().contains(chatID)) {
+            settings.addEasyChat(chatID);
         }
 
     }
 
     private void removeFromEazy(String chatID) {
-        if (easyChats.contains(chatID)) {
-            easyChats.remove(chatID);
+        if (settings.getEasyChats().contains(chatID)) {
+            settings.removeEasyChat(chatID);
         }
     }
 
     private List<String> getAnswersList(String chatID) {
-        if (easyChats.contains(chatID)) {
+        if (settings.getEasyChats().contains(chatID)) {
             return list2Easy;
         } else {
             List<String> ansList = new ArrayList<>(list2Easy);
@@ -409,7 +417,7 @@ public abstract class CommonMessageHandler implements MessageHandler {
     }
 
     private List<List<String>> getQuestionsList(String chatID) {
-        if (easyChats.contains(chatID)) {
+        if (settings.getEasyChats().contains(chatID)) {
             return simpleDictionary;
         } else {
             List<List<String>> qstList = new ArrayList<>(simpleDictionary);
