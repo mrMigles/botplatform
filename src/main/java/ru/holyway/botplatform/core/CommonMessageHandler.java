@@ -3,8 +3,6 @@ package ru.holyway.botplatform.core;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang.StringUtils;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -15,6 +13,8 @@ import java.nio.file.Paths;
 import java.security.SecureRandom;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by Sergey on 1/17/2017.
@@ -22,27 +22,26 @@ import java.util.concurrent.TimeUnit;
 public abstract class CommonMessageHandler implements MessageHandler {
     private boolean flag = true;
 
-    private boolean learning = false;
+    private Map<String, List<List<String>>> learningTokenizedDictionary = new HashMap<>();
 
     private Map<String, List<String>> learningDictionary = new HashMap<>();
-    private List<String> list2 = new ArrayList<>();
-    private Map<String, List<Integer>> sample = new HashMap<>();
 
-    private List<ArrayList<String>> simpleDictionary = new ArrayList<>();
+    private Map<String, Integer> answerProximity = new HashMap<>();
+
+    private List<List<String>> simpleDictionary = new ArrayList<>();
     private List<String> list2Easy = new ArrayList<>();
 
     private List<String> muteChats = new ArrayList<>();
     private List<String> easyChats = new ArrayList<>();
-    private Map<String, List<Integer>> sampleEasy = new HashMap<>();
 
     private Set<String> learningChats = new HashSet<>();
-    private Map<String, List<String>> listLearning = new HashMap<>();
+    private Map<String, List<String>> listCurrentLearning = new HashMap<>();
 
     private int count = 0;
     private int goodCount = 0;
     private long lastStamp = 0;
 
-    private int countNow = 0;
+    private Map<String, Integer> dictionarySize = new HashMap<>();
 
     public CommonMessageHandler() {
         init();
@@ -78,14 +77,18 @@ public abstract class CommonMessageHandler implements MessageHandler {
                     return;
                 }
                 if (StringUtils.containsIgnoreCase(mes, "Пахом, забудь")) {
-                    int currentCount = listLearning.size();
+                    if (listCurrentLearning.get(chatId) == null) {
+                        sendMessage(messageEntity, "То, что сказано не было... быть забытым не может!.");
+                        return;
+                    }
+                    int currentCount = listCurrentLearning.get(chatId).size();
                     if (mes.length() > 14) {
                         int toDelete = Integer.parseInt(mes.substring(14, 15));
-                        if (currentCount - countNow < toDelete) {
-                            toDelete = currentCount - countNow;
+                        if (currentCount - learningDictionary.get(chatId).size() < toDelete) {
+                            toDelete = currentCount - dictionarySize.get(chatId);
                         }
-                        for (int i = listLearning.size() - 1; i > currentCount - toDelete; i--) {
-                            listLearning.remove(i);
+                        for (int i = listCurrentLearning.size() - 1; i > currentCount - toDelete; i--) {
+                            listCurrentLearning.remove(i);
                         }
                         sendMessage(messageEntity, "Я ничего не видел, нет... нет.");
                     } else {
@@ -98,8 +101,33 @@ public abstract class CommonMessageHandler implements MessageHandler {
                     return;
                 }
                 if (learningChats.contains(chatId) && !StringUtils.containsIgnoreCase(mes, "Пахом,")) {
-                    listLearning.add(mes);
+                    List<String> current = listCurrentLearning.get(chatId);
+                    if (current == null) {
+                        current = new ArrayList<>();
+                    }
+                    current.add(mes);
+                    listCurrentLearning.put(chatId, current);
                     return;
+                }
+                if (StringUtils.containsIgnoreCase(mes, "Пахом,") && mes.endsWith("%")){
+                    try {
+                        Pattern pattern = Pattern.compile("\\d+");
+                        Matcher matcher = pattern.matcher(mes);
+                        if (matcher.find(0)) {
+                            String value = mes.substring(matcher.start(), matcher.end());
+                            int ansPer = Integer.parseInt(value);
+                            if (ansPer >= 0 && ansPer <= 100) {
+                                answerProximity.put(chatId, ansPer);
+                                sendMessage(messageEntity, "ок");
+                                return;
+                            }
+                        }
+                    }
+                    catch (Exception e){
+                        e.printStackTrace();
+                    }
+                    sendMessage(messageEntity, "Тебя разве не учили в 6м училище, что такое проценты?");
+
                 }
                 if (StringUtils.containsIgnoreCase(mes, "готов") || StringUtils.containsIgnoreCase(mes, "сделал") || StringUtils.containsIgnoreCase(mes, "купил")) {
                     sendMessage(messageEntity, "о, уважаю, братишка!");
@@ -124,12 +152,6 @@ public abstract class CommonMessageHandler implements MessageHandler {
                     }
                     if (mes.equalsIgnoreCase("пахом")) {
                         sendMessage(messageEntity, "Что.. что, что случилося то?");
-                        return;
-                    }
-                }
-                if (StringUtils.containsIgnoreCase(mes, "?")) {
-                    if (StringUtils.containsIgnoreCase(mes, "как ")) {
-                        sendMessage(messageEntity, "да как земля");
                         return;
                     }
                 }
@@ -182,20 +204,20 @@ public abstract class CommonMessageHandler implements MessageHandler {
     }
 
     private void init() {
-        list.clear();
-        list2.clear();
+        learningTokenizedDictionary.clear();
+        learningDictionary.clear();
         simpleDictionary.clear();
         list2Easy.clear();
-        sample.clear();
+        dictionarySize.clear();
 
         Map<String, List<String>> learnWords = null;
 
         List<String> simpleWords = null;
-        listLearning.clear();
+        listCurrentLearning.clear();
         try {
             GsonBuilder gson = new GsonBuilder();
-            Type collectionType = new TypeToken<HashMap<String, List<String>>>() {}.getType();
-
+            Type collectionType = new TypeToken<HashMap<String, List<String>>>() {
+            }.getType();
             learnWords = gson.create().fromJson(Files.newBufferedReader(Paths.get(getClass().getResource("learnDictionary").toURI()), StandardCharsets.UTF_8), collectionType);
 
             //learnWords = Files.readAllLines(Paths.get(getClass().getResource("copipasta.txt").toURI()), StandardCharsets.UTF_8);
@@ -205,19 +227,20 @@ public abstract class CommonMessageHandler implements MessageHandler {
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
-        for (String line : learnWords) {
-            if (line.length() > 1) {
-                list.add(getTokenizedMessage(line));
-                list2.add(line);
+        for (Map.Entry<String, List<String>> line : learnWords.entrySet()) {
+            final List<List<String>> tokenizedAnswers = new ArrayList<>();
+            final List<String> notEmptyStrings = new ArrayList<>();
+            for (String lineStr : line.getValue()) {
+                if (lineStr.length() > 1) {
+                    tokenizedAnswers.add(getTokenizedMessage(lineStr));
+                    notEmptyStrings.add(lineStr);
+                }
             }
+            learningDictionary.put(line.getKey(), notEmptyStrings);
+            learningTokenizedDictionary.put(line.getKey(), tokenizedAnswers);
+            dictionarySize.put(line.getKey(), notEmptyStrings.size());
         }
-
-        //listLearning.addAll(list2);
-
-        countNow = listLearning.size();
-        for (int i = 0; i < list.size(); i++) {
-            sample.add(i);
-        }
+        listCurrentLearning.putAll(learningDictionary);
 
         for (String line : simpleWords) {
             if (line.length() > 1) {
@@ -225,17 +248,20 @@ public abstract class CommonMessageHandler implements MessageHandler {
                 list2Easy.add(line);
             }
         }
-        list.addAll(simpleDictionary);
-        list2.addAll(list2Easy);
-        for (int i = 0; i < list.size(); i++) {
-            sample.add(i);
-        }
+//        list.addAll(simpleDictionary);
+//        learningDictionary.addAll(list2Easy);
+//        for (int i = 0; i < list.size(); i++) {
+//            sample.add(i);
+//        }
     }
 
     private void writeNew() {
         try {
-            Files.write(Paths.get("D:\\code\\my\\botconstructor\\src\\main\\resources\\copipasta.txt"), listLearning, StandardCharsets.UTF_8);
+            GsonBuilder gson = new GsonBuilder();
+            Files.write(Paths.get(getClass().getResource("learnDictionary").toURI()), gson.create().toJson(listCurrentLearning).getBytes());
         } catch (IOException e) {
+            e.printStackTrace();
+        } catch (URISyntaxException e) {
             e.printStackTrace();
         }
     }
@@ -245,7 +271,7 @@ public abstract class CommonMessageHandler implements MessageHandler {
         sendMessage(message, text);
     }
 
-    private ArrayList<String> getTokenizedMessage(String message) {
+    private List<String> getTokenizedMessage(String message) {
 
         StringTokenizer tok = new StringTokenizer(message, " ,;-!.?()…");
         ArrayList<String> a = new ArrayList<>();
@@ -259,7 +285,8 @@ public abstract class CommonMessageHandler implements MessageHandler {
         if (message.contains("пахом") || message.contains("Пахом")) {
             return true;
         }
-        if (new Random().nextInt(100) > 85) {
+        int ansPerc = answerProximity.get(chatID) == null ? 15 : answerProximity.get(chatID);
+        if (new Random().nextInt(100) > 100 - ansPerc) {
             return true;
         }
         return false;
@@ -284,17 +311,19 @@ public abstract class CommonMessageHandler implements MessageHandler {
 
     private String generateZSAnswer(String mesage, String chatID) {
         if (isNeedReply(mesage, chatID)) {
-            ArrayList<String> messageWords = getTokenizedMessage(mesage);
+            List<String> messageWords = getTokenizedMessage(mesage);
+            List<String> answerList = getAnswersList(chatID);
+            List<List<String>> questionList = getQuestionsList(chatID);
             HashMap<Integer, String> answers = new HashMap<>();
             for (int i = 0; i < getQuestionsList(chatID).size(); i++) {
                 int n = 0;
                 int f = -1;
                 ArrayList<String> checkedWords = new ArrayList<>();
-                for (int j = 0; j < getQuestionsList(chatID).get(i).size(); j++) {
-                    String curWordInDict = getQuestionsList(chatID).get(i).get(j);
+                for (int j = 0; j < questionList.get(i).size(); j++) {
+                    String curWordInDict = questionList.get(i).get(j);
                     if (containsIgnoreCase(curWordInDict, messageWords)) {
-                        if (getQuestionsList(chatID).get(i).size() == 1 && curWordInDict.length() > 3) {
-                            answers.put(curWordInDict.length(), getAnswersList(chatID).get(i + 1));
+                        if (questionList.get(i).size() == 1 && curWordInDict.length() > 3) {
+                            answers.put(curWordInDict.length(), answerList.get(i + 1));
                             break;
                         }
                         if (!containsIgnoreCase(curWordInDict, checkedWords)) {
@@ -314,8 +343,8 @@ public abstract class CommonMessageHandler implements MessageHandler {
                     for (String str : checkedWords) {
                         sum += str.length();
                     }
-                    if (sum > 4) {
-                        answers.put(sum * checkedWords.size(), getAnswersList(chatID).get(i + 1));
+                    if (sum > 4 && i < answerList.size() - 1) {
+                        answers.put(sum * checkedWords.size(), answerList.get(i + 1));
                     }
                 }
             }
@@ -371,23 +400,23 @@ public abstract class CommonMessageHandler implements MessageHandler {
         if (easyChats.contains(chatID)) {
             return list2Easy;
         } else {
-            return list2;
+            List<String> ansList = new ArrayList<>(list2Easy);
+            if (learningDictionary.get(chatID) != null) {
+                ansList.addAll(learningDictionary.get(chatID));
+            }
+            return ansList;
         }
     }
 
-    private List<ArrayList<String>> getQuestionsList(String chatID) {
+    private List<List<String>> getQuestionsList(String chatID) {
         if (easyChats.contains(chatID)) {
             return simpleDictionary;
         } else {
-            return list;
-        }
-    }
-
-    private List<Integer> getNumbersList(String chatID) {
-        if (easyChats.contains(chatID)) {
-            return sampleEasy;
-        } else {
-            return sample;
+            List<List<String>> qstList = new ArrayList<>(simpleDictionary);
+            if (learningTokenizedDictionary.get(chatID) != null) {
+                qstList.addAll(learningTokenizedDictionary.get(chatID));
+            }
+            return qstList;
         }
     }
 
@@ -427,7 +456,7 @@ public abstract class CommonMessageHandler implements MessageHandler {
         return D2[n];
     }
 
-    public boolean containsIgnoreCase(String curWordInDict, ArrayList<String> messageWords) {
+    public boolean containsIgnoreCase(String curWordInDict, List<String> messageWords) {
         for (String i : messageWords) {
             int levDist = editdist(curWordInDict.toLowerCase(), i.toLowerCase());
             if (levDist == 0) {
