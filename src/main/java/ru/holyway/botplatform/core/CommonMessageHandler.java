@@ -12,6 +12,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.SecureRandom;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -19,18 +21,18 @@ import java.util.regex.Pattern;
 /**
  * Created by Sergey on 1/17/2017.
  */
-public abstract class CommonMessageHandler implements MessageHandler {
+public class CommonMessageHandler implements MessageHandler {
     private boolean flag = true;
 
-    private Map<String, List<List<String>>> learningTokenizedDictionary = new HashMap<>();
+    private ConcurrentMap<String, List<List<String>>> learningTokenizedDictionary = new ConcurrentHashMap<>();
 
-    private Map<String, List<String>> learningDictionary = new HashMap<>();
+    private ConcurrentMap<String, List<String>> learningDictionary = new ConcurrentHashMap<>();
 
     private List<List<String>> simpleDictionary = new ArrayList<>();
     private List<String> list2Easy = new ArrayList<>();
 
     private Set<String> learningChats = new HashSet<>();
-    private Map<String, List<String>> listCurrentLearning = new HashMap<>();
+    private ConcurrentMap<String, List<String>> listCurrentLearning = new ConcurrentHashMap<>();
 
     private int count = 0;
     private int goodCount = 0;
@@ -98,7 +100,7 @@ public abstract class CommonMessageHandler implements MessageHandler {
                     sendAnalize(messageEntity);
                     return;
                 }
-                if (StringUtils.containsIgnoreCase(mes, "/help")){
+                if (StringUtils.containsIgnoreCase(mes, "/help")) {
                     sendMessage(messageEntity, "Ооой, я много что умею, ну хочешь я спою?\n" +
                             "Пахом, [любая фраза] - и я попробую ответить\n" +
                             "Пахом, учись - включить режим обучения\n" +
@@ -109,7 +111,10 @@ public abstract class CommonMessageHandler implements MessageHandler {
                             "Пахом, + - включить для данного чата\n" +
                             "Пахом, умный - использовать обученные фразы\n" +
                             "Пахом, глупый - использовать только заскриптованные фразы\n" +
-                            "Пахом, [0-100]% - установить вероятность случайного ответа в значение []");
+                            "Пахом, [0-100]% - установить вероятность случайного ответа в значение []\n" +
+                            "Пахом, процент - показать процент ответа для данного чата\n" +
+                            "Пахом, ид - показать ID данного чата\n" +
+                            "Пахом, миграция ID-чата - миграция обучения из определенного чата\n");
                     return;
                 }
                 if (learningChats.contains(chatId) && !StringUtils.containsIgnoreCase(mes, "Пахом,")) {
@@ -144,6 +149,35 @@ public abstract class CommonMessageHandler implements MessageHandler {
                     sendMessage(messageEntity, "о, уважаю, братишка!");
                     return;
                 }
+                if (StringUtils.containsIgnoreCase(mes, "Пахом, процент")) {
+                    int percent = settings.getAnswerProximity().get(chatId) == null ? 15 : settings.getAnswerProximity().get(chatId);
+                    sendMessage(messageEntity, percent + "%");
+                    return;
+                }
+                if (StringUtils.containsIgnoreCase(mes, "Пахом, миграция ")) {
+                    if (mes.length() > 17) {
+                        final String migChatId = mes.substring(17);
+                        List<String> dictionary = learningDictionary.get(migChatId);
+                        if (dictionary != null) {
+                            List<String> curDictionary = listCurrentLearning.get(chatId);
+                            if (curDictionary == null) {
+                                curDictionary = new ArrayList<>();
+                            }
+                            curDictionary.addAll(dictionary);
+                            listCurrentLearning.put(chatId, curDictionary);
+                            writeNew();
+                            init();
+                            sendMessage(messageEntity, "Готово, братишка");
+                            return;
+                        }
+                    }
+                    sendMessage(messageEntity, "Чет не понял");
+                    return;
+                }
+                if (StringUtils.containsIgnoreCase(mes, "Пахом, ид") || StringUtils.containsIgnoreCase(mes, "Пахом, что это за чат?")) {
+                    sendMessage(messageEntity, chatId);
+                    return;
+                }
                 if (StringUtils.containsIgnoreCase(mes, "Пахом, умный")) {
                     addToEazy(chatId);
                     sendMessage(messageEntity, "Вот такой вот, хароший я.. да.");
@@ -167,18 +201,13 @@ public abstract class CommonMessageHandler implements MessageHandler {
                     }
                 }
 
-                if (StringUtils.containsIgnoreCase(mes, "как дела") || StringUtils.containsIgnoreCase(mes, "Как дела") || StringUtils.containsIgnoreCase(mes, "как сам")) {
+                if (StringUtils.containsIgnoreCase(mes, "Пахом, как дела") || StringUtils.containsIgnoreCase(mes, "Пахом, Как дела") || StringUtils.containsIgnoreCase(mes, "Пахом, как сам")) {
                     sendMessage(messageEntity, "да как земля");
                     return;
                 }
 
                 if (StringUtils.containsIgnoreCase(mes, "Привет") || StringUtils.containsIgnoreCase(mes, "Хай") || StringUtils.containsIgnoreCase(mes, "привет")) {
                     sendMessage(messageEntity, "Здрасти, Дравсвуйте!");
-                    return;
-                }
-
-                if (StringUtils.containsIgnoreCase(mes, "короч") || StringUtils.containsIgnoreCase(mes, "кароч") || StringUtils.containsIgnoreCase(mes, "вобщем")) {
-                    sendMessage(messageEntity, "Ну давай давай, рассказывай давай...");
                     return;
                 }
                 if (StringUtils.containsIgnoreCase(mes, "скучн") || StringUtils.containsIgnoreCase(mes, "он умеет")) {
@@ -224,7 +253,6 @@ public abstract class CommonMessageHandler implements MessageHandler {
         Map<String, List<String>> learnWords = null;
 
         List<String> simpleWords = null;
-        listCurrentLearning.clear();
         try {
             GsonBuilder gson = new GsonBuilder();
             Type collectionType = new TypeToken<HashMap<String, List<String>>>() {
@@ -249,7 +277,9 @@ public abstract class CommonMessageHandler implements MessageHandler {
             learningTokenizedDictionary.put(line.getKey(), tokenizedAnswers);
             dictionarySize.put(line.getKey(), notEmptyStrings.size());
         }
-        listCurrentLearning.putAll(learningDictionary);
+        if (learningDictionary.size() == 0) {
+            listCurrentLearning.putAll(learningDictionary);
+        }
 
         for (String line : simpleWords) {
             if (line.length() > 1) {
@@ -483,5 +513,7 @@ public abstract class CommonMessageHandler implements MessageHandler {
         count++;
     }
 
-    protected abstract void sendMessageInternal(MessageEntity messageEntity, String text);
+    protected void sendMessageInternal(MessageEntity messageEntity, String text) {
+        messageEntity.reply(text);
+    }
 }

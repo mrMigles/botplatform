@@ -19,7 +19,6 @@ import ru.holyway.botplatform.core.MessageHandler;
 public class SkypeBot implements Bot {
 
     @Autowired
-    @Qualifier("skypeMessageHandler")
     private MessageHandler messageHandler;
 
     @Override

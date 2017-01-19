@@ -21,7 +21,6 @@ public class TelegramBot extends TelegramLongPollingBot implements Bot {
     private static final String botToken = "261215240:AAEi6m-VCtP_wUxNaoaMw-Ffc4Ls6btB6Nk";
 
     @Autowired
-    @Qualifier("telegramMessageHandler")
     private MessageHandler messageHandler;
 
     @Override
