@@ -156,7 +156,7 @@ public class CommonMessageHandler implements MessageHandler {
                 }
                 if (StringUtils.containsIgnoreCase(mes, "Пахом, миграция ")) {
                     if (mes.length() > 17) {
-                        final String migChatId = mes.substring(17);
+                        final String migChatId = mes.substring(16);
                         List<String> dictionary = learningDictionary.get(migChatId);
                         if (dictionary != null) {
                             List<String> curDictionary = listCurrentLearning.get(chatId);
@@ -188,18 +188,11 @@ public class CommonMessageHandler implements MessageHandler {
                     sendMessage(messageEntity, "Ты блядь, уже не понимаешь, что ты поехавший?!");
                     return;
                 }
-                if (mes.equalsIgnoreCase("пахом") || StringUtils.containsIgnoreCase(mes, "Пахом")) {
-                    if (isDirectQuestions(mes)) {
-                        if (StringUtils.containsIgnoreCase(mes, "сгенерируй")) {
-                            sendMessage(messageEntity, getRandomNum(mes));// +URLEncoder.encode( mes.substring(7)));
-                            return;
-                        }
-                    }
-                    if (mes.equalsIgnoreCase("пахом")) {
-                        sendMessage(messageEntity, "Что.. что, что случилося то?");
-                        return;
-                    }
+                if (mes.equalsIgnoreCase("пахом")) {
+                    sendMessage(messageEntity, "Что.. что, что случилося то?");
+                    return;
                 }
+
 
                 if (StringUtils.containsIgnoreCase(mes, "Пахом, как дела") || StringUtils.containsIgnoreCase(mes, "Пахом, Как дела") || StringUtils.containsIgnoreCase(mes, "Пахом, как сам")) {
                     sendMessage(messageEntity, "да как земля");
@@ -214,7 +207,7 @@ public class CommonMessageHandler implements MessageHandler {
                     sendMessage(messageEntity, "Хочешь я на одной ноге постою, Как цапля, хочешь?");
                     return;
                 }
-                if (StringUtils.containsIgnoreCase(mes, "цапл") || StringUtils.containsIgnoreCase(mes, "чайк") || StringUtils.containsIgnoreCase(mes, "голуб")) {
+                if (StringUtils.containsIgnoreCase(mes, "цапл") || StringUtils.containsIgnoreCase(mes, "чайк")) {
                     sendMessage(messageEntity, "курлык-курлык!");
                     return;
                 }
@@ -243,7 +236,7 @@ public class CommonMessageHandler implements MessageHandler {
         }
     }
 
-    private void init() {
+    private synchronized void init() {
         learningTokenizedDictionary.clear();
         learningDictionary.clear();
         simpleDictionary.clear();
@@ -268,16 +261,18 @@ public class CommonMessageHandler implements MessageHandler {
             final List<List<String>> tokenizedAnswers = new ArrayList<>();
             final List<String> notEmptyStrings = new ArrayList<>();
             for (String lineStr : line.getValue()) {
-                if (lineStr.length() > 1) {
-                    tokenizedAnswers.add(getTokenizedMessage(lineStr));
-                    notEmptyStrings.add(lineStr);
+                if (lineStr != null) {
+                    if (lineStr.length() > 1) {
+                        tokenizedAnswers.add(getTokenizedMessage(lineStr));
+                        notEmptyStrings.add(lineStr);
+                    }
                 }
             }
             learningDictionary.put(line.getKey(), notEmptyStrings);
             learningTokenizedDictionary.put(line.getKey(), tokenizedAnswers);
             dictionarySize.put(line.getKey(), notEmptyStrings.size());
         }
-        if (learningDictionary.size() == 0) {
+        if (listCurrentLearning.size() == 0) {
             listCurrentLearning.putAll(learningDictionary);
         }
 
@@ -294,7 +289,7 @@ public class CommonMessageHandler implements MessageHandler {
 //        }
     }
 
-    private void writeNew() {
+    private synchronized void writeNew() {
         try {
             GsonBuilder gson = new GsonBuilder();
             Files.write(Paths.get(("C:\\storage\\learnDictionary")), gson.create().toJson(listCurrentLearning).getBytes());
@@ -436,7 +431,11 @@ public class CommonMessageHandler implements MessageHandler {
 
     private List<String> getAnswersList(String chatID) {
         if (settings.getEasyChats().contains(chatID)) {
-            return list2Easy;
+            List<String> ansList = new ArrayList<>();
+            if (learningDictionary.get(chatID) != null) {
+                ansList.addAll(learningDictionary.get(chatID));
+            }
+            return ansList;
         } else {
             List<String> ansList = new ArrayList<>(list2Easy);
             if (learningDictionary.get(chatID) != null) {
@@ -448,7 +447,11 @@ public class CommonMessageHandler implements MessageHandler {
 
     private List<List<String>> getQuestionsList(String chatID) {
         if (settings.getEasyChats().contains(chatID)) {
-            return simpleDictionary;
+            List<List<String>> qstList = new ArrayList<>();
+            if (learningTokenizedDictionary.get(chatID) != null) {
+                qstList.addAll(learningTokenizedDictionary.get(chatID));
+            }
+            return qstList;
         } else {
             List<List<String>> qstList = new ArrayList<>(simpleDictionary);
             if (learningTokenizedDictionary.get(chatID) != null) {
