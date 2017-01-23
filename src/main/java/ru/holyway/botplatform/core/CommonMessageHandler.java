@@ -250,10 +250,10 @@ public class CommonMessageHandler implements MessageHandler {
             GsonBuilder gson = new GsonBuilder();
             Type collectionType = new TypeToken<HashMap<String, List<String>>>() {
             }.getType();
-            learnWords = gson.create().fromJson(Files.newBufferedReader(Paths.get("C:\\storage\\learnDictionary"), StandardCharsets.UTF_8), collectionType);
+            learnWords = gson.create().fromJson(Files.newBufferedReader(Paths.get("./storage/learnDictionary"), StandardCharsets.UTF_8), collectionType);
 
             //learnWords = Files.readAllLines(Paths.get(getClass().getResource("copipasta.txt").toURI()), StandardCharsets.UTF_8);
-            simpleWords = Files.readAllLines(Paths.get("C:\\storage\\simpleDictionary"), StandardCharsets.UTF_8);
+            simpleWords = Files.readAllLines(Paths.get("./storage/simpleDictionary"), StandardCharsets.UTF_8);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -292,7 +292,7 @@ public class CommonMessageHandler implements MessageHandler {
     private synchronized void writeNew() {
         try {
             GsonBuilder gson = new GsonBuilder();
-            Files.write(Paths.get(("C:\\storage\\learnDictionary")), gson.create().toJson(listCurrentLearning).getBytes());
+            Files.write(Paths.get(("./storage/learnDictionary")), gson.create().toJson(listCurrentLearning).getBytes());
         } catch (IOException e) {
             e.printStackTrace();
         }
