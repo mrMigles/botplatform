@@ -1,5 +1,10 @@
 package ru.holyway.botplatform.core;
 
+import ai.api.AIConfiguration;
+import ai.api.AIDataService;
+import ai.api.AIServiceException;
+import ai.api.model.AIRequest;
+import ai.api.model.AIResponse;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang.StringUtils;
@@ -37,13 +42,20 @@ public class CommonMessageHandler implements MessageHandler {
     private int count = 0;
     private int goodCount = 0;
     private long lastStamp = 0;
+    private int denisCount = 0;
 
     private Map<String, Integer> dictionarySize = new HashMap<>();
+    private AIConfiguration configuration;
+
+    private AIDataService dataService;
 
     @Autowired
     private Settings settings;
 
     public CommonMessageHandler() {
+        configuration = new AIConfiguration("3ea352b46ecb4deda36774c7395ee8df ");
+        dataService = new AIDataService(configuration);
+
         init();
     }
 
@@ -216,11 +228,11 @@ public class CommonMessageHandler implements MessageHandler {
                     return;
                 }
                 if (isJock(messageEntity)) {
-                    if (TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - lastStamp) < 5) {
+                    if (TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - lastStamp) < 10) {
                         goodCount++;
                         lastStamp = 0;
                     }
-                    if (new Random().nextInt(100) > 80) {
+                    if (new Random().nextInt(100) > 85) {
                         sendMessage(messageEntity, "\uD83D\uDE04");
                         lastStamp = 0;
                         return;
@@ -299,7 +311,7 @@ public class CommonMessageHandler implements MessageHandler {
     }
 
     private void sendAnalize(MessageEntity message) {
-        final String text = "Анализ использования:\n Отправлено сообщений: " + count + "\n Удачных шуток: " + goodCount;
+        final String text = "Анализ использования:\nОтправлено сообщений: " + count + "\nУдачных шуток: " + goodCount + "\nШуток про Дениса: " + denisCount + "\nСамый поехавший: я";
         sendMessage(message, text);
     }
 
@@ -326,7 +338,8 @@ public class CommonMessageHandler implements MessageHandler {
 
     private boolean isJock(MessageEntity message) {
         if (message.getText() != null && (message.getText().contains("\uD83D\uDE04") || message.getText().contains("\uD83D\uDE03")
-                || message.getText().contains("xD") || message.getText().contains(":D") || message.getText().contains("хах"))) {
+                || message.getText().contains("xD") || message.getText().contains(":D") || message.getText().contains("хах")
+                || message.getText().contains("лол") || message.getText().contains("lol") || message.getText().contains("Лол"))) {
             return true;
         }
         return false;
@@ -341,9 +354,32 @@ public class CommonMessageHandler implements MessageHandler {
         return false;
     }
 
+    private String getAPIAnswer(String message) throws Exception {
+            AIRequest request = new AIRequest(message);
+
+            AIResponse response = dataService.request(request);
+
+            if (response.getStatus().getCode() == 200) {
+                return response.getResult().getFulfillment().getSpeech();
+            } else {
+                throw new Exception("Error code: " + response.getResult().toString());
+            }
+
+    }
+
     private String generateZSAnswer(String mesage, String chatID) {
         if (isNeedReply(mesage, chatID)) {
             mesage = mesage.replaceAll("Пахом,", "").replaceAll("пахом,", "");
+
+
+            if (settings.getEasyChats().contains(chatID)){
+                try {
+                    return getAPIAnswer(mesage);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
             List<String> messageWords = getTokenizedMessage(mesage);
             List<String> answerList = getAnswersList(chatID);
             List<List<String>> questionList = getQuestionsList(chatID);
@@ -510,7 +546,11 @@ public class CommonMessageHandler implements MessageHandler {
 
     }
 
+
     private void sendMessage(MessageEntity messageEntity, String text) {
+        if (StringUtils.containsIgnoreCase(text, "Денис") || StringUtils.containsIgnoreCase(messageEntity.getText(), "Денис")) {
+            denisCount++;
+        }
         sendMessageInternal(messageEntity, text);
         lastStamp = System.currentTimeMillis();
         count++;
