@@ -2,6 +2,7 @@ package ru.holyway.botplatform.core;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
@@ -22,6 +23,8 @@ public class FileSettings implements Settings {
     private Set<String> easyChats = new HashSet<>();
     private Map<String, Integer> answerProximity = new HashMap<>();
 
+    @Autowired
+    private DataHelper dataHelper;
 
     @PostConstruct
     private void init() {
@@ -29,16 +32,17 @@ public class FileSettings implements Settings {
         Type collectionType = new TypeToken<FileSettings>() {
         }.getType();
         try {
-            FileSettings settings = gson.create().fromJson(Files.newBufferedReader(Paths.get("./storage/settings"), StandardCharsets.UTF_8), collectionType);
+            //FileSettings settings = gson.create().fromJson(Files.newBufferedReader(Paths.get("./storage/settings"), StandardCharsets.UTF_8), collectionType);
+            Settings settings = dataHelper.getSettings();
             if (settings != null) {
-                if (settings.answerProximity != null)
-                    this.answerProximity = new HashMap<>(settings.answerProximity);
-                if (settings.easyChats != null)
-                    this.easyChats = new HashSet<>(settings.easyChats);
-                if (settings.muteChats != null)
-                    this.muteChats = new HashSet<>(settings.muteChats);
+                if (settings.getAnswerProximity() != null)
+                    this.answerProximity = new HashMap<>(settings.getAnswerProximity());
+                if (settings.getEasyChats() != null)
+                    this.easyChats = new HashSet<>(settings.getEasyChats());
+                if (settings.getMuteChats() != null)
+                    this.muteChats = new HashSet<>(settings.getMuteChats());
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

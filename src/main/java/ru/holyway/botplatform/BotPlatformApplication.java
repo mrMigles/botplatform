@@ -10,7 +10,7 @@ import ru.holyway.botplatform.core.Bot;
 import javax.annotation.PostConstruct;
 import java.util.List;
 
-@EnableAutoConfiguration(exclude={DataSourceAutoConfiguration.class})
+//@EnableAutoConfiguration(exclude={DataSourceAutoConfiguration.class})
 @SpringBootApplication
 public class BotPlatformApplication {
 
