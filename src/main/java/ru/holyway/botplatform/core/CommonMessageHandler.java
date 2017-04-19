@@ -10,6 +10,7 @@ import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
@@ -52,10 +53,17 @@ public class CommonMessageHandler implements MessageHandler {
     @Autowired
     private Settings settings;
 
+    @Autowired
+    private DataHelper dataHelper;
+
     public CommonMessageHandler() {
         configuration = new AIConfiguration("3ea352b46ecb4deda36774c7395ee8df ");
         dataService = new AIDataService(configuration);
 
+    }
+
+    @PostConstruct
+    public void postConstruct(){
         init();
     }
 
@@ -262,11 +270,14 @@ public class CommonMessageHandler implements MessageHandler {
             GsonBuilder gson = new GsonBuilder();
             Type collectionType = new TypeToken<HashMap<String, List<String>>>() {
             }.getType();
-            learnWords = gson.create().fromJson(Files.newBufferedReader(Paths.get("./storage/learnDictionary"), StandardCharsets.UTF_8), collectionType);
+            //learnWords = gson.create().fromJson(Files.newBufferedReader(Paths.get("./storage/learnDictionary"), StandardCharsets.UTF_8), collectionType);
+            learnWords = dataHelper.getLearn();
 
             //learnWords = Files.readAllLines(Paths.get(getClass().getResource("copipasta.txt").toURI()), StandardCharsets.UTF_8);
-            simpleWords = Files.readAllLines(Paths.get("./storage/simpleDictionary"), StandardCharsets.UTF_8);
-        } catch (IOException e) {
+            //simpleWords = Files.readAllLines(Paths.get("./storage/simpleDictionary"), StandardCharsets.UTF_8);
+            simpleWords = dataHelper.getSimple();
+
+        } catch (Exception e) {
             e.printStackTrace();
         }
         for (Map.Entry<String, List<String>> line : learnWords.entrySet()) {
