@@ -29,7 +29,7 @@ public class FileSettings implements Settings {
         Type collectionType = new TypeToken<FileSettings>() {
         }.getType();
         try {
-            FileSettings settings = gson.create().fromJson(Files.newBufferedReader(Paths.get("C:\\storage\\settings"), StandardCharsets.UTF_8), collectionType);
+            FileSettings settings = gson.create().fromJson(Files.newBufferedReader(Paths.get("./storage/settings"), StandardCharsets.UTF_8), collectionType);
             if (settings != null) {
                 if (settings.answerProximity != null)
                     this.answerProximity = new HashMap<>(settings.answerProximity);
@@ -91,7 +91,7 @@ public class FileSettings implements Settings {
     private void writeToFile() {
         try {
             GsonBuilder gson = new GsonBuilder();
-            Files.write(Paths.get("C:\\storage\\settings"), gson.create().toJson(this).getBytes());
+            Files.write(Paths.get("./storage/settings"), gson.create().toJson(this).getBytes());
         } catch (IOException e) {
             e.printStackTrace();
         }
