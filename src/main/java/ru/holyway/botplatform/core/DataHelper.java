@@ -20,14 +20,14 @@ public class DataHelper {
     }
 
     public Map<String, List<String>> getLearn() {
-        return jdbcTemplate.queryForObject("SELECT data FROM lear_dictionary where chat_id = 1", Map.class);
+        return jdbcTemplate.queryForObject("SELECT data FROM learn_values where chat_id = 1", Map.class);
     }
 
     public List<String> getSimple() {
-        return jdbcTemplate.queryForObject("SELECT data FROM lear_dictionary where chat_id = 1", List.class);
+        return jdbcTemplate.queryForObject("SELECT data FROM learn_values where chat_id = 1", List.class);
     }
 
     public Settings getSettings() {
-        return jdbcTemplate.queryForObject("SELECT data FROM lear_dictionary where chat_id = 1", Settings.class);
+        return jdbcTemplate.queryForObject("SELECT data FROM learn_values where chat_id = 2", Settings.class);
     }
 }
