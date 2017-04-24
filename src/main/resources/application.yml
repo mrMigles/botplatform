@@ -1,5 +1,8 @@
 spring:
-  datasource:
-    url: ${JDBC_DATABASE_URL}
-    username: ${JDBC_DATABASE_USERNAME}
-    password: ${JDBC_DATABASE_PASSWORD}
+  data:
+    mongodb:
+      database: heroku_q6rf2gt1
+      password: corall93
+      host: ds117931.mlab.com
+      port: 17931
+      username: mrMigles

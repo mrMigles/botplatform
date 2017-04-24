@@ -2,18 +2,18 @@ package ru.holyway.botplatform.core;
 
 import ai.api.AIConfiguration;
 import ai.api.AIDataService;
-import ai.api.AIServiceException;
 import ai.api.model.AIRequest;
 import ai.api.model.AIResponse;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import ru.holyway.botplatform.core.data.DataHelper;
+import ru.holyway.botplatform.core.entity.JSettings;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.lang.reflect.Type;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.SecureRandom;
@@ -50,8 +50,7 @@ public class CommonMessageHandler implements MessageHandler {
 
     private AIDataService dataService;
 
-    @Autowired
-    private Settings settings;
+    private JSettings settings;
 
     @Autowired
     private DataHelper dataHelper;
@@ -63,8 +62,9 @@ public class CommonMessageHandler implements MessageHandler {
     }
 
     @PostConstruct
-    public void postConstruct(){
+    public void postConstruct() {
         init();
+        settings = dataHelper.getSettings();
     }
 
     @Override
@@ -155,6 +155,7 @@ public class CommonMessageHandler implements MessageHandler {
                             int ansPer = Integer.parseInt(value);
                             if (ansPer >= 0 && ansPer <= 100) {
                                 settings.setProximityAnswer(chatId, ansPer);
+                                dataHelper.updateSettings();
                                 sendMessage(messageEntity, "ок");
                                 return;
                             }
@@ -200,12 +201,12 @@ public class CommonMessageHandler implements MessageHandler {
                 }
                 if (StringUtils.containsIgnoreCase(mes, "Пахом, умный")) {
                     addToEazy(chatId);
-                    sendMessage(messageEntity, "Вот такой вот, хароший я.. да.");
+                    sendMessage(messageEntity, "Могу рассказать что нибудь");
                     return;
                 }
                 if (StringUtils.containsIgnoreCase(mes, "Пахом, глупый")) {
                     removeFromEazy(chatId);
-                    sendMessage(messageEntity, "Ты блядь, уже не понимаешь, что ты поехавший?!");
+                    sendMessage(messageEntity, "Режим собеседника активирован, братишка.");
                     return;
                 }
                 if (mes.equalsIgnoreCase("пахом")) {
@@ -257,6 +258,7 @@ public class CommonMessageHandler implements MessageHandler {
     }
 
     private synchronized void init() {
+
         learningTokenizedDictionary.clear();
         learningDictionary.clear();
         simpleDictionary.clear();
@@ -267,9 +269,9 @@ public class CommonMessageHandler implements MessageHandler {
 
         List<String> simpleWords = null;
         try {
-            GsonBuilder gson = new GsonBuilder();
-            Type collectionType = new TypeToken<HashMap<String, List<String>>>() {
-            }.getType();
+//            GsonBuilder gson = new GsonBuilder();
+//            Type collectionType = new TypeToken<HashMap<String, List<String>>>() {
+//            }.getType();
             //learnWords = gson.create().fromJson(Files.newBufferedReader(Paths.get("./storage/learnDictionary"), StandardCharsets.UTF_8), collectionType);
             learnWords = dataHelper.getLearn();
 
@@ -314,9 +316,10 @@ public class CommonMessageHandler implements MessageHandler {
 
     private synchronized void writeNew() {
         try {
-            GsonBuilder gson = new GsonBuilder();
-            Files.write(Paths.get(("./storage/learnDictionary")), gson.create().toJson(listCurrentLearning).getBytes());
-        } catch (IOException e) {
+            dataHelper.updateLearn(listCurrentLearning);
+//            GsonBuilder gson = new GsonBuilder();
+//            Files.write(Paths.get(("./storage/learnDictionary")), gson.create().toJson(listCurrentLearning).getBytes());
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -366,15 +369,15 @@ public class CommonMessageHandler implements MessageHandler {
     }
 
     private String getAPIAnswer(String message) throws Exception {
-            AIRequest request = new AIRequest(message);
+        AIRequest request = new AIRequest(message);
 
-            AIResponse response = dataService.request(request);
+        AIResponse response = dataService.request(request);
 
-            if (response.getStatus().getCode() == 200) {
-                return response.getResult().getFulfillment().getSpeech();
-            } else {
-                throw new Exception("Error code: " + response.getResult().toString());
-            }
+        if (response.getStatus().getCode() == 200) {
+            return response.getResult().getFulfillment().getSpeech();
+        } else {
+            throw new Exception("Error code: " + response.getResult().toString());
+        }
 
     }
 
@@ -383,7 +386,7 @@ public class CommonMessageHandler implements MessageHandler {
             mesage = mesage.replaceAll("Пахом,", "").replaceAll("пахом,", "");
 
 
-            if (settings.getEasyChats().contains(chatID)){
+            if (settings.getEasyChats().contains(chatID)) {
                 try {
                     return getAPIAnswer(mesage);
                 } catch (Exception e) {
@@ -453,6 +456,7 @@ public class CommonMessageHandler implements MessageHandler {
     private void addToMute(String chatID) {
         if (!settings.getMuteChats().contains(chatID)) {
             settings.addMuteChat(chatID);
+            dataHelper.updateSettings();
         }
 
     }
@@ -460,12 +464,14 @@ public class CommonMessageHandler implements MessageHandler {
     private void removeFromMute(String chatID) {
         if (settings.getMuteChats().contains(chatID)) {
             settings.removeMuteChat(chatID);
+            dataHelper.updateSettings();
         }
     }
 
     private void addToEazy(String chatID) {
         if (!settings.getEasyChats().contains(chatID)) {
             settings.addEasyChat(chatID);
+            dataHelper.updateSettings();
         }
 
     }
@@ -473,6 +479,7 @@ public class CommonMessageHandler implements MessageHandler {
     private void removeFromEazy(String chatID) {
         if (settings.getEasyChats().contains(chatID)) {
             settings.removeEasyChat(chatID);
+            dataHelper.updateSettings();
         }
     }
 

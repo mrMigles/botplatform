@@ -13,6 +13,7 @@ public class BotPlatformApplicationTests {
 
 	@Test
 	public void contextLoads() {
+
 	}
 
 }

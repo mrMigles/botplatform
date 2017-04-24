@@ -3,10 +3,7 @@ package ru.holyway.botplatform.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.holyway.botplatform.core.CommonMessageHandler;
-import ru.holyway.botplatform.core.FileSettings;
 import ru.holyway.botplatform.core.MessageHandler;
-import ru.holyway.botplatform.core.Settings;
-import ru.holyway.botplatform.skype.SkypeMessageHandler;
 
 /**
  * Created by Sergey on 1/17/2017.
@@ -15,13 +12,8 @@ import ru.holyway.botplatform.skype.SkypeMessageHandler;
 public class BotConfiguration {
 
     @Bean(name = "messageHandler")
-    public MessageHandler messageHandler(){
+    public MessageHandler messageHandler() {
         return new CommonMessageHandler();
-    }
-
-    @Bean
-    public Settings settings(){
-        return new FileSettings();
     }
 
 }
