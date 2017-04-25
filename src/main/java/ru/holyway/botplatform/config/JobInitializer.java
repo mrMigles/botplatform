@@ -20,11 +20,6 @@ public class JobInitializer {
 
     public JobInitializer() {
         this.scheduler = new ConcurrentTaskScheduler();
-        try {
-            new RestTemplate().getForObject(new URI("https://botplatformpakhom.herokuapp.com/"), String.class);
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-        }
     }
 
     @PostConstruct
@@ -36,7 +31,7 @@ public class JobInitializer {
             public void run() {
                 if (num < 24) {
                     try {
-                        new RestTemplate().getForObject(new URI("https://botplatformpakhom.herokuapp.com/"), String.class);
+                        new RestTemplate().getForObject(new URI("https://botplatformpakhom.herokuapp.com"), String.class);
                     } catch (URISyntaxException e) {
                         e.printStackTrace();
                     }
