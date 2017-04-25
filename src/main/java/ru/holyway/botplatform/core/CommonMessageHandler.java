@@ -4,18 +4,12 @@ import ai.api.AIConfiguration;
 import ai.api.AIDataService;
 import ai.api.model.AIRequest;
 import ai.api.model.AIResponse;
-import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import ru.holyway.botplatform.core.data.DataHelper;
 import ru.holyway.botplatform.core.entity.JSettings;
 
 import javax.annotation.PostConstruct;
-import java.io.IOException;
-import java.lang.reflect.Type;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.security.SecureRandom;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -138,12 +132,14 @@ public class CommonMessageHandler implements MessageHandler {
                     return;
                 }
                 if (learningChats.contains(chatId) && !StringUtils.containsIgnoreCase(mes, "Пахом,")) {
-                    List<String> current = listCurrentLearning.get(chatId);
-                    if (current == null) {
-                        current = new ArrayList<>();
+                    for (String chatWithSync : dataHelper.getSettings().getSyncForChat(chatId)) {
+                        List<String> current = listCurrentLearning.get(chatWithSync);
+                        if (current == null) {
+                            current = new ArrayList<>();
+                        }
+                        current.add(mes);
+                        listCurrentLearning.put(chatWithSync, current);
                     }
-                    current.add(mes);
-                    listCurrentLearning.put(chatId, current);
                     return;
                 }
                 if (StringUtils.containsIgnoreCase(mes, "Пахом,") && mes.endsWith("%")) {
@@ -191,6 +187,25 @@ public class CommonMessageHandler implements MessageHandler {
                             sendMessage(messageEntity, "Готово, братишка");
                             return;
                         }
+                    }
+                    sendMessage(messageEntity, "Чет не понял");
+                    return;
+                }
+                if (StringUtils.containsIgnoreCase(mes, "Пахом, синхронизация ")) {
+                    try {
+
+                        if (mes.length() > 22) {
+                            final String migChatId = mes.substring(21);
+                            if (dataHelper.getSettings().syncChat(chatId, migChatId)) {
+                                sendMessage(messageEntity, "Синхроинзация установлена");
+                            } else {
+                                sendMessage(messageEntity, "Запрос на синхронизацию получен, повторите команду на стороне чата " + migChatId);
+                            }
+                            dataHelper.updateSettings();
+                            return;
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
                     sendMessage(messageEntity, "Чет не понял");
                     return;

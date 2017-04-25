@@ -5,8 +5,8 @@ server:
 spring:
   data:
     mongodb:
-      database: heroku_q6rf2gt1
-      password: corall93
-      host: ds117931.mlab.com
-      port: 17931
-      username: mrMigles
+      database: ${DATABASE}
+      password: ${PASSWORD}
+      host: ${HOST}
+      port: ${PORT}
+      username: ${USERNAME}
