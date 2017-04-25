@@ -4,6 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
+import ru.holyway.botplatform.config.JobInitializer;
 import ru.holyway.botplatform.core.Bot;
 
 import javax.annotation.PostConstruct;
@@ -23,5 +25,10 @@ public class BotPlatformApplication {
     @PostConstruct
     private void init() {
         bots.forEach(Bot::init);
+    }
+
+    @Bean
+    public JobInitializer getGrabberInit() {
+        return new JobInitializer();
     }
 }
