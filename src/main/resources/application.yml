@@ -7,6 +7,6 @@ spring:
     mongodb:
       database: ${DATABASE}
       password: ${PASSWORD}
-      host: ${HOST}
-      port: ${PORT}
+      host: ${MONGO_HOST}
+      port: ${MONGO_PORT}
       username: ${USERNAME}
