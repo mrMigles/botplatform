@@ -3,6 +3,7 @@ package ru.holyway.botplatform.core.data;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
 import org.springframework.stereotype.Component;
 import ru.holyway.botplatform.core.entity.Chat;
 import ru.holyway.botplatform.core.entity.JSettings;
@@ -36,6 +37,9 @@ public class DataHelper {
     @Autowired
     private SimpleRepository simpleRepository;
 
+    @Autowired
+    private MappingMongoConverter mappingMongoConverter;
+
     @PostConstruct
     public void postConstruct() {
 //
@@ -64,6 +68,7 @@ public class DataHelper {
 //            e.printStackTrace();
 //        }
 
+        mappingMongoConverter.setMapKeyDotReplacement("\\\\+");
     }
 
 
