@@ -6,6 +6,7 @@ import ai.api.model.AIRequest;
 import ai.api.model.AIResponse;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import ru.holyway.botplatform.config.JobInitializer;
 import ru.holyway.botplatform.core.data.DataHelper;
 import ru.holyway.botplatform.core.entity.JSettings;
 
@@ -49,6 +50,9 @@ public class CommonMessageHandler implements MessageHandler {
     @Autowired
     private DataHelper dataHelper;
 
+    private long srartTime = 0;
+    private long silentPeriod = TimeUnit.SECONDS.toMillis(90);
+
     public CommonMessageHandler() {
         configuration = new AIConfiguration("3ea352b46ecb4deda36774c7395ee8df ");
         dataService = new AIDataService(configuration);
@@ -59,6 +63,7 @@ public class CommonMessageHandler implements MessageHandler {
     public void postConstruct() {
         init();
         settings = dataHelper.getSettings();
+        srartTime = System.currentTimeMillis();
     }
 
     @Override
@@ -581,12 +586,16 @@ public class CommonMessageHandler implements MessageHandler {
 
 
     private void sendMessage(MessageEntity messageEntity, String text) {
-        if (StringUtils.containsIgnoreCase(text, "Денис") || StringUtils.containsIgnoreCase(messageEntity.getText(), "Денис")) {
-            denisCount++;
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - this.srartTime > silentPeriod) {
+            if (StringUtils.containsIgnoreCase(text, "Денис") || StringUtils.containsIgnoreCase(messageEntity.getText(), "Денис")) {
+                denisCount++;
+            }
+            sendMessageInternal(messageEntity, text);
+            JobInitializer.ITER = 0;
+            lastStamp = System.currentTimeMillis();
+            count++;
         }
-        sendMessageInternal(messageEntity, text);
-        lastStamp = System.currentTimeMillis();
-        count++;
     }
 
     protected void sendMessageInternal(MessageEntity messageEntity, String text) {

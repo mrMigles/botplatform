@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 public class JobInitializer {
 
     private final TaskScheduler scheduler;
-
+    public static int ITER = 0;
     private static final long DELAY_TO_UPDATE = TimeUnit.MINUTES.toMillis(28);
 
     public JobInitializer() {
@@ -25,17 +25,18 @@ public class JobInitializer {
     @PostConstruct
     private void job() {
         scheduler.scheduleWithFixedDelay(new Runnable() {
-            private int num = 0;
+            private int num = ITER;
 
             @Override
             public void run() {
+                num = ITER;
                 if (num < 24) {
                     try {
                         new RestTemplate().getForObject(new URI("https://botplatformpakhom.herokuapp.com"), String.class);
                     } catch (URISyntaxException e) {
                         e.printStackTrace();
                     }
-                    num++;
+                    ITER++;
                 }
             }
         }, DELAY_TO_UPDATE);
