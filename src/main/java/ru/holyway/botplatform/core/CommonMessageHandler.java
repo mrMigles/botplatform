@@ -405,8 +405,7 @@ public class CommonMessageHandler implements MessageHandler {
         if (isNeedReply(mesage, chatID)) {
             mesage = mesage.replaceAll("Пахом,", "").replaceAll("пахом,", "");
 
-
-            if (settings.getEasyChats().contains(chatID)) {
+            if (mesage.contains("что такое ")){
                 try {
                     return getAPIAnswer(mesage);
                 } catch (Exception e) {
