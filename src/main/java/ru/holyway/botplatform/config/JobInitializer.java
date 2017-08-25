@@ -30,7 +30,7 @@ public class JobInitializer {
             @Override
             public void run() {
                 num = ITER;
-                if (num < 24) {
+                if (num < 48) {
                     try {
                         new RestTemplate().getForObject(new URI("https://botplatformpakhom.herokuapp.com"), String.class);
                     } catch (URISyntaxException e) {
