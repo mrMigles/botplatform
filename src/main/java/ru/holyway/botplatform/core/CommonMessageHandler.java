@@ -60,7 +60,6 @@ public class CommonMessageHandler implements MessageHandler {
 
     public CommonMessageHandler() {
 
-        dataService = new AIDataService(configuration);
 
     }
 
@@ -68,6 +67,7 @@ public class CommonMessageHandler implements MessageHandler {
     public void postConstruct() {
         init();
         configuration = new AIConfiguration(apiAiToken);
+        dataService = new AIDataService(configuration);
         settings = dataHelper.getSettings();
         srartTime = System.currentTimeMillis();
     }
