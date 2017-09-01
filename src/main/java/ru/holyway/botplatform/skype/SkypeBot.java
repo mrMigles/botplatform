@@ -21,10 +21,10 @@ public class SkypeBot implements Bot {
     @Autowired
     private MessageHandler messageHandler;
 
-    @Value("credential.skype.login")
+    @Value("${credential.skype.login}")
     private String login;
 
-    @Value("credential.skype.password")
+    @Value("${credential.skype.password}")
     private String password;
 
     @Override

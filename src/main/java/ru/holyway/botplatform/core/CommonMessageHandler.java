@@ -54,7 +54,7 @@ public class CommonMessageHandler implements MessageHandler {
     private long srartTime = 0;
     private long silentPeriod = TimeUnit.SECONDS.toMillis(90);
 
-    @Value("credential.ai.token")
+    @Value("${credential.ai.token}")
     private String apiAiToken;
 
 

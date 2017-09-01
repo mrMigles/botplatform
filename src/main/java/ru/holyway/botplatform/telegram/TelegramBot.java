@@ -17,10 +17,10 @@ import ru.holyway.botplatform.core.MessageHandler;
 @Component
 public class TelegramBot extends TelegramLongPollingBot implements Bot {
 
-    @Value("credential.telegram.login")
+    @Value("${credential.telegram.login}")
     private String botName;
 
-    @Value("credential.telegram.token")
+    @Value("${credential.telegram.token}")
     private String botToken;
 
     @Autowired
