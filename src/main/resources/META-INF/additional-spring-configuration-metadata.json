@@ -1,0 +1,29 @@
+{
+  "properties": [
+    {
+      "name": "credential.skype.login",
+      "type": "java.lang.String",
+      "description": "Description for spring.credential.skype.login."
+    },
+    {
+      "name": "credential.skype.password",
+      "type": "java.lang.String",
+      "description": "Description for spring.credential.skype.password."
+    },
+    {
+      "name": "credential.telegram.login",
+      "type": "java.lang.String",
+      "description": "Description for spring.credential.telegram.login."
+    },
+    {
+      "name": "credential.telegram.token",
+      "type": "java.lang.String",
+      "description": "Description for spring.credential.telegram.token."
+    },
+    {
+      "name": "credential.AI.token",
+      "type": "java.lang.String",
+      "description": "Description for credential.AI.token."
+    }
+  ]
+}

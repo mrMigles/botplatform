@@ -7,7 +7,7 @@ import com.samczsun.skype4j.events.Listener;
 import com.samczsun.skype4j.events.chat.message.MessageReceivedEvent;
 import com.samczsun.skype4j.exceptions.ConnectionException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import ru.holyway.botplatform.core.Bot;
 import ru.holyway.botplatform.core.MessageHandler;
@@ -21,10 +21,16 @@ public class SkypeBot implements Bot {
     @Autowired
     private MessageHandler messageHandler;
 
+    @Value("credential.skype.login")
+    private String login;
+
+    @Value("credential.skype.password")
+    private String password;
+
     @Override
     public void init() {
         try {
-            Skype skype = new SkypeBuilder("sergeyivanov0393", "corall93").withAllResources().withExceptionHandler((errorSource, throwable, willShutdown) -> {
+            Skype skype = new SkypeBuilder(login, password).withAllResources().withExceptionHandler((errorSource, throwable, willShutdown) -> {
                 System.out.println("Error: " + errorSource + " " + throwable + " " + willShutdown);
             }).build();
             skype.login();
@@ -35,8 +41,7 @@ public class SkypeBot implements Bot {
                     messageHandler.handleMessage(new SkypeMessageEntity(e));
                 }
             });
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

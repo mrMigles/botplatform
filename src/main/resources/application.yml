@@ -10,3 +10,12 @@ spring:
       host: ${MONGO_HOST}
       port: ${MONGO_PORT}
       username: ${USERNAME}
+credential:
+  skype:
+    login: ${SKYPE_USER_NAME}
+    password: ${SKYPE_PASSWORD}
+  telegram:
+    login: ${TELEGRAM_BOT_NAME}
+    token: ${TELEGRAM_BOT_TOKEN}
+  ai:
+    token: ${AI_TOKEN}

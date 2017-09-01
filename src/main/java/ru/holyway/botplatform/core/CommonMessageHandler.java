@@ -6,6 +6,7 @@ import ai.api.model.AIRequest;
 import ai.api.model.AIResponse;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import ru.holyway.botplatform.config.JobInitializer;
 import ru.holyway.botplatform.core.data.DataHelper;
 import ru.holyway.botplatform.core.entity.JSettings;
@@ -53,8 +54,12 @@ public class CommonMessageHandler implements MessageHandler {
     private long srartTime = 0;
     private long silentPeriod = TimeUnit.SECONDS.toMillis(90);
 
+    @Value("credential.ai.token")
+    private String apiAiToken;
+
+
     public CommonMessageHandler() {
-        configuration = new AIConfiguration("3ea352b46ecb4deda36774c7395ee8df ");
+
         dataService = new AIDataService(configuration);
 
     }
@@ -62,6 +67,7 @@ public class CommonMessageHandler implements MessageHandler {
     @PostConstruct
     public void postConstruct() {
         init();
+        configuration = new AIConfiguration(apiAiToken);
         settings = dataHelper.getSettings();
         srartTime = System.currentTimeMillis();
     }
@@ -405,7 +411,7 @@ public class CommonMessageHandler implements MessageHandler {
         if (isNeedReply(mesage, chatID)) {
             mesage = mesage.replaceAll("Пахом,", "").replaceAll("пахом,", "");
 
-            if (mesage.contains("что такое ")){
+            if (mesage.contains("что такое ")) {
                 try {
                     return getAPIAnswer(mesage);
                 } catch (Exception e) {

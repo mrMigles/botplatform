@@ -1,7 +1,7 @@
 package ru.holyway.botplatform.telegram;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.TelegramBotsApi;
 import org.telegram.telegrambots.api.objects.Message;
@@ -17,8 +17,11 @@ import ru.holyway.botplatform.core.MessageHandler;
 @Component
 public class TelegramBot extends TelegramLongPollingBot implements Bot {
 
-    private static final String botName = "pakhom_bot";
-    private static final String botToken = "261215240:AAEi6m-VCtP_wUxNaoaMw-Ffc4Ls6btB6Nk";
+    @Value("credential.telegram.login")
+    private String botName;
+
+    @Value("credential.telegram.token")
+    private String botToken;
 
     @Autowired
     private MessageHandler messageHandler;
