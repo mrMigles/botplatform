@@ -144,6 +144,7 @@ public class CommonMessageHandler implements MessageHandler {
                             }
                         }
                     }
+                    return;
                 }
 
                 if (StringUtils.containsIgnoreCase(mes, "Пахом, стоп ")) {
