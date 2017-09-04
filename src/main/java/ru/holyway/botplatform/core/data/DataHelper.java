@@ -1,24 +1,14 @@
 package ru.holyway.botplatform.core.data;
 
-import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
 import org.springframework.stereotype.Component;
 import ru.holyway.botplatform.core.entity.Chat;
 import ru.holyway.botplatform.core.entity.JSettings;
-import ru.holyway.botplatform.core.entity.SimpleDictionary;
+import ru.holyway.botplatform.core.entity.Record;
 
 import javax.annotation.PostConstruct;
-import java.io.IOException;
-import java.lang.reflect.Type;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by Sergey on 4/19/2017.
@@ -39,6 +29,9 @@ public class DataHelper {
 
     @Autowired
     private MappingMongoConverter mappingMongoConverter;
+
+    @Autowired
+    private RecordRepository recordRepository;
 
     @PostConstruct
     public void postConstruct() {
@@ -91,8 +84,7 @@ public class DataHelper {
     public List<String> getSimple() {
         try {
             return simpleRepository.findOne("1").dictionary;
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             return new ArrayList<>();
         }
     }
@@ -112,4 +104,15 @@ public class DataHelper {
     public void updateSettings() {
         settingsRepository.save(this.settings);
     }
+
+    public List<Record> getRecords() {
+        List<Record> records = recordRepository.findAll();
+        Collections.sort(records);
+        return records;
+    }
+
+    public void updateRecords(List<Record> records) {
+        recordRepository.save(records);
+    }
+
 }

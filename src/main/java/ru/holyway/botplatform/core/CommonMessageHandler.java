@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import ru.holyway.botplatform.config.JobInitializer;
 import ru.holyway.botplatform.core.data.DataHelper;
 import ru.holyway.botplatform.core.entity.JSettings;
+import ru.holyway.botplatform.core.entity.Record;
 
 import javax.annotation.PostConstruct;
 import java.security.SecureRandom;
@@ -35,6 +36,11 @@ public class CommonMessageHandler implements MessageHandler {
 
     private Set<String> learningChats = new HashSet<>();
     private ConcurrentMap<String, List<String>> listCurrentLearning = new ConcurrentHashMap<>();
+
+
+    private List<Record> recordMap = new ArrayList<>();
+
+    private Map<String, Long> currentRecordMap = new ConcurrentHashMap<>();
 
     private int count = 0;
     private int goodCount = 0;
@@ -66,6 +72,7 @@ public class CommonMessageHandler implements MessageHandler {
     @PostConstruct
     public void postConstruct() {
         init();
+        initRecors();
         configuration = new AIConfiguration(apiAiToken);
         dataService = new AIDataService(configuration);
         settings = dataHelper.getSettings();
@@ -125,6 +132,100 @@ public class CommonMessageHandler implements MessageHandler {
                     sendAnalize(messageEntity);
                     return;
                 }
+                if (StringUtils.containsIgnoreCase(mes, "Пахом, старт ")) {
+                    if (mes.length() > 14) {
+                        final String peopleID = mes.substring(13);
+                        if (!StringUtils.isEmpty(peopleID)) {
+                            if (currentRecordMap.get(peopleID) != null) {
+                                sendMessage(messageEntity, "Я уже считаю время для " + peopleID);
+                            } else {
+                                currentRecordMap.put(peopleID, System.currentTimeMillis());
+                                sendMessage(messageEntity, "Начал для  " + peopleID);
+                            }
+                        }
+                    }
+                }
+
+                if (StringUtils.containsIgnoreCase(mes, "Пахом, стоп ")) {
+                    if (mes.length() > 13) {
+                        final String peopleID = mes.substring(12);
+                        if (!StringUtils.isEmpty(peopleID)) {
+                            if (currentRecordMap.get(peopleID) != null) {
+                                long currentRecord = System.currentTimeMillis() - currentRecordMap.get(peopleID);
+                                long maximumRecord = recordMap.isEmpty() ? 0 : recordMap.get(0).time;
+                                int curId = recordMap.indexOf(new Record(peopleID, 0L));
+
+                                long recordForUser = curId > 0 && recordMap.get(curId) != null ? recordMap.get(curId).time : 0;
+                                if (currentRecord > maximumRecord) {
+                                    recordMap.remove(new Record(peopleID, currentRecord));
+                                    recordMap.add(new Record(peopleID, currentRecord));
+                                    currentRecordMap.remove(peopleID);
+                                    dataHelper.updateRecords(recordMap);
+                                    Collections.sort(recordMap);
+                                    sendMessage(messageEntity, "!!! Новый обший рекорд установил(а) " + peopleID + ", время: " + TimeUnit.MILLISECONDS.toMinutes(currentRecord) + " минут. !!!");
+                                } else if (currentRecord > recordForUser) {
+                                    recordMap.remove(new Record(peopleID, currentRecord));
+                                    recordMap.add(new Record(peopleID, currentRecord));
+                                    currentRecordMap.remove(peopleID);
+                                    dataHelper.updateRecords(recordMap);
+                                    Collections.sort(recordMap);
+                                    sendMessage(messageEntity, "Новый личный рекорд для " + peopleID + ", время: " + TimeUnit.MILLISECONDS.toMinutes(currentRecord) + " минут.");
+                                } else {
+                                    currentRecordMap.remove(peopleID);
+                                    sendMessage(messageEntity, "Время для " + peopleID + " = " + TimeUnit.MILLISECONDS.toMinutes(currentRecord) + " минут.");
+                                }
+                            } else {
+                                sendMessage(messageEntity, "Я ещё не начинал считать для  " + peopleID);
+                            }
+                        }
+                    }
+                }
+
+                if (StringUtils.containsIgnoreCase(mes, "Пахом, сколько")) {
+
+                    if (currentRecordMap.size() > 0) {
+                        String message = "Сейчас считаю время для:";
+                        for (Map.Entry<String, Long> records : currentRecordMap.entrySet()) {
+                            message += "\n" + records.getKey() + " - " + TimeUnit.MILLISECONDS.toMinutes(records.getValue()) + " минут";
+                        }
+                        sendMessage(messageEntity, message);
+
+                    } else {
+                        sendMessage(messageEntity, "Сейчас никто не идёт на рекорд");
+                    }
+                }
+
+                if (StringUtils.containsIgnoreCase(mes, "Пахом, отмена ")) {
+                    if (mes.length() > 15) {
+                        final String peopleID = mes.substring(14);
+                        if (!StringUtils.isEmpty(peopleID)) {
+                            if (currentRecordMap.get(peopleID) != null) {
+                                currentRecordMap.remove(peopleID);
+                                sendMessage(messageEntity, "Ok");
+                            } else {
+                                sendMessage(messageEntity, "Нечего отменять");
+                            }
+                        } else {
+                            sendMessage(messageEntity, "Нечего отменять");
+                        }
+                    }
+                }
+
+                if (StringUtils.containsIgnoreCase(mes, "Пахом, рекорды")) {
+
+                    if (recordMap.size() > 0) {
+                        String message = "Рекорды";
+                        for (Record records : recordMap) {
+                            message += "\n" + records.id + " - " + TimeUnit.MILLISECONDS.toMinutes(records.time) + " минут";
+                        }
+                        sendMessage(messageEntity, message);
+
+                    } else {
+                        sendMessage(messageEntity, "Нет рекордов");
+                    }
+                }
+
+
                 if (StringUtils.containsIgnoreCase(mes, "/help")) {
                     sendMessage(messageEntity, "Ооой, я много что умею, ну хочешь я спою?\n" +
                             "Пахом, [любая фраза] - и я попробую ответить\n" +
@@ -281,6 +382,12 @@ public class CommonMessageHandler implements MessageHandler {
                 }
             }
         }
+
+    }
+
+    private synchronized void initRecors() {
+        recordMap.clear();
+        recordMap.addAll(dataHelper.getRecords());
     }
 
     private synchronized void init() {
