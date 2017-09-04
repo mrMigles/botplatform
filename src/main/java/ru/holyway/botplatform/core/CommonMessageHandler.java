@@ -137,10 +137,10 @@ public class CommonMessageHandler implements MessageHandler {
                         final String peopleID = mes.substring(13);
                         if (!StringUtils.isEmpty(peopleID)) {
                             if (currentRecordMap.get(peopleID) != null) {
-                                sendMessage(messageEntity, "Я уже считаю время для " + peopleID);
+                                sendMessage(messageEntity, "Я уже считаю время для: " + peopleID);
                             } else {
                                 currentRecordMap.put(peopleID, System.currentTimeMillis());
-                                sendMessage(messageEntity, "Начал для  " + peopleID);
+                                sendMessage(messageEntity, "Начал считать для:  " + peopleID);
                             }
                         }
                     }
@@ -170,15 +170,16 @@ public class CommonMessageHandler implements MessageHandler {
                                     dataHelper.updateRecords(recordMap);
                                     Collections.sort(recordMap);
                                     sendMessage(messageEntity, "Новый личный рекорд для " + peopleID + ", время: " + TimeUnit.MILLISECONDS.toMinutes(currentRecord) + " минут.");
-                                } else {
-                                    currentRecordMap.remove(peopleID);
-                                    sendMessage(messageEntity, "Время для " + peopleID + " = " + TimeUnit.MILLISECONDS.toMinutes(currentRecord) + " минут.");
                                 }
+                                currentRecordMap.remove(peopleID);
+                                sendMessage(messageEntity, peopleID + " проедржался(ась) " + TimeUnit.MILLISECONDS.toMinutes(currentRecord) + " минут.");
+
                             } else {
                                 sendMessage(messageEntity, "Я ещё не начинал считать для  " + peopleID);
                             }
                         }
                     }
+                    return;
                 }
 
                 if (StringUtils.containsIgnoreCase(mes, "Пахом, сколько")) {
@@ -186,13 +187,14 @@ public class CommonMessageHandler implements MessageHandler {
                     if (currentRecordMap.size() > 0) {
                         String message = "Сейчас считаю время для:";
                         for (Map.Entry<String, Long> records : currentRecordMap.entrySet()) {
-                            message += "\n" + records.getKey() + " - " + TimeUnit.MILLISECONDS.toMinutes(records.getValue()) + " минут";
+                            message += "\n" + records.getKey() + " - " + TimeUnit.MILLISECONDS.toMinutes(System.currentTimeMillis() - records.getValue()) + " минут";
                         }
                         sendMessage(messageEntity, message);
 
                     } else {
                         sendMessage(messageEntity, "Сейчас никто не идёт на рекорд");
                     }
+                    return;
                 }
 
                 if (StringUtils.containsIgnoreCase(mes, "Пахом, отмена ")) {
@@ -209,9 +211,10 @@ public class CommonMessageHandler implements MessageHandler {
                             sendMessage(messageEntity, "Нечего отменять");
                         }
                     }
+                    return;
                 }
 
-                if (StringUtils.containsIgnoreCase(mes, "Пахом, рекорды")) {
+                if (StringUtils.containsIgnoreCase(mes, "Пахом, рекорд")) {
 
                     if (recordMap.size() > 0) {
                         String message = "Рекорды";
@@ -223,6 +226,7 @@ public class CommonMessageHandler implements MessageHandler {
                     } else {
                         sendMessage(messageEntity, "Нет рекордов");
                     }
+                    return;
                 }
 
 
