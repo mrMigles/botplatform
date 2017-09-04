@@ -34,14 +34,11 @@ public class Record implements Comparable<Record> {
 
         Record record = (Record) o;
 
-        if (id != null ? !id.equals(record.id) : record.id != null) return false;
-        return time != null ? time.equals(record.time) : record.time == null;
+        return id != null ? id.equals(record.id) : record.id == null;
     }
 
     @Override
     public int hashCode() {
-        int result = id != null ? id.hashCode() : 0;
-        result = 31 * result + (time != null ? time.hashCode() : 0);
-        return result;
+        return id != null ? id.hashCode() : 0;
     }
 }
