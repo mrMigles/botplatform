@@ -1,10 +1,16 @@
 package ru.holyway.botplatform.core.entity;
 
+import org.springframework.data.annotation.Id;
+
+import java.util.UUID;
+
 /**
  * Created by seiv0814 on 04-09-17.
  */
 public class Record implements Comparable<Record> {
 
+    @Id
+    private String id;
 
     public String name;
 
@@ -12,10 +18,11 @@ public class Record implements Comparable<Record> {
 
     public Long date;
 
-    public Record(String id, Long time, Long date) {
-        this.name = id;
+    public Record(String name, Long time, Long date) {
+        this.name = name;
         this.time = time;
         this.date = date;
+        this.id = UUID.randomUUID().toString();
     }
 
 
