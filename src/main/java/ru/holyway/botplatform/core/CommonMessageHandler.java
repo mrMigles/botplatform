@@ -237,7 +237,7 @@ public class CommonMessageHandler implements MessageHandler {
                                     message += "\n" + records.name + "\t - " + (records.date != null ? new Date(records.date).toString() : "давным давно") + "\t - " + TimeUnit.MILLISECONDS.toMinutes(records.time) + " минут";
                                     sum += records.time;
                                 }
-                                message += "\n\nОбщее время: " + TimeUnit.MILLISECONDS.toMinutes(sum);
+                                message += "\n\nОбщее время: " + TimeUnit.MILLISECONDS.toMinutes(sum) + " минут.";
                                 sendMessage(messageEntity, message);
                             } else {
                                 sendMessage(messageEntity, "Этот ещё салага, у него всё впереди");
