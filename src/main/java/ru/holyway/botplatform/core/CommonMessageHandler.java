@@ -225,6 +225,23 @@ public class CommonMessageHandler implements MessageHandler {
                     return;
                 }
 
+                if (StringUtils.containsIgnoreCase(mes, "Пахом, статистика")) {
+
+                    if (recordsList.size() > 0) {
+                        String message = "Статистика: ";
+                        List<Record> statisticsList = new ArrayList<>(recordsList);
+                        statisticsList.sort(new ComparatorByTime());
+                        for (Record records : statisticsList) {
+                            message += "\n" + records.name + "\t - " + (records.date != null ? new Date(records.date).toString() : "давным давно") + "\t - " + TimeUnit.MILLISECONDS.toMinutes(records.time) + " минут";
+                        }
+                        sendMessage(messageEntity, message);
+
+                    } else {
+                        sendMessage(messageEntity, "Нет рекордов");
+                    }
+                    return;
+                }
+
                 if (StringUtils.containsIgnoreCase(mes, "Пахом, статистика ")) {
                     if (mes.length() > 19) {
                         final String peopleID = mes.substring(18);
