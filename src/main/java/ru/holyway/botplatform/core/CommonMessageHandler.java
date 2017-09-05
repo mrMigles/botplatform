@@ -224,24 +224,6 @@ public class CommonMessageHandler implements MessageHandler {
                     }
                     return;
                 }
-
-                if (StringUtils.containsIgnoreCase(mes, "Пахом, статистика")) {
-
-                    if (recordsList.size() > 0) {
-                        String message = "Статистика: ";
-                        List<Record> statisticsList = new ArrayList<>(recordsList);
-                        statisticsList.sort(new ComparatorByTime());
-                        for (Record records : statisticsList) {
-                            message += "\n" + records.name + "\t - " + (records.date != null ? new Date(records.date).toString() : "давным давно") + "\t - " + TimeUnit.MILLISECONDS.toMinutes(records.time) + " минут";
-                        }
-                        sendMessage(messageEntity, message);
-
-                    } else {
-                        sendMessage(messageEntity, "Нет рекордов");
-                    }
-                    return;
-                }
-
                 if (StringUtils.containsIgnoreCase(mes, "Пахом, статистика ")) {
                     if (mes.length() > 19) {
                         final String peopleID = mes.substring(18);
@@ -251,7 +233,7 @@ public class CommonMessageHandler implements MessageHandler {
                                 String message = "Статистика для " + peopleID + ":";
                                 long sum = 0;
                                 for (Record records : recordForName) {
-                                    message += "\n" + records.name + "\t - " + (records.date != null ? new Date(records.date).toString() : "давным давно") + "\t - " + TimeUnit.MILLISECONDS.toMinutes(records.time) + " минут";
+                                    message += "\n" + (records.date != null ? new Date(records.date).toString() : "давным давно") + "\t - " + TimeUnit.MILLISECONDS.toMinutes(records.time) + " минут";
                                     sum += records.time;
                                 }
                                 message += "\n\nОбщее время: " + TimeUnit.MILLISECONDS.toMinutes(sum) + " минут.";
@@ -266,6 +248,22 @@ public class CommonMessageHandler implements MessageHandler {
                     return;
                 }
 
+                if (StringUtils.containsIgnoreCase(mes, "Пахом, статистика")) {
+
+                    if (recordsList.size() > 0) {
+                        String message = "Статистика: ";
+                        List<Record> statisticsList = new ArrayList<>(recordsList);
+                        statisticsList.sort(new ComparatorByTime());
+                        for (Record records : statisticsList) {
+                            message += "\n" + (records.date != null ? new Date(records.date).toString() : "давным давно") + "\t - " + records.name + "\t - " + TimeUnit.MILLISECONDS.toMinutes(records.time) + " минут";
+                        }
+                        sendMessage(messageEntity, message);
+
+                    } else {
+                        sendMessage(messageEntity, "Нет рекордов");
+                    }
+                    return;
+                }
 
                 if (StringUtils.containsIgnoreCase(mes, "/help")) {
                     sendMessage(messageEntity, "Ооой, я много что умею, ну хочешь я спою?\n" +
