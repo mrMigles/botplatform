@@ -12,9 +12,12 @@ public class Record implements Comparable<Record> {
 
     public Long time;
 
-    public Record(String id, Long time) {
+    public Long date;
+
+    public Record(String id, Long time, Long date) {
         this.id = id;
         this.time = time;
+        this.date = date;
     }
 
 
