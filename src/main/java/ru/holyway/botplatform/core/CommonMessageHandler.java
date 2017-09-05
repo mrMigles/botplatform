@@ -215,7 +215,7 @@ public class CommonMessageHandler implements MessageHandler {
                     if (recordsList.size() > 0) {
                         String message = "Рекорды: ";
                         for (Record records : getRecordsAll()) {
-                            message += "\n" + records.id + "\t - " + (records.date != null ? new Date(records.date).toString() : "давным давно") + "\t - " + TimeUnit.MILLISECONDS.toMinutes(records.time) + " минут";
+                            message += "\n" + records.name + "\t - " + (records.date != null ? new Date(records.date).toString() : "давным давно") + "\t - " + TimeUnit.MILLISECONDS.toMinutes(records.time) + " минут";
                         }
                         sendMessage(messageEntity, message);
 
@@ -233,8 +233,8 @@ public class CommonMessageHandler implements MessageHandler {
                             if (!recordForName.isEmpty()) {
                                 String message = "Статистика для " + peopleID + ":";
                                 long sum = 0;
-                                for (Record records : getRecordsAll()) {
-                                    message += "\n" + records.id + "\t - " + (records.date != null ? new Date(records.date).toString() : "давным давно") + "\t - " + TimeUnit.MILLISECONDS.toMinutes(records.time) + " минут";
+                                for (Record records : recordForName) {
+                                    message += "\n" + records.name + "\t - " + (records.date != null ? new Date(records.date).toString() : "давным давно") + "\t - " + TimeUnit.MILLISECONDS.toMinutes(records.time) + " минут";
                                     sum += records.time;
                                 }
                                 message += "\n\nОбщее время: " + TimeUnit.MILLISECONDS.toMinutes(sum);
@@ -474,12 +474,12 @@ public class CommonMessageHandler implements MessageHandler {
     private List<Record> getRecordsAll() {
         Map<String, Record> recordsMap = new HashMap<>();
         for (Record record : recordsList) {
-            if (recordsMap.get(record.id) != null) {
-                if (record.time > recordsMap.get(record.id).time) {
-                    recordsMap.put(record.id, record);
+            if (recordsMap.get(record.name) != null) {
+                if (record.time > recordsMap.get(record.name).time) {
+                    recordsMap.put(record.name, record);
                 }
             } else {
-                recordsMap.put(record.id, record);
+                recordsMap.put(record.name, record);
             }
 
         }
@@ -492,7 +492,7 @@ public class CommonMessageHandler implements MessageHandler {
     private List<Record> getRecordForName(final String name) {
         List<Record> recordForName = new ArrayList<>();
         for (Record record : recordsList) {
-            if (record.id.equals(name)) {
+            if (record.name.equals(name)) {
                 recordForName.add(record);
             }
         }

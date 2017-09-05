@@ -67,7 +67,7 @@ public class CommonController {
     }
 
     @RequestMapping(value = "/restart", method = RequestMethod.GET)
-    public ResponseEntity<String> restart(@RequestParam("id") String chatId, @RequestParam("action") String action) throws UnsupportedEncodingException {
+    public ResponseEntity<String> restart(@RequestParam("name") String chatId, @RequestParam("action") String action) throws UnsupportedEncodingException {
         return ResponseEntity.ok("Ok - " + chatId);
     }
 }

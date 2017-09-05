@@ -1,21 +1,19 @@
 package ru.holyway.botplatform.core.entity;
 
-import org.springframework.data.annotation.Id;
-
 /**
  * Created by seiv0814 on 04-09-17.
  */
 public class Record implements Comparable<Record> {
 
-    @Id
-    public String id;
+
+    public String name;
 
     public Long time;
 
     public Long date;
 
     public Record(String id, Long time, Long date) {
-        this.id = id;
+        this.name = id;
         this.time = time;
         this.date = date;
     }
@@ -37,11 +35,11 @@ public class Record implements Comparable<Record> {
 
         Record record = (Record) o;
 
-        return id != null ? id.equals(record.id) : record.id == null;
+        return name != null ? name.equals(record.name) : record.name == null;
     }
 
     @Override
     public int hashCode() {
-        return id != null ? id.hashCode() : 0;
+        return name != null ? name.hashCode() : 0;
     }
 }
