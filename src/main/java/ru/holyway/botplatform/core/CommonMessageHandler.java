@@ -215,7 +215,7 @@ public class CommonMessageHandler implements MessageHandler {
                     if (recordsList.size() > 0) {
                         String message = "Рекорды: ";
                         for (Record records : getRecordsAll()) {
-                            message += "\n" + records.id + " - " + (records.date != null ? new Date(records.date).toString() : "давным давно") + " - " + TimeUnit.MILLISECONDS.toMinutes(records.time) + " минут";
+                            message += "\n" + records.id + "\t - " + (records.date != null ? new Date(records.date).toString() : "давным давно") + "\t - " + TimeUnit.MILLISECONDS.toMinutes(records.time) + " минут";
                         }
                         sendMessage(messageEntity, message);
 
@@ -234,7 +234,7 @@ public class CommonMessageHandler implements MessageHandler {
                                 String message = "Статистика для " + peopleID + ":";
                                 long sum = 0;
                                 for (Record records : getRecordsAll()) {
-                                    message += "\n" + records.id + " - " + (records.date != null ? new Date(records.date).toString() : "давным давно") + " - " + TimeUnit.MILLISECONDS.toMinutes(records.time) + " минут";
+                                    message += "\n" + records.id + "\t - " + (records.date != null ? new Date(records.date).toString() : "давным давно") + "\t - " + TimeUnit.MILLISECONDS.toMinutes(records.time) + " минут";
                                     sum += records.time;
                                 }
                                 message += "\n\nОбщее время: " + TimeUnit.MILLISECONDS.toMinutes(sum);

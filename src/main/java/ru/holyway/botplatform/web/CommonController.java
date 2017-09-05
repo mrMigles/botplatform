@@ -3,10 +3,7 @@ package ru.holyway.botplatform.web;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import ru.holyway.botplatform.web.entities.SimpleRequest;
 import ru.holyway.botplatform.web.entities.SimpleResponse;
@@ -67,5 +64,10 @@ public class CommonController {
         } catch (Exception e) {
             return new ResponseEntity<>(new SimpleResponse("Плохо, очень плохо!", "Плохо, очень плохо!"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    @RequestMapping(value = "/restart", method = RequestMethod.GET)
+    public ResponseEntity<String> restart(@RequestParam("id") String chatId, @RequestParam("action") String action) throws UnsupportedEncodingException {
+        return ResponseEntity.ok("Ok - " + chatId);
     }
 }
