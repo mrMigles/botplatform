@@ -1,10 +1,12 @@
 package ru.holyway.botplatform.web;
 
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
+import ru.holyway.botplatform.skype.SkypeBot;
 import ru.holyway.botplatform.web.entities.SimpleRequest;
 import ru.holyway.botplatform.web.entities.SimpleResponse;
 
@@ -17,6 +19,9 @@ import java.util.Map;
  */
 @RestController
 public class CommonController {
+
+    @Autowired
+    SkypeBot bot;
 
     private String query = "https://ru.wikipedia.org/w/api.php?action=query&prop=extracts&format=json&exintro=&titles=";
 
@@ -68,6 +73,7 @@ public class CommonController {
 
     @RequestMapping(value = "/restart", method = RequestMethod.GET)
     public ResponseEntity<String> restart(@RequestParam("name") String chatId, @RequestParam("action") String action) throws UnsupportedEncodingException {
+        bot.sendMessage(action, chatId);
         return ResponseEntity.ok("Ok - " + chatId);
     }
 }

@@ -7,4 +7,6 @@ public interface Bot {
     void init();
 
     void destroy();
+
+    void sendMessage(String text, String chatId);
 }

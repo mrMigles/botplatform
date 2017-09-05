@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.TelegramBotsApi;
+import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.objects.Message;
 import org.telegram.telegrambots.api.objects.Update;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
@@ -58,4 +59,17 @@ public class TelegramBot extends TelegramLongPollingBot implements Bot {
     public void destroy() {
 
     }
+
+    @Override
+    public void sendMessage(String text, String chatId) {
+        try {
+            SendMessage sendMessage = new SendMessage();
+            sendMessage.setText(text);
+            sendMessage.setChatId(chatId);
+            sendMessage(sendMessage);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 }
