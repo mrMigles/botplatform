@@ -20,10 +20,13 @@ public class SkypeBotSecond implements Bot {
     @Autowired
     private MessageHandler messageHandler;
 
+    private Skype skype;
+
+
     @Override
     public void init() {
         try {
-            Skype skype = new SkypeBuilder("home_smart", "IHateTheSystem777").withAllResources().withExceptionHandler((errorSource, throwable, willShutdown) -> {
+            skype = new SkypeBuilder("home_smart", "IHateTheSystem777").withAllResources().withExceptionHandler((errorSource, throwable, willShutdown) -> {
                 System.out.println("Error: " + errorSource + " " + throwable + " " + willShutdown);
             }).build();
             skype.login();
@@ -34,8 +37,7 @@ public class SkypeBotSecond implements Bot {
                     messageHandler.handleMessage(new SkypeMessageEntity(e));
                 }
             });
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -43,5 +45,14 @@ public class SkypeBotSecond implements Bot {
     @Override
     public void destroy() {
 
+    }
+
+    @Override
+    public void sendMessage(String text, String chatId) {
+        try {
+            skype.getChat(chatId).sendMessage(text);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

@@ -6,7 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
-import ru.holyway.botplatform.skype.SkypeBot;
+import ru.holyway.botplatform.skype.SkypeBotSecond;
 import ru.holyway.botplatform.web.entities.SimpleRequest;
 import ru.holyway.botplatform.web.entities.SimpleResponse;
 
@@ -21,7 +21,7 @@ import java.util.Map;
 public class CommonController {
 
     @Autowired
-    SkypeBot bot;
+    SkypeBotSecond bot;
 
     private String query = "https://ru.wikipedia.org/w/api.php?action=query&prop=extracts&format=json&exintro=&titles=";
 
