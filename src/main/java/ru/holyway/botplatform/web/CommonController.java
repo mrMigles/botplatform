@@ -6,13 +6,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
-import ru.holyway.botplatform.core.Bot;
+import ru.holyway.botplatform.skype.SkypeBotSecond;
 import ru.holyway.botplatform.web.entities.SimpleRequest;
 import ru.holyway.botplatform.web.entities.SimpleResponse;
 
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -22,7 +21,7 @@ import java.util.Map;
 public class CommonController {
 
     @Autowired
-    List<Bot> bots;
+    SkypeBotSecond bot;
 
     private String query = "https://ru.wikipedia.org/w/api.php?action=query&prop=extracts&format=json&exintro=&titles=";
 
@@ -67,14 +66,7 @@ public class CommonController {
 
     @RequestMapping(value = "/server", method = RequestMethod.GET)
     public ResponseEntity<String> restart(@RequestParam("id") String chatId, @RequestParam("message") String message) throws UnsupportedEncodingException {
-        for (Bot bot : bots) {
-            try {
-                bot.sendMessage(message, chatId);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
+        bot.sendMessage(message, chatId);
         return ResponseEntity.ok("Ok - " + chatId);
     }
 }
