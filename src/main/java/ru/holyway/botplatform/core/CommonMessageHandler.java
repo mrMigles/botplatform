@@ -564,7 +564,7 @@ public class CommonMessageHandler implements MessageHandler {
         if (isNeedReply(mesage, chatID)) {
             mesage = mesage.replaceAll("Пахом,", "").replaceAll("пахом,", "");
 
-            if (mesage.contains("что такое ")) {
+            if (StringUtils.containsIgnoreCase(mesage, "что такое")) {
                 try {
                     return getAPIAnswer(mesage);
                 } catch (Exception e) {
