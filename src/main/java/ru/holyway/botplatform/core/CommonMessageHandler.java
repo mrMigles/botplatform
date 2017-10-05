@@ -82,38 +82,33 @@ public class CommonMessageHandler implements MessageHandler {
     }
 
     @Override
-    public void handleMessage(MessageEntity messageEntity) {
+    public String generateAnswer(MessageEntity messageEntity) {
         if (messageEntity != null) {
             String mes = messageEntity.getText();
             String chatId = messageEntity.getChatId();
             System.out.println("Message: " + mes + ", from " + messageEntity.getSender());
             if (StringUtils.containsIgnoreCase(mes, "Пахом, -")) {
                 addToMute(chatId);
-                sendMessage(messageEntity, "Ну.. если хочешь, могу полочать!");
-                return;
+                return "Ну.. если хочешь, могу полочать!";
             }
             if (StringUtils.containsIgnoreCase(mes, "Пахом, +")) {
                 removeFromMute(chatId);
-                sendMessage(messageEntity, "О, братишка, я вернулся!");
-                return;
+                return "О, братишка, я вернулся!";
             }
             if (!settings.getMuteChats().contains(chatId)) {
                 if (StringUtils.containsIgnoreCase(mes, "Пахом, учись")) {
-                    sendMessage(messageEntity, "Приступил к обучению, пожалуйста, аккуратнее с выражениями.");
                     learningChats.add(chatId);
-                    return;
+                    return "Приступил к обучению, пожалуйста, аккуратнее с выражениями.";
                 }
                 if (StringUtils.containsIgnoreCase(mes, "Пахом, отдыхай")) {
                     learningChats.remove(chatId);
-                    sendMessage(messageEntity, "Уф! Пошёл переваривать информацию.");
                     writeNew();
                     init();
-                    return;
+                    return "Уф! Пошёл переваривать информацию.";
                 }
                 if (StringUtils.containsIgnoreCase(mes, "Пахом, забудь")) {
                     if (listCurrentLearning.get(chatId) == null) {
-                        sendMessage(messageEntity, "То, что сказано не было... быть забытым не может!.");
-                        return;
+                        return "То, что сказано не было... быть забытым не может!.";
                     }
                     int currentCount = listCurrentLearning.get(chatId).size();
                     if (mes.length() > 14) {
@@ -124,29 +119,27 @@ public class CommonMessageHandler implements MessageHandler {
                         for (int i = listCurrentLearning.size() - 1; i > currentCount - toDelete; i--) {
                             listCurrentLearning.remove(i);
                         }
-                        sendMessage(messageEntity, "Я ничего не видел, нет... нет.");
+                        return "Я ничего не видел, нет... нет.";
                     } else {
-                        sendMessage(messageEntity, "Не понимаю...");
+                        return "Не понимаю...";
                     }
-                    return;
                 }
                 if (StringUtils.containsIgnoreCase(mes, "Пахом, анализ")) {
-                    sendAnalize(messageEntity);
-                    return;
+                    return sendAnalize(messageEntity);
                 }
                 if (StringUtils.containsIgnoreCase(mes, "Пахом, старт ")) {
                     if (mes.length() > 14) {
                         final String peopleID = mes.substring(13);
                         if (!StringUtils.isEmpty(peopleID)) {
                             if (currentRecordMap.get(peopleID) != null) {
-                                sendMessage(messageEntity, "Я уже считаю время для: " + peopleID);
+                                return "Я уже считаю время для: " + peopleID;
                             } else {
                                 currentRecordMap.put(peopleID, System.currentTimeMillis());
-                                sendMessage(messageEntity, "Начал считать для:  " + peopleID);
+                                return "Начал считать для:  " + peopleID;
                             }
                         }
                     }
-                    return;
+                    return null;
                 }
 
                 if (StringUtils.containsIgnoreCase(mes, "Пахом, стоп ")) {
@@ -160,22 +153,22 @@ public class CommonMessageHandler implements MessageHandler {
                                 recordForName.sort(new ComparatorByValue());
                                 long recordForUser = recordForName.isEmpty() ? 0 : recordForName.get(0).time;
                                 if (currentRecord > maximumRecord) {
-                                    sendMessage(messageEntity, "!!! Новый обший рекорд установил(а) " + peopleID + ", время: " + TimeUnit.MILLISECONDS.toMinutes(currentRecord) + " минут. !!!");
+                                    return "!!! Новый обший рекорд установил(а) " + peopleID + ", время: " + TimeUnit.MILLISECONDS.toMinutes(currentRecord) + " минут. !!!";
                                 } else if (currentRecord > recordForUser) {
-                                    sendMessage(messageEntity, "Новый личный рекорд для " + peopleID + ", время: " + TimeUnit.MILLISECONDS.toMinutes(currentRecord) + " минут.");
+                                    return "Новый личный рекорд для " + peopleID + ", время: " + TimeUnit.MILLISECONDS.toMinutes(currentRecord) + " минут.";
                                 }
                                 recordsList.add(new Record(peopleID, currentRecord, System.currentTimeMillis()));
                                 dataHelper.updateRecords(recordsList);
                                 currentRecordMap.remove(peopleID);
                                 Collections.sort(recordsList);
-                                sendMessage(messageEntity, peopleID + " проедржался(ась) " + TimeUnit.MILLISECONDS.toMinutes(currentRecord) + " минут.");
+                                return peopleID + " проедржался(ась) " + TimeUnit.MILLISECONDS.toMinutes(currentRecord) + " минут.";
 
                             } else {
-                                sendMessage(messageEntity, "Я ещё не начинал считать для  " + peopleID);
+                                return "Я ещё не начинал считать для  " + peopleID;
                             }
                         }
                     }
-                    return;
+                    return null;
                 }
 
                 if (StringUtils.containsIgnoreCase(mes, "Пахом, сколько")) {
@@ -185,12 +178,11 @@ public class CommonMessageHandler implements MessageHandler {
                         for (Map.Entry<String, Long> records : currentRecordMap.entrySet()) {
                             message += "\n" + records.getKey() + " - " + TimeUnit.MILLISECONDS.toMinutes(System.currentTimeMillis() - records.getValue()) + " минут";
                         }
-                        sendMessage(messageEntity, message);
+                        return message;
 
                     } else {
-                        sendMessage(messageEntity, "Сейчас никто не идёт на рекорд");
+                        return "Сейчас никто не идёт на рекорд";
                     }
-                    return;
                 }
 
                 if (StringUtils.containsIgnoreCase(mes, "Пахом, отмена ")) {
@@ -199,15 +191,15 @@ public class CommonMessageHandler implements MessageHandler {
                         if (!StringUtils.isEmpty(peopleID)) {
                             if (currentRecordMap.get(peopleID) != null) {
                                 currentRecordMap.remove(peopleID);
-                                sendMessage(messageEntity, "Ok");
+                                return "Ok";
                             } else {
-                                sendMessage(messageEntity, "Нечего отменять");
+                                return "Нечего отменять";
                             }
                         } else {
-                            sendMessage(messageEntity, "Нечего отменять");
+                            return "Нечего отменять";
                         }
                     }
-                    return;
+                    return null;
                 }
 
                 if (StringUtils.containsIgnoreCase(mes, "Пахом, рекорд")) {
@@ -217,12 +209,11 @@ public class CommonMessageHandler implements MessageHandler {
                         for (Record records : getRecordsAll()) {
                             message += "\n" + records.name + "\t - " + (records.date != null ? new Date(records.date).toString() : "давным давно") + "\t - " + TimeUnit.MILLISECONDS.toMinutes(records.time) + " минут";
                         }
-                        sendMessage(messageEntity, message);
+                        return message;
 
                     } else {
-                        sendMessage(messageEntity, "Нет рекордов");
+                        return "Нет рекордов";
                     }
-                    return;
                 }
                 if (StringUtils.containsIgnoreCase(mes, "Пахом, статистика ")) {
                     if (mes.length() > 19) {
@@ -237,15 +228,15 @@ public class CommonMessageHandler implements MessageHandler {
                                     sum += records.time;
                                 }
                                 message += "\n\nОбщее время: " + TimeUnit.MILLISECONDS.toMinutes(sum) + " минут.";
-                                sendMessage(messageEntity, message);
+                                return message;
                             } else {
-                                sendMessage(messageEntity, "Этот ещё салага, у него всё впереди");
+                                return "Этот ещё салага, у него всё впереди";
                             }
                         } else {
-                            sendMessage(messageEntity, "Пустота была всегда... ещё до даоса.");
+                            return "Пустота была всегда... ещё до даоса.";
                         }
                     }
-                    return;
+                    return null;
                 }
 
                 if (StringUtils.containsIgnoreCase(mes, "Пахом, статистика")) {
@@ -257,16 +248,15 @@ public class CommonMessageHandler implements MessageHandler {
                         for (Record records : statisticsList) {
                             message += "\n" + (records.date != null ? new Date(records.date).toString() : "давным давно") + "\t - " + records.name + "\t - " + TimeUnit.MILLISECONDS.toMinutes(records.time) + " минут";
                         }
-                        sendMessage(messageEntity, message);
+                        return message;
 
                     } else {
-                        sendMessage(messageEntity, "Нет рекордов");
+                        return "Нет рекордов";
                     }
-                    return;
                 }
 
                 if (StringUtils.containsIgnoreCase(mes, "/help")) {
-                    sendMessage(messageEntity, "Ооой, я много что умею, ну хочешь я спою?\n" +
+                    return "Ооой, я много что умею, ну хочешь я спою?\n" +
                             "Пахом, [любая фраза] - и я попробую ответить\n" +
                             "Пахом, учись - включить режим обучения\n" +
                             "Пахом, отдыхай - выключить режим обучения и запомнить фразы\n" +
@@ -279,8 +269,7 @@ public class CommonMessageHandler implements MessageHandler {
                             "Пахом, [0-100]% - установить вероятность случайного ответа в значение []\n" +
                             "Пахом, процент - показать процент ответа для данного чата\n" +
                             "Пахом, ид - показать ID данного чата\n" +
-                            "Пахом, миграция ID-чата - миграция обучения из определенного чата\n");
-                    return;
+                            "Пахом, миграция ID-чата - миграция обучения из определенного чата\n";
                 }
                 if (learningChats.contains(chatId) && !StringUtils.containsIgnoreCase(mes, "Пахом,")) {
                     for (String chatWithSync : dataHelper.getSettings().getSyncForChat(chatId)) {
@@ -291,7 +280,7 @@ public class CommonMessageHandler implements MessageHandler {
                         current.add(mes);
                         listCurrentLearning.put(chatWithSync, current);
                     }
-                    return;
+                    return null;
                 }
                 if (StringUtils.containsIgnoreCase(mes, "Пахом,") && mes.endsWith("%")) {
                     try {
@@ -303,24 +292,21 @@ public class CommonMessageHandler implements MessageHandler {
                             if (ansPer >= 0 && ansPer <= 100) {
                                 settings.setProximityAnswer(chatId, ansPer);
                                 dataHelper.updateSettings();
-                                sendMessage(messageEntity, "ок");
-                                return;
+                                return "ок";
                             }
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-                    sendMessage(messageEntity, "Тебя разве не учили в 6м училище, что такое проценты?");
+                    return "Тебя разве не учили в 6м училище, что такое проценты?";
 
                 }
                 if (StringUtils.containsIgnoreCase(mes, "готов") || StringUtils.containsIgnoreCase(mes, "сделал") || StringUtils.containsIgnoreCase(mes, "купил")) {
-                    sendMessage(messageEntity, "о, уважаю, братишка!");
-                    return;
+                    return "о, уважаю, братишка!";
                 }
                 if (StringUtils.containsIgnoreCase(mes, "Пахом, процент")) {
                     int percent = settings.getAnswerProximity().get(chatId) == null ? 15 : settings.getAnswerProximity().get(chatId);
-                    sendMessage(messageEntity, percent + "%");
-                    return;
+                    return percent + "%";
                 }
                 if (StringUtils.containsIgnoreCase(mes, "Пахом, миграция ")) {
                     if (mes.length() > 17) {
@@ -335,72 +321,58 @@ public class CommonMessageHandler implements MessageHandler {
                             listCurrentLearning.put(chatId, curDictionary);
                             writeNew();
                             init();
-                            sendMessage(messageEntity, "Готово, братишка");
-                            return;
+                            return "Готово, братишка";
                         }
                     }
-                    sendMessage(messageEntity, "Чет не понял");
-                    return;
+                    return "Чет не понял";
                 }
                 if (StringUtils.containsIgnoreCase(mes, "Пахом, синхронизация ")) {
                     try {
 
                         if (mes.length() > 22) {
                             final String migChatId = mes.substring(21);
+
                             if (dataHelper.getSettings().syncChat(chatId, migChatId)) {
-                                sendMessage(messageEntity, "Синхроинзация установлена");
+                                dataHelper.updateSettings();
+                                return "Синхроинзация установлена";
                             } else {
-                                sendMessage(messageEntity, "Запрос на синхронизацию получен, повторите команду на стороне чата " + migChatId);
+                                dataHelper.updateSettings();
+                                return "Запрос на синхронизацию получен, повторите команду на стороне чата " + migChatId;
                             }
-                            dataHelper.updateSettings();
-                            return;
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-                    sendMessage(messageEntity, "Чет не понял");
-                    return;
+                    return "Чет не понял";
                 }
                 if (StringUtils.containsIgnoreCase(mes, "Пахом, ид") || StringUtils.containsIgnoreCase(mes, "Пахом, что это за чат?")) {
-                    sendMessage(messageEntity, chatId);
-                    return;
+                    return chatId;
                 }
                 if (StringUtils.containsIgnoreCase(mes, "Пахом, умный")) {
                     addToEazy(chatId);
-                    sendMessage(messageEntity, "Могу рассказать что нибудь");
-                    return;
+                    return "Могу рассказать что нибудь";
                 }
                 if (StringUtils.containsIgnoreCase(mes, "Пахом, глупый")) {
                     removeFromEazy(chatId);
-                    sendMessage(messageEntity, "Режим собеседника активирован, братишка.");
-                    return;
+                    return "Режим собеседника активирован, братишка.";
                 }
                 if (mes.equalsIgnoreCase("пахом")) {
-                    sendMessage(messageEntity, "Что.. что, что случилося то?");
-                    return;
+                    return "Что.. что, что случилося то?";
                 }
 
 
                 if (StringUtils.containsIgnoreCase(mes, "Пахом, как дела") || StringUtils.containsIgnoreCase(mes, "Пахом, Как дела") || StringUtils.containsIgnoreCase(mes, "Пахом, как сам")) {
-                    sendMessage(messageEntity, "да как земля");
-                    return;
+                    return "да как земля";
                 }
 
                 if (StringUtils.containsIgnoreCase(mes, "Привет") || StringUtils.containsIgnoreCase(mes, "Хай") || StringUtils.containsIgnoreCase(mes, "привет")) {
-                    sendMessage(messageEntity, "Здрасти, Дравсвуйте!");
-                    return;
+                    return "Здрасти, Дравсвуйте!";
                 }
                 if (StringUtils.containsIgnoreCase(mes, "скучн") || StringUtils.containsIgnoreCase(mes, "он умеет")) {
-                    sendMessage(messageEntity, "Хочешь я на одной ноге постою, Как цапля, хочешь?");
-                    return;
+                    return "Хочешь я на одной ноге постою, Как цапля, хочешь?";
                 }
                 if (StringUtils.containsIgnoreCase(mes, "цапл") || StringUtils.containsIgnoreCase(mes, "чайк")) {
-                    sendMessage(messageEntity, "курлык-курлык!");
-                    return;
-                }
-                if (mes.equals("а?") || mes.equals("а")) {
-                    sendMessage(messageEntity, "Не-а, блеать!");
-                    return;
+                    return "курлык-курлык!";
                 }
                 if (isJock(messageEntity)) {
                     if (TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - lastStamp) < 10) {
@@ -408,20 +380,26 @@ public class CommonMessageHandler implements MessageHandler {
                         lastStamp = 0;
                     }
                     if (new Random().nextInt(100) > 85) {
-                        sendMessage(messageEntity, "\uD83D\uDE04");
                         lastStamp = 0;
-                        return;
+                        return "\uD83D\uDE04";
                     }
                     lastStamp = 0;
-                    return;
                 }
                 String rnd = generateZSAnswer(mes, chatId);
                 if (StringUtils.isNotBlank(rnd)) {
-                    sendMessage(messageEntity, rnd);
+                    return rnd;
                 }
             }
         }
+        return null;
+    }
 
+    @Override
+    public void handleMessage(MessageEntity messageEntity) {
+        final String answer = generateAnswer(messageEntity);
+        if (!StringUtils.isEmpty(answer)) {
+            sendMessage(messageEntity, answer);
+        }
     }
 
     private synchronized void initRecors() {
@@ -525,9 +503,9 @@ public class CommonMessageHandler implements MessageHandler {
         }
     }
 
-    private void sendAnalize(MessageEntity message) {
+    private String sendAnalize(MessageEntity message) {
         final String text = "Анализ использования:\nОтправлено сообщений: " + count + "\nУдачных шуток: " + goodCount + "\nШуток про Дениса: " + denisCount + "\nСамый поехавший: я";
-        sendMessage(message, text);
+        return text;
     }
 
     private List<String> getTokenizedMessage(String message) {

@@ -14,6 +14,9 @@ credential:
   skype:
     login: ${SKYPE_USER_NAME}
     password: ${SKYPE_PASSWORD}
+  skype2:
+    login: ${SKYPE2_USER_NAME}
+    password: ${SKYPE2_PASSWORD}
   telegram:
     login: ${TELEGRAM_BOT_NAME}
     token: ${TELEGRAM_BOT_TOKEN}

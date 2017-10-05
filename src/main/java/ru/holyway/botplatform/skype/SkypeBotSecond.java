@@ -7,6 +7,7 @@ import com.samczsun.skype4j.events.Listener;
 import com.samczsun.skype4j.events.chat.message.MessageReceivedEvent;
 import com.samczsun.skype4j.exceptions.ConnectionException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import ru.holyway.botplatform.core.Bot;
 import ru.holyway.botplatform.core.MessageHandler;
@@ -20,13 +21,20 @@ public class SkypeBotSecond implements Bot {
     @Autowired
     private MessageHandler messageHandler;
 
+    @Value("${credential.skype2.login}")
+    private String login;
+
+    @Value("${credential.skype2.password}")
+    private String password;
+
+
     private Skype skype;
 
 
     @Override
     public void init() {
         try {
-            skype = new SkypeBuilder("home_smart", "IHateTheSystem777").withAllResources().withExceptionHandler((errorSource, throwable, willShutdown) -> {
+            skype = new SkypeBuilder(login, password).withAllResources().withExceptionHandler((errorSource, throwable, willShutdown) -> {
                 System.out.println("Error: " + errorSource + " " + throwable + " " + willShutdown);
             }).build();
             skype.login();
