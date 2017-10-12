@@ -6,6 +6,7 @@ import ai.api.model.AIRequest;
 import ai.api.model.AIResponse;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import ru.holyway.botplatform.core.MessageEntity;
 
@@ -15,6 +16,7 @@ import javax.annotation.PostConstruct;
  * Created by seiv0814 on 10-10-17.
  */
 @Component
+@Order(6)
 public class WikiHandler implements MessageHandler {
 
     private AIConfiguration configuration;

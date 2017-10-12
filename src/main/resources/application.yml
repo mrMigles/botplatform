@@ -1,29 +1,29 @@
 server:
     address: 0.0.0.0
-    port: ${PORT}
+    port: ${PORT:8080}
 spring:
   data:
     mongodb:
-      database: ${DATABASE}
-      password: ${PASSWORD}
-      host: ${MONGO_HOST}
-      port: ${MONGO_PORT}
-      username: ${USERNAME}
+      database: ${DATABASE:localhost}
+      password: ${PASSWORD:password}
+      host: ${MONGO_HOST:localhost}
+      port: ${MONGO_PORT:8050}
+      username: ${USERNAME:test}
 credential:
   skype:
-    login: ${SKYPE_USER_NAME}
-    password: ${SKYPE_PASSWORD}
+    login: ${SKYPE_USER_NAME:}
+    password: ${SKYPE_PASSWORD:}
   skype2:
-    login: ${SKYPE2_USER_NAME}
-    password: ${SKYPE2_PASSWORD}
+    login: ${SKYPE2_USER_NAME:}
+    password: ${SKYPE2_PASSWORD:}
   telegram:
-    login: ${TELEGRAM_BOT_NAME}
-    token: ${TELEGRAM_BOT_TOKEN}
+    login: ${TELEGRAM_BOT_NAME:}
+    token: ${TELEGRAM_BOT_TOKEN:}
   ai:
-    token: ${AI_TOKEN}
+    token: ${AI_TOKEN:token}
 bot:
   config:
-    datatype: ${DATATYPE}
-    silentPeriod: ${SILENTPERIOD}
+    datatype: ${DATATYPE:mongo}
+    silentPeriod: ${SILENTPERIOD:10}
 banner:
   charset:

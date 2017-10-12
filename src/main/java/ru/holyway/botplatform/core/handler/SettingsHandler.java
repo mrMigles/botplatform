@@ -1,6 +1,7 @@
 package ru.holyway.botplatform.core.handler;
 
 import org.apache.commons.lang.StringUtils;
+import org.springframework.core.annotation.Order;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.holyway.botplatform.core.MessageEntity;
@@ -15,6 +16,7 @@ import java.util.regex.Pattern;
  * Created by seiv0814 on 10-10-17.
  */
 @Component
+@Order(4)
 public class SettingsHandler implements MessageHandler {
 
     @Autowired
