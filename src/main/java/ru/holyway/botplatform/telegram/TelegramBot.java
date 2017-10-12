@@ -1,16 +1,17 @@
 package ru.holyway.botplatform.telegram;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.TelegramApiException;
 import org.telegram.telegrambots.TelegramBotsApi;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.objects.Message;
 import org.telegram.telegrambots.api.objects.Update;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
-import org.telegram.telegrambots.exceptions.TelegramApiException;
 import ru.holyway.botplatform.core.Bot;
-import ru.holyway.botplatform.core.MessageHandler;
+import ru.holyway.botplatform.core.CommonHandler;
 
 /**
  * Created by Sergey on 1/17/2017.
@@ -25,13 +26,14 @@ public class TelegramBot extends TelegramLongPollingBot implements Bot {
     private String botToken;
 
     @Autowired
-    private MessageHandler messageHandler;
+    private CommonHandler commonHandler;
+
 
     @Override
     public void onUpdateReceived(Update update) {
         Message message = update.getMessage();
         if (message != null) {
-            messageHandler.handleMessage(new TelegramMessageEntity(message, this));
+            commonHandler.handleMessage(new TelegramMessageEntity(message, this));
         }
     }
 
@@ -47,11 +49,14 @@ public class TelegramBot extends TelegramLongPollingBot implements Bot {
 
     @Override
     public void init() {
-        TelegramBotsApi telegramBotsApi = new TelegramBotsApi();
-        try {
-            telegramBotsApi.registerBot(this);
-        } catch (TelegramApiException e) {
-            e.printStackTrace();
+        //ApiContextInitializer.init();
+        if (StringUtils.isNotEmpty(botName) && StringUtils.isNotEmpty(botToken)) {
+            TelegramBotsApi telegramBotsApi = new TelegramBotsApi();
+            try {
+                telegramBotsApi.registerBot(this);
+            } catch (TelegramApiException e) {
+                e.printStackTrace();
+            }
         }
     }
 

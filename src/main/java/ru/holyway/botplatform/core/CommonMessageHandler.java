@@ -1,84 +1,54 @@
 package ru.holyway.botplatform.core;
 
-import ai.api.AIConfiguration;
-import ai.api.AIDataService;
-import ai.api.model.AIRequest;
-import ai.api.model.AIResponse;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import ru.holyway.botplatform.config.JobInitializer;
 import ru.holyway.botplatform.core.data.DataHelper;
-import ru.holyway.botplatform.core.entity.ComparatorByTime;
-import ru.holyway.botplatform.core.entity.ComparatorByValue;
 import ru.holyway.botplatform.core.entity.JSettings;
-import ru.holyway.botplatform.core.entity.Record;
+import ru.holyway.botplatform.core.handler.MessageHandler;
 
 import javax.annotation.PostConstruct;
-import java.security.SecureRandom;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import java.util.List;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Created by Sergey on 1/17/2017.
  */
-public class CommonMessageHandler implements MessageHandler {
-    private boolean flag = true;
-
-    private ConcurrentMap<String, List<List<String>>> learningTokenizedDictionary = new ConcurrentHashMap<>();
-
-    private ConcurrentMap<String, List<String>> learningDictionary = new ConcurrentHashMap<>();
-
-    private List<List<String>> simpleDictionary = new ArrayList<>();
-    private List<String> list2Easy = new ArrayList<>();
-
-    private Set<String> learningChats = new HashSet<>();
-    private ConcurrentMap<String, List<String>> listCurrentLearning = new ConcurrentHashMap<>();
-
-
-    private List<Record> recordsList = new ArrayList<>();
-
-    private Map<String, Long> currentRecordMap = new ConcurrentHashMap<>();
+public class CommonMessageHandler implements CommonHandler {
 
     private int count = 0;
     private int goodCount = 0;
     private long lastStamp = 0;
     private int denisCount = 0;
 
-    private Map<String, Integer> dictionarySize = new HashMap<>();
-    private AIConfiguration configuration;
-
-    private AIDataService dataService;
-
     private JSettings settings;
 
     @Autowired
     private DataHelper dataHelper;
 
+    @Autowired
+    private List<MessageHandler> messageHandlers;
+
+    @Value("${bot.config.silentPeriod}")
+    private String silentPeriodString;
+
     private long srartTime = 0;
     private long silentPeriod = TimeUnit.SECONDS.toMillis(60);
 
-    @Value("${credential.ai.token}")
-    private String apiAiToken;
-
 
     public CommonMessageHandler() {
-
 
     }
 
     @PostConstruct
     public void postConstruct() {
-        init();
-        initRecors();
-        configuration = new AIConfiguration(apiAiToken);
-        dataService = new AIDataService(configuration);
         settings = dataHelper.getSettings();
         srartTime = System.currentTimeMillis();
+        if (StringUtils.isNotEmpty(silentPeriodString)){
+            silentPeriod = TimeUnit.SECONDS.toMillis(Long.parseLong(silentPeriodString));
+        }
     }
 
     @Override
@@ -87,293 +57,13 @@ public class CommonMessageHandler implements MessageHandler {
             String mes = messageEntity.getText();
             String chatId = messageEntity.getChatId();
             System.out.println("Message: " + mes + ", from " + messageEntity.getSender());
-            if (StringUtils.containsIgnoreCase(mes, "Пахом, -")) {
-                addToMute(chatId);
-                return "Ну.. если хочешь, могу полочать!";
-            }
-            if (StringUtils.containsIgnoreCase(mes, "Пахом, +")) {
-                removeFromMute(chatId);
-                return "О, братишка, я вернулся!";
-            }
+
             if (!settings.getMuteChats().contains(chatId)) {
-                if (StringUtils.containsIgnoreCase(mes, "Пахом, учись")) {
-                    learningChats.add(chatId);
-                    return "Приступил к обучению, пожалуйста, аккуратнее с выражениями.";
-                }
-                if (StringUtils.containsIgnoreCase(mes, "Пахом, отдыхай")) {
-                    learningChats.remove(chatId);
-                    writeNew();
-                    init();
-                    return "Уф! Пошёл переваривать информацию.";
-                }
-                if (StringUtils.containsIgnoreCase(mes, "Пахом, забудь")) {
-                    if (listCurrentLearning.get(chatId) == null) {
-                        return "То, что сказано не было... быть забытым не может!.";
-                    }
-                    int currentCount = listCurrentLearning.get(chatId).size();
-                    if (mes.length() > 14) {
-                        int toDelete = Integer.parseInt(mes.substring(14, 15));
-                        if (currentCount - learningDictionary.get(chatId).size() < toDelete) {
-                            toDelete = currentCount - dictionarySize.get(chatId);
-                        }
-                        for (int i = listCurrentLearning.size() - 1; i > currentCount - toDelete; i--) {
-                            listCurrentLearning.remove(i);
-                        }
-                        return "Я ничего не видел, нет... нет.";
-                    } else {
-                        return "Не понимаю...";
-                    }
-                }
+
                 if (StringUtils.containsIgnoreCase(mes, "Пахом, анализ")) {
                     return sendAnalize(messageEntity);
                 }
-                if (StringUtils.containsIgnoreCase(mes, "Пахом, старт ")) {
-                    if (mes.length() > 14) {
-                        final String peopleID = mes.substring(13);
-                        if (!StringUtils.isEmpty(peopleID)) {
-                            if (currentRecordMap.get(peopleID) != null) {
-                                return "Я уже считаю время для: " + peopleID;
-                            } else {
-                                currentRecordMap.put(peopleID, System.currentTimeMillis());
-                                return "Начал считать для:  " + peopleID;
-                            }
-                        }
-                    }
-                    return null;
-                }
 
-                if (StringUtils.containsIgnoreCase(mes, "Пахом, стоп ")) {
-                    if (mes.length() > 13) {
-                        final String peopleID = mes.substring(12);
-                        if (!StringUtils.isEmpty(peopleID)) {
-                            if (currentRecordMap.get(peopleID) != null) {
-                                long currentRecord = System.currentTimeMillis() - currentRecordMap.get(peopleID);
-                                long maximumRecord = recordsList.isEmpty() ? 0 : recordsList.get(0).time;
-                                List<Record> recordForName = getRecordForName(peopleID);
-                                recordForName.sort(new ComparatorByValue());
-                                long recordForUser = recordForName.isEmpty() ? 0 : recordForName.get(0).time;
-                                if (currentRecord > maximumRecord) {
-                                    return "!!! Новый обший рекорд установил(а) " + peopleID + ", время: " + TimeUnit.MILLISECONDS.toMinutes(currentRecord) + " минут. !!!";
-                                } else if (currentRecord > recordForUser) {
-                                    return "Новый личный рекорд для " + peopleID + ", время: " + TimeUnit.MILLISECONDS.toMinutes(currentRecord) + " минут.";
-                                }
-                                recordsList.add(new Record(peopleID, currentRecord, System.currentTimeMillis()));
-                                dataHelper.updateRecords(recordsList);
-                                currentRecordMap.remove(peopleID);
-                                Collections.sort(recordsList);
-                                return peopleID + " проедржался(ась) " + TimeUnit.MILLISECONDS.toMinutes(currentRecord) + " минут.";
-
-                            } else {
-                                return "Я ещё не начинал считать для  " + peopleID;
-                            }
-                        }
-                    }
-                    return null;
-                }
-
-                if (StringUtils.containsIgnoreCase(mes, "Пахом, сколько")) {
-
-                    if (currentRecordMap.size() > 0) {
-                        String message = "Сейчас считаю время для:";
-                        for (Map.Entry<String, Long> records : currentRecordMap.entrySet()) {
-                            message += "\n" + records.getKey() + " - " + TimeUnit.MILLISECONDS.toMinutes(System.currentTimeMillis() - records.getValue()) + " минут";
-                        }
-                        return message;
-
-                    } else {
-                        return "Сейчас никто не идёт на рекорд";
-                    }
-                }
-
-                if (StringUtils.containsIgnoreCase(mes, "Пахом, отмена ")) {
-                    if (mes.length() > 15) {
-                        final String peopleID = mes.substring(14);
-                        if (!StringUtils.isEmpty(peopleID)) {
-                            if (currentRecordMap.get(peopleID) != null) {
-                                currentRecordMap.remove(peopleID);
-                                return "Ok";
-                            } else {
-                                return "Нечего отменять";
-                            }
-                        } else {
-                            return "Нечего отменять";
-                        }
-                    }
-                    return null;
-                }
-
-                if (StringUtils.containsIgnoreCase(mes, "Пахом, рекорд")) {
-
-                    if (recordsList.size() > 0) {
-                        String message = "Рекорды: ";
-                        for (Record records : getRecordsAll()) {
-                            message += "\n" + records.name + "\t - " + (records.date != null ? new Date(records.date).toString() : "давным давно") + "\t - " + TimeUnit.MILLISECONDS.toMinutes(records.time) + " минут";
-                        }
-                        return message;
-
-                    } else {
-                        return "Нет рекордов";
-                    }
-                }
-                if (StringUtils.containsIgnoreCase(mes, "Пахом, статистика ")) {
-                    if (mes.length() > 19) {
-                        final String peopleID = mes.substring(18);
-                        if (!StringUtils.isEmpty(peopleID)) {
-                            List<Record> recordForName = getRecordForName(peopleID);
-                            if (!recordForName.isEmpty()) {
-                                String message = "Статистика для " + peopleID + ":";
-                                long sum = 0;
-                                for (Record records : recordForName) {
-                                    message += "\n" + (records.date != null ? new Date(records.date).toString() : "давным давно") + "\t - " + TimeUnit.MILLISECONDS.toMinutes(records.time) + " минут";
-                                    sum += records.time;
-                                }
-                                message += "\n\nОбщее время: " + TimeUnit.MILLISECONDS.toMinutes(sum) + " минут.";
-                                return message;
-                            } else {
-                                return "Этот ещё салага, у него всё впереди";
-                            }
-                        } else {
-                            return "Пустота была всегда... ещё до даоса.";
-                        }
-                    }
-                    return null;
-                }
-
-                if (StringUtils.containsIgnoreCase(mes, "Пахом, статистика")) {
-
-                    if (recordsList.size() > 0) {
-                        String message = "Статистика: ";
-                        List<Record> statisticsList = new ArrayList<>(recordsList);
-                        statisticsList.sort(new ComparatorByTime());
-                        for (Record records : statisticsList) {
-                            message += "\n" + (records.date != null ? new Date(records.date).toString() : "давным давно") + "\t - " + records.name + "\t - " + TimeUnit.MILLISECONDS.toMinutes(records.time) + " минут";
-                        }
-                        return message;
-
-                    } else {
-                        return "Нет рекордов";
-                    }
-                }
-
-                if (StringUtils.containsIgnoreCase(mes, "/help")) {
-                    return "Ооой, я много что умею, ну хочешь я спою?\n" +
-                            "Пахом, [любая фраза] - и я попробую ответить\n" +
-                            "Пахом, учись - включить режим обучения\n" +
-                            "Пахом, отдыхай - выключить режим обучения и запомнить фразы\n" +
-                            "Пахом, забудь [n] - исключить последние n-фраз во время обучения\n" +
-                            "Пахом, анализ - бесполезная херота\n" +
-                            "Пахом, - - выключить для данного чата\n" +
-                            "Пахом, + - включить для данного чата\n" +
-                            "Пахом, умный - использовать обученные фразы\n" +
-                            "Пахом, глупый - использовать только заскриптованные фразы\n" +
-                            "Пахом, [0-100]% - установить вероятность случайного ответа в значение []\n" +
-                            "Пахом, процент - показать процент ответа для данного чата\n" +
-                            "Пахом, ид - показать ID данного чата\n" +
-                            "Пахом, миграция ID-чата - миграция обучения из определенного чата\n";
-                }
-                if (learningChats.contains(chatId) && !StringUtils.containsIgnoreCase(mes, "Пахом,")) {
-                    for (String chatWithSync : dataHelper.getSettings().getSyncForChat(chatId)) {
-                        List<String> current = listCurrentLearning.get(chatWithSync);
-                        if (current == null) {
-                            current = new ArrayList<>();
-                        }
-                        current.add(mes);
-                        listCurrentLearning.put(chatWithSync, current);
-                    }
-                    return null;
-                }
-                if (StringUtils.containsIgnoreCase(mes, "Пахом,") && mes.endsWith("%")) {
-                    try {
-                        Pattern pattern = Pattern.compile("\\d+");
-                        Matcher matcher = pattern.matcher(mes);
-                        if (matcher.find(0)) {
-                            String value = mes.substring(matcher.start(), matcher.end());
-                            int ansPer = Integer.parseInt(value);
-                            if (ansPer >= 0 && ansPer <= 100) {
-                                settings.setProximityAnswer(chatId, ansPer);
-                                dataHelper.updateSettings();
-                                return "ок";
-                            }
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    return "Тебя разве не учили в 6м училище, что такое проценты?";
-
-                }
-                if (StringUtils.containsIgnoreCase(mes, "готов") || StringUtils.containsIgnoreCase(mes, "сделал") || StringUtils.containsIgnoreCase(mes, "купил")) {
-                    return "о, уважаю, братишка!";
-                }
-                if (StringUtils.containsIgnoreCase(mes, "Пахом, процент")) {
-                    int percent = settings.getAnswerProximity().get(chatId) == null ? 15 : settings.getAnswerProximity().get(chatId);
-                    return percent + "%";
-                }
-                if (StringUtils.containsIgnoreCase(mes, "Пахом, миграция ")) {
-                    if (mes.length() > 17) {
-                        final String migChatId = mes.substring(16);
-                        List<String> dictionary = learningDictionary.get(migChatId);
-                        if (dictionary != null) {
-                            List<String> curDictionary = listCurrentLearning.get(chatId);
-                            if (curDictionary == null) {
-                                curDictionary = new ArrayList<>();
-                            }
-                            curDictionary.addAll(dictionary);
-                            listCurrentLearning.put(chatId, curDictionary);
-                            writeNew();
-                            init();
-                            return "Готово, братишка";
-                        }
-                    }
-                    return "Чет не понял";
-                }
-                if (StringUtils.containsIgnoreCase(mes, "Пахом, синхронизация ")) {
-                    try {
-
-                        if (mes.length() > 22) {
-                            final String migChatId = mes.substring(21);
-
-                            if (dataHelper.getSettings().syncChat(chatId, migChatId)) {
-                                dataHelper.updateSettings();
-                                return "Синхроинзация установлена";
-                            } else {
-                                dataHelper.updateSettings();
-                                return "Запрос на синхронизацию получен, повторите команду на стороне чата " + migChatId;
-                            }
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    return "Чет не понял";
-                }
-                if (StringUtils.containsIgnoreCase(mes, "Пахом, ид") || StringUtils.containsIgnoreCase(mes, "Пахом, что это за чат?")) {
-                    return chatId;
-                }
-                if (StringUtils.containsIgnoreCase(mes, "Пахом, умный")) {
-                    addToEazy(chatId);
-                    return "Могу рассказать что нибудь";
-                }
-                if (StringUtils.containsIgnoreCase(mes, "Пахом, глупый")) {
-                    removeFromEazy(chatId);
-                    return "Режим собеседника активирован, братишка.";
-                }
-                if (mes.equalsIgnoreCase("пахом")) {
-                    return "Что.. что, что случилося то?";
-                }
-
-
-                if (StringUtils.containsIgnoreCase(mes, "Пахом, как дела") || StringUtils.containsIgnoreCase(mes, "Пахом, Как дела") || StringUtils.containsIgnoreCase(mes, "Пахом, как сам")) {
-                    return "да как земля";
-                }
-
-                if (StringUtils.containsIgnoreCase(mes, "Привет") || StringUtils.containsIgnoreCase(mes, "Хай") || StringUtils.containsIgnoreCase(mes, "привет")) {
-                    return "Здрасти, Дравсвуйте!";
-                }
-                if (StringUtils.containsIgnoreCase(mes, "скучн") || StringUtils.containsIgnoreCase(mes, "он умеет")) {
-                    return "Хочешь я на одной ноге постою, Как цапля, хочешь?";
-                }
-                if (StringUtils.containsIgnoreCase(mes, "цапл") || StringUtils.containsIgnoreCase(mes, "чайк")) {
-                    return "курлык-курлык!";
-                }
                 if (isJock(messageEntity)) {
                     if (TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - lastStamp) < 10) {
                         goodCount++;
@@ -385,10 +75,19 @@ public class CommonMessageHandler implements MessageHandler {
                     }
                     lastStamp = 0;
                 }
-                String rnd = generateZSAnswer(mes, chatId);
-                if (StringUtils.isNotBlank(rnd)) {
-                    return rnd;
+
+                for (MessageHandler messageHandler : messageHandlers) {
+                    try {
+                        String message = messageHandler.provideAnswer(messageEntity);
+                        if (message != null) {
+                            return message;
+                        }
+                    } catch (ProcessStopException e) {
+                        System.out.println("Stop because: " + e.getMessage());
+                        break;
+                    }
                 }
+
             }
         }
         return null;
@@ -402,131 +101,9 @@ public class CommonMessageHandler implements MessageHandler {
         }
     }
 
-    private synchronized void initRecors() {
-        recordsList.clear();
-        recordsList.addAll(dataHelper.getRecords());
-    }
-
-    private synchronized void init() {
-
-        learningTokenizedDictionary.clear();
-        learningDictionary.clear();
-        simpleDictionary.clear();
-        list2Easy.clear();
-        dictionarySize.clear();
-
-        Map<String, List<String>> learnWords = null;
-
-        List<String> simpleWords = null;
-        try {
-//            GsonBuilder gson = new GsonBuilder();
-//            Type collectionType = new TypeToken<HashMap<String, List<String>>>() {
-//            }.getType();
-            //learnWords = gson.create().fromJson(Files.newBufferedReader(Paths.get("./storage/learnDictionary"), StandardCharsets.UTF_8), collectionType);
-            learnWords = dataHelper.getLearn();
-
-            //learnWords = Files.readAllLines(Paths.get(getClass().getResource("copipasta.txt").toURI()), StandardCharsets.UTF_8);
-            //simpleWords = Files.readAllLines(Paths.get("./storage/simpleDictionary"), StandardCharsets.UTF_8);
-            simpleWords = dataHelper.getSimple();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        for (Map.Entry<String, List<String>> line : learnWords.entrySet()) {
-            final List<List<String>> tokenizedAnswers = new ArrayList<>();
-            final List<String> notEmptyStrings = new ArrayList<>();
-            for (String lineStr : line.getValue()) {
-                if (lineStr != null) {
-                    if (lineStr.length() > 1) {
-                        tokenizedAnswers.add(getTokenizedMessage(lineStr));
-                        notEmptyStrings.add(lineStr);
-                    }
-                }
-            }
-            learningDictionary.put(line.getKey(), notEmptyStrings);
-            learningTokenizedDictionary.put(line.getKey(), tokenizedAnswers);
-            dictionarySize.put(line.getKey(), notEmptyStrings.size());
-        }
-        if (listCurrentLearning.size() == 0) {
-            listCurrentLearning.putAll(learningDictionary);
-        }
-
-        for (String line : simpleWords) {
-            if (line.length() > 1) {
-                simpleDictionary.add(getTokenizedMessage(line));
-                list2Easy.add(line);
-            }
-        }
-//        list.addAll(simpleDictionary);
-//        learningDictionary.addAll(list2Easy);
-//        for (int i = 0; i < list.size(); i++) {
-//            sample.add(i);
-//        }
-    }
-
-    private List<Record> getRecordsAll() {
-        Map<String, Record> recordsMap = new HashMap<>();
-        for (Record record : recordsList) {
-            if (recordsMap.get(record.name) != null) {
-                if (record.time > recordsMap.get(record.name).time) {
-                    recordsMap.put(record.name, record);
-                }
-            } else {
-                recordsMap.put(record.name, record);
-            }
-
-        }
-        List<Record> records = new ArrayList<>(recordsMap.values());
-        records.sort(new ComparatorByValue());
-        return records;
-    }
-
-
-    private List<Record> getRecordForName(final String name) {
-        List<Record> recordForName = new ArrayList<>();
-        for (Record record : recordsList) {
-            if (record.name.equals(name)) {
-                recordForName.add(record);
-            }
-        }
-        recordForName.sort(new ComparatorByTime());
-        return recordForName;
-    }
-
-    private synchronized void writeNew() {
-        try {
-            dataHelper.updateLearn(listCurrentLearning);
-//            GsonBuilder gson = new GsonBuilder();
-//            Files.write(Paths.get(("./storage/learnDictionary")), gson.create().toJson(listCurrentLearning).getBytes());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
     private String sendAnalize(MessageEntity message) {
-        final String text = "Анализ использования:\nОтправлено сообщений: " + count + "\nУдачных шуток: " + goodCount + "\nШуток про Дениса: " + denisCount + "\nСамый поехавший: я";
+        final String text = "Анализ использования:\nОтправлено сообщений: " + count + "\nУдачных шуток: " + goodCount + "\nШуток про Дениcа: " + denisCount + "\nСамый поехавший: я";
         return text;
-    }
-
-    private List<String> getTokenizedMessage(String message) {
-
-        StringTokenizer tok = new StringTokenizer(message, " ,;-!.?()…");
-        ArrayList<String> a = new ArrayList<>();
-        while (tok.hasMoreTokens()) {
-            a.add(tok.nextToken());
-        }
-        return a;
-    }
-
-    private boolean isNeedReply(String message, String chatID) {
-        if (message.contains("пахом") || message.contains("Пахом")) {
-            return true;
-        }
-        int ansPerc = settings.getAnswerProximity().get(chatID) == null ? 15 : settings.getAnswerProximity().get(chatID);
-        if (new Random().nextInt(100) > 100 - ansPerc) {
-            return true;
-        }
-        return false;
     }
 
     private boolean isJock(MessageEntity message) {
@@ -536,210 +113,6 @@ public class CommonMessageHandler implements MessageHandler {
             return true;
         }
         return false;
-    }
-
-    private boolean isDirectQuestions(String message) {
-        if (message.contains("?")) {
-            if (message.startsWith("Пахом,") || message.startsWith("пахом,")) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private String getAPIAnswer(String message) throws Exception {
-        AIRequest request = new AIRequest(message);
-
-        AIResponse response = dataService.request(request);
-
-        if (response.getStatus().getCode() == 200) {
-            return response.getResult().getFulfillment().getSpeech();
-        } else {
-            throw new Exception("Error code: " + response.getResult().toString());
-        }
-
-    }
-
-    private String generateZSAnswer(String mesage, String chatID) {
-        if (isNeedReply(mesage, chatID)) {
-            mesage = mesage.replaceAll("Пахом,", "").replaceAll("пахом,", "");
-
-            if (StringUtils.containsIgnoreCase(mesage, "что такое")) {
-                try {
-                    return getAPIAnswer(mesage);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-
-            List<String> messageWords = getTokenizedMessage(mesage);
-            List<String> answerList = getAnswersList(chatID);
-            List<List<String>> questionList = getQuestionsList(chatID);
-            HashMap<Integer, String> answers = new HashMap<>();
-            for (int i = 0; i < getQuestionsList(chatID).size(); i++) {
-                int n = 0;
-                int f = -1;
-                ArrayList<String> checkedWords = new ArrayList<>();
-                for (int j = 0; j < questionList.get(i).size(); j++) {
-                    String curWordInDict = questionList.get(i).get(j);
-                    if (containsIgnoreCase(curWordInDict, messageWords)) {
-                        if (questionList.get(i).size() == 1 && curWordInDict.length() > 3) {
-                            answers.put(curWordInDict.length(), answerList.get(i + 1));
-                            break;
-                        }
-                        if (!containsIgnoreCase(curWordInDict, checkedWords)) {
-                            if (f != -1 && j - f > 3) {
-                                f = j;
-                                n = 1;
-                            } else {
-                                n++;
-                                f = j;
-                            }
-                            checkedWords.add(curWordInDict);
-                        }
-                    }
-                }
-                if (n > 1) {
-                    int sum = 0;
-                    for (String str : checkedWords) {
-                        sum += str.length();
-                    }
-                    if (sum > 4 && i < answerList.size() - 1) {
-                        answers.put(sum * checkedWords.size(), answerList.get(i + 1));
-                    }
-                }
-            }
-            if (!answers.isEmpty()) {
-//                int max = 0;
-//                int min = 0;
-                int sum = 0;
-                for (Integer i : answers.keySet()) {
-//                    max = Math.max(i, max);
-//                    min = Math.min(i, min);
-                    sum += i;
-                }
-                ArrayList<String> answersT = new ArrayList<>();
-                for (Integer i : answers.keySet()) {
-                    if (i >= sum / answers.keySet().size()) {
-                        answersT.add(answers.get(i));
-                    }
-                }
-                int i = new Random().nextInt(answersT.size());
-                return answersT.get(i);
-            }
-        }
-        return null;
-    }
-
-    private void addToMute(String chatID) {
-        if (!settings.getMuteChats().contains(chatID)) {
-            settings.addMuteChat(chatID);
-            dataHelper.updateSettings();
-        }
-
-    }
-
-    private void removeFromMute(String chatID) {
-        if (settings.getMuteChats().contains(chatID)) {
-            settings.removeMuteChat(chatID);
-            dataHelper.updateSettings();
-        }
-    }
-
-    private void addToEazy(String chatID) {
-        if (!settings.getEasyChats().contains(chatID)) {
-            settings.addEasyChat(chatID);
-            dataHelper.updateSettings();
-        }
-
-    }
-
-    private void removeFromEazy(String chatID) {
-        if (settings.getEasyChats().contains(chatID)) {
-            settings.removeEasyChat(chatID);
-            dataHelper.updateSettings();
-        }
-    }
-
-    private List<String> getAnswersList(String chatID) {
-        if (settings.getEasyChats().contains(chatID)) {
-            List<String> ansList = new ArrayList<>();
-            if (learningDictionary.get(chatID) != null) {
-                ansList.addAll(learningDictionary.get(chatID));
-            }
-            return ansList;
-        } else {
-            List<String> ansList = new ArrayList<>(list2Easy);
-            if (learningDictionary.get(chatID) != null) {
-                ansList.addAll(learningDictionary.get(chatID));
-            }
-            return ansList;
-        }
-    }
-
-    private List<List<String>> getQuestionsList(String chatID) {
-        if (settings.getEasyChats().contains(chatID)) {
-            List<List<String>> qstList = new ArrayList<>();
-            if (learningTokenizedDictionary.get(chatID) != null) {
-                qstList.addAll(learningTokenizedDictionary.get(chatID));
-            }
-            return qstList;
-        } else {
-            List<List<String>> qstList = new ArrayList<>(simpleDictionary);
-            if (learningTokenizedDictionary.get(chatID) != null) {
-                qstList.addAll(learningTokenizedDictionary.get(chatID));
-            }
-            return qstList;
-        }
-    }
-
-    private String getRandomNum(String message) {
-        try {
-            Integer n = Integer.parseInt(message.substring(message.indexOf("й") + 1, message.indexOf("?")).trim());
-            return String.valueOf(new SecureRandom().nextInt(n) + 1);
-        } catch (Exception e) {
-            return "Ой, чёт ты шибко больно придумал";
-        }
-    }
-
-    private int editdist(String S1, String S2) {
-        int m = S1.length(), n = S2.length();
-        int[] D1;
-        int[] D2 = new int[n + 1];
-
-        for (int i = 0; i <= n; i++)
-            D2[i] = i;
-
-        for (int i = 1; i <= m; i++) {
-            D1 = D2;
-            D2 = new int[n + 1];
-            for (int j = 0; j <= n; j++) {
-                if (j == 0) D2[j] = i;
-                else {
-                    int cost = (S1.charAt(i - 1) != S2.charAt(j - 1)) ? 1 : 0;
-                    if (D2[j - 1] < D1[j] && D2[j - 1] < D1[j - 1] + cost)
-                        D2[j] = D2[j - 1] + 1;
-                    else if (D1[j] < D1[j - 1] + cost)
-                        D2[j] = D1[j] + 1;
-                    else
-                        D2[j] = D1[j - 1] + cost;
-                }
-            }
-        }
-        return D2[n];
-    }
-
-    public boolean containsIgnoreCase(String curWordInDict, List<String> messageWords) {
-        for (String i : messageWords) {
-            int levDist = editdist(curWordInDict.toLowerCase(), i.toLowerCase());
-            if (levDist == 0) {
-                return true;
-            } else if (curWordInDict.length() / (levDist) > 3) {
-                return true;
-            }
-        }
-        return false;
-
     }
 
 

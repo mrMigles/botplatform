@@ -6,10 +6,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
-import ru.holyway.botplatform.core.CommonMessageHandler;
 import ru.holyway.botplatform.core.MessageEntity;
-import ru.holyway.botplatform.core.MessageHandler;
-import ru.holyway.botplatform.skype.SkypeBotSecond;
+import ru.holyway.botplatform.core.CommonHandler;
 import ru.holyway.botplatform.telegram.TelegramBot;
 import ru.holyway.botplatform.web.entities.SimpleRequest;
 import ru.holyway.botplatform.web.entities.SimpleResponse;
@@ -28,7 +26,7 @@ public class CommonController {
     TelegramBot bot;
 
     @Autowired
-    MessageHandler messageHandler;
+    CommonHandler commonHandler;
 
     private String query = "https://ru.wikipedia.org/w/api.php?action=query&prop=extracts&format=json&exintro=&titles=";
 
@@ -81,7 +79,7 @@ public class CommonController {
     public ResponseEntity<String> message(@RequestParam("id") String chatId, @RequestParam("message") String message) throws UnsupportedEncodingException {
 
         MessageEntity messageEntity = new WebMessageEntity(chatId, "web", message);
-        final String answer = messageHandler.generateAnswer(messageEntity);
+        final String answer = commonHandler.generateAnswer(messageEntity);
         return ResponseEntity.ok(answer);
     }
 }

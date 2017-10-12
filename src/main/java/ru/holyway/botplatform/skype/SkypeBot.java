@@ -6,11 +6,12 @@ import com.samczsun.skype4j.events.EventHandler;
 import com.samczsun.skype4j.events.Listener;
 import com.samczsun.skype4j.events.chat.message.MessageReceivedEvent;
 import com.samczsun.skype4j.exceptions.ConnectionException;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import ru.holyway.botplatform.core.Bot;
-import ru.holyway.botplatform.core.MessageHandler;
+import ru.holyway.botplatform.core.CommonHandler;
 
 /**
  * Created by Sergey on 1/17/2017.
@@ -19,7 +20,7 @@ import ru.holyway.botplatform.core.MessageHandler;
 public class SkypeBot implements Bot {
 
     @Autowired
-    private MessageHandler messageHandler;
+    private CommonHandler commonHandler;
 
     @Value("${credential.skype.login}")
     private String login;
@@ -32,17 +33,19 @@ public class SkypeBot implements Bot {
     @Override
     public void init() {
         try {
-            skype = new SkypeBuilder(login, password).withAllResources().withExceptionHandler((errorSource, throwable, willShutdown) -> {
-                System.out.println("Error: " + errorSource + " " + throwable + " " + willShutdown);
-            }).build();
-            skype.login();
-            skype.subscribe();
-            skype.getEventDispatcher().registerListener(new Listener() {
-                @EventHandler
-                public void onMessage(MessageReceivedEvent e) throws ConnectionException {
-                    messageHandler.handleMessage(new SkypeMessageEntity(e));
-                }
-            });
+            if (StringUtils.isNotEmpty(login) && StringUtils.isNotEmpty(password)) {
+                skype = new SkypeBuilder(login, password).withAllResources().withExceptionHandler((errorSource, throwable, willShutdown) -> {
+                    System.out.println("Error: " + errorSource + " " + throwable + " " + willShutdown);
+                }).build();
+                skype.login();
+                skype.subscribe();
+                skype.getEventDispatcher().registerListener(new Listener() {
+                    @EventHandler
+                    public void onMessage(MessageReceivedEvent e) throws ConnectionException {
+                        commonHandler.handleMessage(new SkypeMessageEntity(e));
+                    }
+                });
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }

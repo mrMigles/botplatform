@@ -1,7 +1,5 @@
 package ru.holyway.botplatform.telegram;
 
-import org.telegram.telegrambots.api.methods.send.SendMessage;
-import org.telegram.telegrambots.exceptions.TelegramApiException;
 import ru.holyway.botplatform.core.CommonMessageHandler;
 import ru.holyway.botplatform.core.MessageEntity;
 
