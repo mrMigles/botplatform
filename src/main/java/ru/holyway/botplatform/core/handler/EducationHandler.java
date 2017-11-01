@@ -16,7 +16,7 @@ import java.util.List;
  * Created by seiv0814 on 10-10-17.
  */
 @Component
-@Order(1)
+@Order(4)
 public class EducationHandler implements MessageHandler {
 
     @Autowired

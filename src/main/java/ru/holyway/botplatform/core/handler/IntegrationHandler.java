@@ -15,7 +15,7 @@ import java.util.List;
  * Created by seiv0814 on 10-10-17.
  */
 @Component
-@Order(2)
+@Order(20)
 public class IntegrationHandler implements MessageHandler {
 
     @Autowired

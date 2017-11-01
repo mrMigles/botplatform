@@ -12,7 +12,7 @@ import java.util.Arrays;
  * Created by Sergey on 10/12/2017.
  */
 @Component
-@Order(7)
+@Order(80)
 public class AuthenticationHandler implements MessageHandler {
 
     @Override

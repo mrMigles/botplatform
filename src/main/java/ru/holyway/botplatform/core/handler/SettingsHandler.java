@@ -16,7 +16,7 @@ import java.util.regex.Pattern;
  * Created by seiv0814 on 10-10-17.
  */
 @Component
-@Order(4)
+@Order(1)
 public class SettingsHandler implements MessageHandler {
 
     @Autowired

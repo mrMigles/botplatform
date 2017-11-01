@@ -40,13 +40,14 @@ public class SkypeBotSecond implements Bot {
                     System.out.println("Error: " + errorSource + " " + throwable + " " + willShutdown);
                 }).build();
                 skype.login();
-                skype.subscribe();
+
                 skype.getEventDispatcher().registerListener(new Listener() {
                     @EventHandler
                     public void onMessage(MessageReceivedEvent e) throws ConnectionException {
                         commonHandler.handleMessage(new SkypeMessageEntity(e));
                     }
                 });
+                skype.subscribe();
             }
         } catch (Exception e) {
             e.printStackTrace();

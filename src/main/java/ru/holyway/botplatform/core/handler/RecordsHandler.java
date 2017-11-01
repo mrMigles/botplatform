@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
  * Created by seiv0814 on 10-10-17.
  */
 @Component
-@Order(3)
+@Order(30)
 public class RecordsHandler implements MessageHandler {
 
     private List<Record> recordsList = new ArrayList<>();

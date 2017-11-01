@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.holyway.botplatform.core.CommonHandler;
 import ru.holyway.botplatform.core.CommonMessageHandler;
+import ru.holyway.botplatform.core.Context;
 import ru.holyway.botplatform.core.data.DataHelper;
 import ru.holyway.botplatform.core.data.MemoryDataHelper;
 import ru.holyway.botplatform.core.data.MongoDataHelper;
@@ -30,6 +31,11 @@ public class BotConfiguration {
             return new MemoryDataHelper();
         }
         return new MongoDataHelper();
+    }
+
+    @Bean
+    public Context context() {
+        return new Context();
     }
 
 }
