@@ -2,11 +2,11 @@ package ru.holyway.botplatform.core.handler;
 
 import com.sun.jersey.core.util.Base64;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import ru.holyway.botplatform.core.MessageEntity;
-
-import java.util.Arrays;
+import ru.holyway.botplatform.core.data.DataHelper;
 
 /**
  * Created by Sergey on 10/12/2017.
@@ -14,6 +14,9 @@ import java.util.Arrays;
 @Component
 @Order(80)
 public class AuthenticationHandler implements MessageHandler {
+
+    @Autowired
+    private DataHelper dataHelper;
 
     @Override
     public String provideAnswer(MessageEntity messageEntity) {
@@ -27,6 +30,13 @@ public class AuthenticationHandler implements MessageHandler {
                 }
             }
         }
+        if (StringUtils.containsIgnoreCase(mes, "get token")) {
+            return dataHelper.getSettings().getToken(chatId);
+        }
+        if (StringUtils.containsIgnoreCase(mes, "revoke token")) {
+            return dataHelper.getSettings().generateNewToken(chatId);
+        }
+
         return null;
     }
 }

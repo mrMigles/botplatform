@@ -4,16 +4,18 @@ import org.apache.commons.lang3.StringEscapeUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
-import ru.holyway.botplatform.core.MessageEntity;
+import ru.holyway.botplatform.core.Bot;
 import ru.holyway.botplatform.core.CommonHandler;
-import ru.holyway.botplatform.telegram.TelegramBot;
+import ru.holyway.botplatform.core.MessageEntity;
 import ru.holyway.botplatform.web.entities.SimpleRequest;
 import ru.holyway.botplatform.web.entities.SimpleResponse;
 
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -23,18 +25,20 @@ import java.util.Map;
 public class CommonController {
 
     @Autowired
-    TelegramBot bot;
+    List<Bot> bots;
 
     @Autowired
     CommonHandler commonHandler;
 
     private String query = "https://ru.wikipedia.org/w/api.php?action=query&prop=extracts&format=json&exintro=&titles=";
 
+    @PreAuthorize("permitAll()")
     @RequestMapping(value = "/", method = RequestMethod.GET)
     public ResponseEntity echo() {
         return new ResponseEntity(HttpStatus.OK);
     }
 
+    @PreAuthorize("permitAll()")
     @RequestMapping(value = "/command", method = RequestMethod.POST)
     public ResponseEntity<SimpleResponse> test(@RequestBody SimpleRequest simpleRequest) throws UnsupportedEncodingException {
 
@@ -69,12 +73,16 @@ public class CommonController {
         }
     }
 
-    @RequestMapping(value = "/server", method = RequestMethod.GET)
-    public ResponseEntity<String> restart(@RequestParam("id") String chatId, @RequestParam("message") String message) throws UnsupportedEncodingException {
-        bot.sendMessage(message, chatId);
+    @PreAuthorize("hasAuthority('USER')")
+    @RequestMapping(value = "/send", method = RequestMethod.GET)
+    public ResponseEntity<String> restart(@RequestParam("chatId") String chatId, @RequestParam("message") String message) throws UnsupportedEncodingException {
+        for (Bot bot : bots) {
+            bot.sendMessage(message, chatId);
+        }
         return ResponseEntity.ok("Ok - " + chatId);
     }
 
+    @PreAuthorize("permitAll()")
     @RequestMapping(value = "/mes", method = RequestMethod.GET)
     public ResponseEntity<String> message(@RequestParam("id") String chatId, @RequestParam("message") String message) throws UnsupportedEncodingException {
 

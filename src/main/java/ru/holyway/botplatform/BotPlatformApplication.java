@@ -4,7 +4,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
 import ru.holyway.botplatform.config.JobInitializer;
 import ru.holyway.botplatform.core.Bot;
@@ -12,8 +15,9 @@ import ru.holyway.botplatform.core.Bot;
 import javax.annotation.PostConstruct;
 import java.util.List;
 
-//@EnableAutoConfiguration
-//@EnableAuthorizationServer
+@EnableWebSecurity
+@EnableGlobalMethodSecurity(prePostEnabled = true)
+@EnableCaching
 @SpringBootApplication
 public class BotPlatformApplication {
 

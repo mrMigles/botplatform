@@ -2,10 +2,7 @@ package ru.holyway.botplatform.core.entity;
 
 import org.springframework.data.annotation.Id;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -17,15 +14,17 @@ public class JSettings {
     private Set<String> easyChats;
     private Map<String, Integer> answerProximity;
     private Map<String, Set<String>> syncChats;
+    private Map<String, String> tokens;
 
     @Id
     public String id;
 
-    public JSettings(Set<String> muteChats, Set<String> easyChats, Map<String, Integer> answerProximity, Map<String, Set<String>> syncChats) {
+    public JSettings(Set<String> muteChats, Set<String> easyChats, Map<String, Integer> answerProximity, Map<String, Set<String>> syncChats, Map<String, String> tokens) {
         this.muteChats = muteChats;
         this.easyChats = easyChats;
         this.answerProximity = answerProximity;
         this.syncChats = syncChats;
+        this.tokens = tokens;
     }
 
     public JSettings() {
@@ -33,6 +32,7 @@ public class JSettings {
         easyChats = new HashSet<>();
         answerProximity = new HashMap<>();
         syncChats = new ConcurrentHashMap<>();
+        tokens = new ConcurrentHashMap<>();
     }
 
     public void addMuteChat(String chatId) {
@@ -58,6 +58,21 @@ public class JSettings {
     public void setProximityAnswer(String chatId, int percent) {
         answerProximity.put(chatId, percent);
         writeToFile();
+    }
+
+    public String getToken(final String chatId) {
+        String token = tokens.get(chatId);
+        if (token == null) {
+            token = UUID.randomUUID().toString();
+            tokens.put(chatId, token);
+        }
+        return token;
+    }
+
+    public String generateNewToken(final String chatId) {
+        final String token = UUID.randomUUID().toString();
+        tokens.put(chatId, token);
+        return token;
     }
 
     public Set<String> getMuteChats() {

@@ -3,12 +3,14 @@ package ru.holyway.botplatform.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 import ru.holyway.botplatform.core.CommonHandler;
 import ru.holyway.botplatform.core.CommonMessageHandler;
 import ru.holyway.botplatform.core.Context;
 import ru.holyway.botplatform.core.data.DataHelper;
 import ru.holyway.botplatform.core.data.MemoryDataHelper;
 import ru.holyway.botplatform.core.data.MongoDataHelper;
+import ru.holyway.botplatform.security.AnonymousChatTokenSecurityFilter;
 
 /**
  * Created by Sergey on 1/17/2017.
@@ -36,6 +38,11 @@ public class BotConfiguration {
     @Bean
     public Context context() {
         return new Context();
+    }
+
+    @Bean
+    public AnonymousAuthenticationFilter anonymousAuthenticationFilter() {
+        return new AnonymousChatTokenSecurityFilter("CHAT_TOKEN_FILTER");
     }
 
 }
