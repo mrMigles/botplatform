@@ -13,7 +13,7 @@ import javax.annotation.PostConstruct;
 import java.util.List;
 
 //@EnableAutoConfiguration
-@EnableAuthorizationServer
+//@EnableAuthorizationServer
 @SpringBootApplication
 public class BotPlatformApplication {
 
