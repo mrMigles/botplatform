@@ -16,7 +16,7 @@ import javax.annotation.PostConstruct;
  * Created by seiv0814 on 10-10-17.
  */
 @Component
-@Order(70)
+@Order(40)
 public class WikiHandler implements MessageHandler {
 
     private AIConfiguration configuration;
