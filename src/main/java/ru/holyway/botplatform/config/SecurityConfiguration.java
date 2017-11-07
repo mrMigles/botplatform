@@ -25,5 +25,7 @@ public class SecurityConfiguration extends
                 authorizeRequests()
                 .anyRequest().
                 permitAll();
+
+        http.csrf().disable();
     }
 }
