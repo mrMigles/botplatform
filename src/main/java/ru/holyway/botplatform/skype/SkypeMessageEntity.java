@@ -21,13 +21,18 @@ public class SkypeMessageEntity implements MessageEntity {
     }
 
     @Override
-    public String getSender() {
+    public String getSenderName() {
         try {
             return messageReceivedEvent.getMessage().getSender().getDisplayName();
         } catch (ConnectionException e) {
             e.printStackTrace();
             return "Пушкин";
         }
+    }
+
+    @Override
+    public String getSenderLogin() {
+        return messageReceivedEvent.getMessage().getSender().getUsername();
     }
 
     @Override

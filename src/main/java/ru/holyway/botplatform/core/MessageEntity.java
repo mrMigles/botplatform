@@ -6,7 +6,9 @@ package ru.holyway.botplatform.core;
 public interface MessageEntity {
     String getText();
 
-    String getSender();
+    String getSenderName();
+
+    String getSenderLogin();
 
     String getChatId();
 

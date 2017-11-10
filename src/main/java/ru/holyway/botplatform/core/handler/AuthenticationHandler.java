@@ -26,7 +26,7 @@ public class AuthenticationHandler implements MessageHandler {
             if (mes.length() > 28) {
                 final String redirect = mes.substring(27);
                 if (!StringUtils.isEmpty(redirect)) {
-                    return "For authenticate please click on the link: \n " + redirect + "?token=" + new String(Base64.encode(chatId + ":" + messageEntity.getSender()));
+                    return "For authenticate please click on the link: \n " + redirect + "?token=" + new String(Base64.encode(chatId + ":" + messageEntity.getSenderName()));
                 }
             }
         }
@@ -35,6 +35,9 @@ public class AuthenticationHandler implements MessageHandler {
         }
         if (StringUtils.containsIgnoreCase(mes, "revoke token")) {
             return dataHelper.getSettings().generateNewToken(chatId);
+        }
+        if (StringUtils.containsIgnoreCase(mes, "request user token")) {
+            return dataHelper.getSettings().getUserToken(chatId, messageEntity.getSenderLogin(), messageEntity.getSenderName());
         }
 
         return null;

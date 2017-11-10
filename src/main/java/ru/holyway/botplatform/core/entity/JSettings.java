@@ -15,16 +15,18 @@ public class JSettings {
     private Map<String, Integer> answerProximity;
     private Map<String, Set<String>> syncChats;
     private Map<String, String> tokens;
+    private Map<String, UserAccessInfo> userTokens;
 
     @Id
     public String id;
 
-    public JSettings(Set<String> muteChats, Set<String> easyChats, Map<String, Integer> answerProximity, Map<String, Set<String>> syncChats, Map<String, String> tokens) {
+    public JSettings(Set<String> muteChats, Set<String> easyChats, Map<String, Integer> answerProximity, Map<String, Set<String>> syncChats, Map<String, String> tokens, Map<String, UserAccessInfo> userTokens) {
         this.muteChats = muteChats;
         this.easyChats = easyChats;
         this.answerProximity = answerProximity;
         this.syncChats = syncChats;
         this.tokens = tokens;
+        this.userTokens = userTokens;
     }
 
     public JSettings() {
@@ -33,6 +35,7 @@ public class JSettings {
         answerProximity = new HashMap<>();
         syncChats = new ConcurrentHashMap<>();
         tokens = new ConcurrentHashMap<>();
+        userTokens = new ConcurrentHashMap<>();
     }
 
     public void addMuteChat(String chatId) {
@@ -73,6 +76,25 @@ public class JSettings {
         final String token = UUID.randomUUID().toString();
         tokens.put(chatId, token);
         return token;
+    }
+
+    public String getUserToken(final String chatId, final String login, final String userName) {
+        for (Map.Entry<String, UserAccessInfo> userAccessInfo : userTokens.entrySet()) {
+            if (userAccessInfo.getValue().getChatId().equals(chatId) && userAccessInfo.getValue().getUserLogin().equals(login)) {
+                if (userAccessInfo.getValue().getExpirationTime() > System.currentTimeMillis()) {
+                    return userAccessInfo.getKey();
+                }
+            }
+        }
+
+        final String token = UUID.randomUUID().toString();
+        userTokens.put(token, new UserAccessInfo(userName, login, chatId));
+
+        return token;
+    }
+
+    public UserAccessInfo getUserAccessInfo(final String token) {
+        return userTokens.get(token);
     }
 
     public Set<String> getMuteChats() {
