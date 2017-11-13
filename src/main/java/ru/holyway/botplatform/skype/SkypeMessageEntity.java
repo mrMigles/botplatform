@@ -26,7 +26,7 @@ public class SkypeMessageEntity implements MessageEntity {
             return messageReceivedEvent.getMessage().getSender().getDisplayName();
         } catch (ConnectionException e) {
             e.printStackTrace();
-            return "Пушкин";
+            return "Guest";
         }
     }
 

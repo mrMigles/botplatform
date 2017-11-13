@@ -73,7 +73,7 @@ public class JSettings {
     }
 
     public String generateNewToken(final String chatId) {
-        final String token = UUID.randomUUID().toString();
+        final String token = UUID.randomUUID().toString().replace("-", "");
         tokens.put(chatId, token);
         return token;
     }
@@ -87,7 +87,7 @@ public class JSettings {
             }
         }
 
-        final String token = UUID.randomUUID().toString();
+        final String token = UUID.randomUUID().toString().replace("-", "");
         userTokens.put(token, new UserAccessInfo(userName, login, chatId));
 
         return token;
