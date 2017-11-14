@@ -10,23 +10,23 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class JSettings {
 
+    private final static Map<String, UserAccessInfo> userTokens = new ConcurrentHashMap<>();
+
     private Set<String> muteChats;
     private Set<String> easyChats;
     private Map<String, Integer> answerProximity;
     private Map<String, Set<String>> syncChats;
     private Map<String, String> tokens;
-    private Map<String, UserAccessInfo> userTokens;
 
     @Id
     public String id;
 
-    public JSettings(Set<String> muteChats, Set<String> easyChats, Map<String, Integer> answerProximity, Map<String, Set<String>> syncChats, Map<String, String> tokens, Map<String, UserAccessInfo> userTokens) {
+    public JSettings(Set<String> muteChats, Set<String> easyChats, Map<String, Integer> answerProximity, Map<String, Set<String>> syncChats, Map<String, String> tokens) {
         this.muteChats = muteChats;
         this.easyChats = easyChats;
         this.answerProximity = answerProximity;
         this.syncChats = syncChats;
         this.tokens = tokens;
-        this.userTokens = userTokens;
     }
 
     public JSettings() {
@@ -35,7 +35,6 @@ public class JSettings {
         answerProximity = new HashMap<>();
         syncChats = new ConcurrentHashMap<>();
         tokens = new ConcurrentHashMap<>();
-        userTokens = new ConcurrentHashMap<>();
     }
 
     public void addMuteChat(String chatId) {
@@ -66,7 +65,7 @@ public class JSettings {
     public String getToken(final String chatId) {
         String token = tokens.get(chatId);
         if (token == null) {
-            token = UUID.randomUUID().toString();
+            token = UUID.randomUUID().toString().replace("-", "");
             tokens.put(chatId, token);
         }
         return token;

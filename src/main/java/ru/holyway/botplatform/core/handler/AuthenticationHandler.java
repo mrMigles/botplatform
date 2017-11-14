@@ -31,10 +31,14 @@ public class AuthenticationHandler implements MessageHandler {
             }
         }
         if (StringUtils.containsIgnoreCase(mes, "get token")) {
-            return dataHelper.getSettings().getToken(chatId);
+            final String token = dataHelper.getSettings().getToken(chatId);
+            dataHelper.updateSettings();
+            return token;
         }
         if (StringUtils.containsIgnoreCase(mes, "revoke token")) {
-            return dataHelper.getSettings().generateNewToken(chatId);
+            final String token = dataHelper.getSettings().generateNewToken(chatId);
+            dataHelper.updateSettings();
+            return token;
         }
         if (StringUtils.containsIgnoreCase(mes, "request user token")) {
             return dataHelper.getSettings().getUserToken(chatId, messageEntity.getSenderLogin(), messageEntity.getSenderName());
