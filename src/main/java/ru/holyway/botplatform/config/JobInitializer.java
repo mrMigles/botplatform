@@ -46,6 +46,8 @@ public class JobInitializer {
                     }
                     ITER++;
                 }
+                //WARNING! IT IS EXPERIMENTAL CODE FOR ONCE CHECKING! NEED TO REMOVE AFTER MEMORY LEAK INVESTIGATION!
+                System.gc();
             }
         }, DELAY_TO_UPDATE);
     }
