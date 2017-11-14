@@ -12,7 +12,7 @@ import ru.holyway.botplatform.core.data.DataHelper;
  * Created by Sergey on 10/12/2017.
  */
 @Component
-@Order(80)
+@Order(2)
 public class AuthenticationHandler implements MessageHandler {
 
     @Autowired
@@ -26,15 +26,22 @@ public class AuthenticationHandler implements MessageHandler {
             if (mes.length() > 28) {
                 final String redirect = mes.substring(27);
                 if (!StringUtils.isEmpty(redirect)) {
-                    return "For authenticate please click on the link: \n " + redirect + "?token=" + new String(Base64.encode(chatId + ":" + messageEntity.getSender()));
+                    return "For authenticate please click on the link: \n " + redirect + "?token=" + new String(Base64.encode(chatId + ":" + messageEntity.getSenderName()));
                 }
             }
         }
         if (StringUtils.containsIgnoreCase(mes, "get token")) {
-            return dataHelper.getSettings().getToken(chatId);
+            final String token = dataHelper.getSettings().getToken(chatId);
+            dataHelper.updateSettings();
+            return token;
         }
         if (StringUtils.containsIgnoreCase(mes, "revoke token")) {
-            return dataHelper.getSettings().generateNewToken(chatId);
+            final String token = dataHelper.getSettings().generateNewToken(chatId);
+            dataHelper.updateSettings();
+            return token;
+        }
+        if (StringUtils.containsIgnoreCase(mes, "request user token")) {
+            return dataHelper.getSettings().getUserToken(chatId, messageEntity.getSenderLogin(), messageEntity.getSenderName());
         }
 
         return null;

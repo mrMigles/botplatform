@@ -23,7 +23,12 @@ public class WebMessageEntity implements MessageEntity {
     }
 
     @Override
-    public String getSender() {
+    public String getSenderName() {
+        return sender;
+    }
+
+    @Override
+    public String getSenderLogin() {
         return sender;
     }
 

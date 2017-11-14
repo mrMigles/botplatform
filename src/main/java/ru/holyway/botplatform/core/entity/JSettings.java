@@ -10,6 +10,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class JSettings {
 
+    private final static Map<String, UserAccessInfo> userTokens = new ConcurrentHashMap<>();
+
     private Set<String> muteChats;
     private Set<String> easyChats;
     private Map<String, Integer> answerProximity;
@@ -63,16 +65,35 @@ public class JSettings {
     public String getToken(final String chatId) {
         String token = tokens.get(chatId);
         if (token == null) {
-            token = UUID.randomUUID().toString();
+            token = UUID.randomUUID().toString().replace("-", "");
             tokens.put(chatId, token);
         }
         return token;
     }
 
     public String generateNewToken(final String chatId) {
-        final String token = UUID.randomUUID().toString();
+        final String token = UUID.randomUUID().toString().replace("-", "");
         tokens.put(chatId, token);
         return token;
+    }
+
+    public String getUserToken(final String chatId, final String login, final String userName) {
+        for (Map.Entry<String, UserAccessInfo> userAccessInfo : userTokens.entrySet()) {
+            if (userAccessInfo.getValue().getChatId().equals(chatId) && userAccessInfo.getValue().getUserLogin().equals(login)) {
+                if (userAccessInfo.getValue().getExpirationTime() > System.currentTimeMillis()) {
+                    return userAccessInfo.getKey();
+                }
+            }
+        }
+
+        final String token = UUID.randomUUID().toString().replace("-", "");
+        userTokens.put(token, new UserAccessInfo(userName, login, chatId));
+
+        return token;
+    }
+
+    public UserAccessInfo getUserAccessInfo(final String token) {
+        return userTokens.get(token);
     }
 
     public Set<String> getMuteChats() {

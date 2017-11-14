@@ -26,7 +26,12 @@ public class TelegramMessageEntity implements MessageEntity {
     }
 
     @Override
-    public String getSender() {
+    public String getSenderName() {
+        return message.getFrom().getFirstName() + " " + message.getFrom().getLastName();
+    }
+
+    @Override
+    public String getSenderLogin() {
         return message.getFrom().getUserName();
     }
 

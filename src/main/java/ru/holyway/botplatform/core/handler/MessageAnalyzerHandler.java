@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit;
  * Created by seiv0814 on 01-11-17.
  */
 @Component
-@Order(3)
+@Order(4)
 public class MessageAnalyzerHandler implements MessageHandler {
 
     @Autowired
