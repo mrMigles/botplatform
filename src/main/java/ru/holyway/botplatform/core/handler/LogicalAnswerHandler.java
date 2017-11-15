@@ -144,7 +144,7 @@ public class LogicalAnswerHandler implements MessageHandler {
         if (message.contains("пахом") || message.contains("Пахом")) {
             return true;
         }
-        int ansPerc = settings.getAnswerProximity().get(chatID) == null ? 15 : settings.getAnswerProximity().get(chatID);
+        int ansPerc = settings.getAnswerProximity(chatID) == null ? 15 : settings.getAnswerProximity(chatID);
         if (new Random().nextInt(100) > 100 - ansPerc) {
             return true;
         }

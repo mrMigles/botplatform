@@ -39,41 +39,36 @@ public class JSettings {
 
     public void addMuteChat(String chatId) {
         muteChats.add(chatId);
-        writeToFile();
     }
 
     public void removeMuteChat(String chatId) {
         muteChats.remove(chatId);
-        writeToFile();
     }
 
     public void addEasyChat(String chatId) {
         easyChats.add(chatId);
-        writeToFile();
     }
 
     public void removeEasyChat(String chatId) {
         easyChats.remove(chatId);
-        writeToFile();
     }
 
     public void setProximityAnswer(String chatId, int percent) {
-        answerProximity.put(chatId, percent);
-        writeToFile();
+        answerProximity.put(chatId.replace(".", ""), percent);
     }
 
     public String getToken(final String chatId) {
-        String token = tokens.get(chatId);
+        String token = tokens.get(chatId.replace(".", ""));
         if (token == null) {
             token = UUID.randomUUID().toString().replace("-", "");
-            tokens.put(chatId, token);
+            tokens.put(chatId.replace(".", ""), token);
         }
         return token;
     }
 
     public String generateNewToken(final String chatId) {
         final String token = UUID.randomUUID().toString().replace("-", "");
-        tokens.put(chatId, token);
+        tokens.put(chatId.replace(".", ""), token);
         return token;
     }
 
@@ -104,24 +99,20 @@ public class JSettings {
         return easyChats;
     }
 
-    public Map<String, Integer> getAnswerProximity() {
-        return answerProximity;
-    }
-
-    private void writeToFile() {
-        //
+    public Integer getAnswerProximity(final String chatId) {
+        return answerProximity.get(chatId.replace(".", ""));
     }
 
     public Set<String> getSyncForChat(String chatID) {
         Set<String> resultSync = new HashSet<>();
         resultSync.add(chatID);
 
-        Set<String> chatsSync = syncChats.get(chatID);
+        Set<String> chatsSync = syncChats.get(chatID.replace(".", ""));
         if (chatsSync != null) {
 
             for (String syncChat : chatsSync) {
-                if (syncChats.get(syncChat) != null) {
-                    if (syncChats.get(syncChat).contains(chatID)) {
+                if (syncChats.get(syncChat.replace(".", "")) != null) {
+                    if (syncChats.get(syncChat.replace(".", "")).contains(chatID)) {
                         resultSync.add(syncChat);
                     }
                 }
@@ -131,14 +122,14 @@ public class JSettings {
     }
 
     public boolean syncChat(String chatId, String withChatId) {
-        Set<String> chatSet = syncChats.get(chatId);
+        Set<String> chatSet = syncChats.get(chatId.replace(".", ""));
         if (chatSet == null) {
             chatSet = new HashSet<>();
-            syncChats.put(chatId, chatSet);
+            syncChats.put(chatId.replace(".", ""), chatSet);
         }
         chatSet.add(withChatId);
 
-        chatSet = syncChats.get(withChatId);
+        chatSet = syncChats.get(withChatId.replace(".", ""));
         if (chatSet != null) {
             if (chatSet.contains(chatId)) {
                 return true;

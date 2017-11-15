@@ -62,7 +62,7 @@ public class SettingsHandler implements MessageHandler {
                     "Пахом, миграция ID-чата - миграция обучения из определенного чата\n";
         }
         if (StringUtils.containsIgnoreCase(mes, "Пахом, процент")) {
-            int percent = settings.getAnswerProximity().get(chatId) == null ? 15 : settings.getAnswerProximity().get(chatId);
+            int percent = settings.getAnswerProximity(chatId) == null ? 15 : settings.getAnswerProximity(chatId);
             return percent + "%";
         }
         if (StringUtils.containsIgnoreCase(mes, "Пахом, ид") || StringUtils.containsIgnoreCase(mes, "Пахом, что это за чат?")) {
