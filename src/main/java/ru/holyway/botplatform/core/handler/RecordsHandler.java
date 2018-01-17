@@ -62,16 +62,16 @@ public class RecordsHandler implements MessageHandler {
                         List<Record> recordForName = getRecordForName(peopleID);
                         recordForName.sort(new ComparatorByValue());
                         long recordForUser = recordForName.isEmpty() ? 0 : recordForName.get(0).time;
+                        recordsList.add(new Record(peopleID, currentRecord, System.currentTimeMillis()));
+                        dataHelper.updateRecords(recordsList);
+                        currentRecordMap.remove(peopleID);
+                        Collections.sort(recordsList);
                         if (currentRecord > maximumRecord) {
                             return "!!! Новый обший рекорд установил(а) " + peopleID + ", время: " + TimeUnit.MILLISECONDS.toMinutes(currentRecord) + " минут. !!!";
                         } else if (currentRecord > recordForUser) {
                             return "Новый личный рекорд для " + peopleID + ", время: " + TimeUnit.MILLISECONDS.toMinutes(currentRecord) + " минут.";
                         }
-                        recordsList.add(new Record(peopleID, currentRecord, System.currentTimeMillis()));
-                        dataHelper.updateRecords(recordsList);
-                        currentRecordMap.remove(peopleID);
-                        Collections.sort(recordsList);
-                        return peopleID + " проедржался(ась) " + TimeUnit.MILLISECONDS.toMinutes(currentRecord) + " минут.";
+                        return peopleID + " продержался(ась) " + TimeUnit.MILLISECONDS.toMinutes(currentRecord) + " минут.";
 
                     } else {
                         return "Я ещё не начинал считать для  " + peopleID;
