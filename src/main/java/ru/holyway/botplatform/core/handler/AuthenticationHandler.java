@@ -12,7 +12,6 @@ import ru.holyway.botplatform.core.data.DataHelper;
  * Created by Sergey on 10/12/2017.
  */
 @Component
-@Order(2)
 public class AuthenticationHandler implements MessageHandler {
 
     @Autowired

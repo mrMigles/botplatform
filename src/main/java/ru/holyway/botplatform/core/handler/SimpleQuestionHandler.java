@@ -9,7 +9,6 @@ import ru.holyway.botplatform.core.MessageEntity;
  * Created by seiv0814 on 10-10-17.
  */
 @Component
-@Order(60)
 public class SimpleQuestionHandler implements MessageHandler {
 
     private int count = 0;

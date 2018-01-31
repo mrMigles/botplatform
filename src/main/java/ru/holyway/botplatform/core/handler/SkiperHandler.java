@@ -14,7 +14,6 @@ import javax.annotation.PostConstruct;
  * Created by seiv0814 on 01-11-17.
  */
 @Component
-@Order(3)
 public class SkiperHandler implements MessageHandler {
 
     private JSettings settings;

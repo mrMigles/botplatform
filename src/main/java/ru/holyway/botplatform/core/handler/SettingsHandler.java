@@ -1,7 +1,6 @@
 package ru.holyway.botplatform.core.handler;
 
 import org.apache.commons.lang.StringUtils;
-import org.springframework.core.annotation.Order;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.holyway.botplatform.core.MessageEntity;
@@ -16,7 +15,6 @@ import java.util.regex.Pattern;
  * Created by seiv0814 on 10-10-17.
  */
 @Component
-@Order(1)
 public class SettingsHandler implements MessageHandler {
 
     @Autowired
@@ -65,7 +63,7 @@ public class SettingsHandler implements MessageHandler {
             int percent = settings.getAnswerProximity(chatId) == null ? 15 : settings.getAnswerProximity(chatId);
             return percent + "%";
         }
-        if (StringUtils.containsIgnoreCase(mes, "Пахом, ид") || StringUtils.containsIgnoreCase(mes, "Пахом, что это за чат?")) {
+        if (StringUtils.equals(mes, "Пахом, ид") || StringUtils.containsIgnoreCase(mes, "Пахом, что это за чат?")) {
             return chatId;
         }
         if (StringUtils.containsIgnoreCase(mes, "Пахом, умный")) {

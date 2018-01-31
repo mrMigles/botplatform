@@ -20,7 +20,6 @@ import java.util.Random;
  * Created by seiv0814 on 10-10-17.
  */
 @Component
-@Order(50)
 public class LogicalAnswerHandler implements MessageHandler {
 
     @Autowired

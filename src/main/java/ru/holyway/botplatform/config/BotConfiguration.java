@@ -10,7 +10,12 @@ import ru.holyway.botplatform.core.Context;
 import ru.holyway.botplatform.core.data.DataHelper;
 import ru.holyway.botplatform.core.data.MemoryDataHelper;
 import ru.holyway.botplatform.core.data.MongoDataHelper;
+import ru.holyway.botplatform.core.handler.MessageHandler;
 import ru.holyway.botplatform.security.AnonymousChatTokenSecurityFilter;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by Sergey on 1/17/2017.
@@ -43,6 +48,23 @@ public class BotConfiguration {
     @Bean
     public AnonymousAuthenticationFilter anonymousAuthenticationFilter() {
         return new AnonymousChatTokenSecurityFilter("CHAT_TOKEN_FILTER");
+    }
+
+    @Bean
+    public List<MessageHandler> orderedMessageHandlers(final Map<String, MessageHandler> messageHandlers) {
+        final List<MessageHandler> orderedMessageHandlers = new ArrayList<>();
+        orderedMessageHandlers.add(messageHandlers.get("settingsHandler"));
+        orderedMessageHandlers.add(messageHandlers.get("authenticationHandler"));
+        orderedMessageHandlers.add(messageHandlers.get("skiperHandler"));
+        orderedMessageHandlers.add(messageHandlers.get("messageAnalyzerHandler"));
+        orderedMessageHandlers.add(messageHandlers.get("educationHandler"));
+        orderedMessageHandlers.add(messageHandlers.get("integrationHandler"));
+        orderedMessageHandlers.add(messageHandlers.get("recordsHandler"));
+        orderedMessageHandlers.add(messageHandlers.get("wikiHandler"));
+        orderedMessageHandlers.add(messageHandlers.get("startupIdeaMessageHandler"));
+        orderedMessageHandlers.add(messageHandlers.get("logicalAnswerHandler"));
+        orderedMessageHandlers.add(messageHandlers.get("simpleQuestionHandler"));
+        return orderedMessageHandlers;
     }
 
 }

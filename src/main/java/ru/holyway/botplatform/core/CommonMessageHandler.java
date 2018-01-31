@@ -2,6 +2,7 @@ package ru.holyway.botplatform.core;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import ru.holyway.botplatform.config.JobInitializer;
 import ru.holyway.botplatform.core.data.DataHelper;
@@ -20,6 +21,7 @@ public class CommonMessageHandler implements CommonHandler {
     private DataHelper dataHelper;
 
     @Autowired
+    @Qualifier("orderedMessageHandlers")
     private List<MessageHandler> messageHandlers;
 
     @Autowired
@@ -59,7 +61,6 @@ public class CommonMessageHandler implements CommonHandler {
                     break;
                 }
             }
-
         }
         return null;
     }
