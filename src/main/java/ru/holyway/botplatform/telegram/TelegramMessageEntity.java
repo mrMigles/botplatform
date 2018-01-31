@@ -57,4 +57,12 @@ public class TelegramMessageEntity implements MessageEntity {
             e.printStackTrace();
         }
     }
+
+    public Message getMessage() {
+        return message;
+    }
+
+    public AbsSender getSender() {
+        return sender;
+    }
 }

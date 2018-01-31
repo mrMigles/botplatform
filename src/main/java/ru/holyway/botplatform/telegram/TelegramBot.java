@@ -12,6 +12,9 @@ import org.telegram.telegrambots.api.objects.Update;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import ru.holyway.botplatform.core.Bot;
 import ru.holyway.botplatform.core.CommonHandler;
+import ru.holyway.botplatform.telegram.processor.MessageProcessor;
+
+import java.util.List;
 
 /**
  * Created by Sergey on 1/17/2017.
@@ -28,12 +31,26 @@ public class TelegramBot extends TelegramLongPollingBot implements Bot {
     @Autowired
     private CommonHandler commonHandler;
 
+    @Autowired
+    private List<MessageProcessor> messageProcessors;
+
 
     @Override
     public void onUpdateReceived(Update update) {
         Message message = update.getMessage();
         if (message != null) {
-            commonHandler.handleMessage(new TelegramMessageEntity(message, this));
+            TelegramMessageEntity telegramMessageEntity = new TelegramMessageEntity(message, this);
+            for (MessageProcessor messageProcessor : messageProcessors) {
+                if (messageProcessor.isNeedToHandle(telegramMessageEntity)) {
+                    try {
+                        messageProcessor.process(telegramMessageEntity);
+                    } catch (TelegramApiException e) {
+                        e.printStackTrace();
+                    }
+                    return;
+                }
+            }
+            commonHandler.handleMessage(telegramMessageEntity);
         }
     }
 
