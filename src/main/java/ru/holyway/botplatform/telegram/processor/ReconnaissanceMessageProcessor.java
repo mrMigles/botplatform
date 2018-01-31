@@ -1,11 +1,12 @@
 package ru.holyway.botplatform.telegram.processor;
 
 import org.apache.commons.lang.StringUtils;
-import org.springframework.scheduling.TaskScheduler;
-import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.TelegramApiException;
+import org.telegram.telegrambots.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
+import org.telegram.telegrambots.api.methods.updatingmessages.EditMessageReplyMarkup;
+import org.telegram.telegrambots.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.api.objects.CallbackQuery;
 import org.telegram.telegrambots.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.api.objects.replykeyboard.buttons.InlineKeyboardButton;
@@ -14,20 +15,14 @@ import ru.holyway.botplatform.telegram.TelegramMessageEntity;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
 
 @Component
-public class TeaMessageProcessor implements MessageProcessor {
-
-    private final TaskScheduler scheduler = new ConcurrentTaskScheduler();
-
-    private Set<String> teaSet = new CopyOnWriteArraySet<>();
+public class ReconnaissanceMessageProcessor implements MessageProcessor {
 
     @Override
     public boolean isNeedToHandle(TelegramMessageEntity messageEntity) {
         final String mes = messageEntity.getText();
-        if (StringUtils.equals(mes, "/tea") || StringUtils.equalsIgnoreCase(mes, "позови ребят на чай")) {
+        if (StringUtils.equals(mes, "/who") || StringUtils.equalsIgnoreCase(mes, "Пахом, кто тут")) {
             return true;
         }
         return false;
@@ -37,8 +32,7 @@ public class TeaMessageProcessor implements MessageProcessor {
     public void process(TelegramMessageEntity messageEntity) throws TelegramApiException {
         SendMessage message = new SendMessage();
         message.setChatId(messageEntity.getChatId());
-        message.setText("Custom message text");
-
+        message.setText("Кто тут? Отзовись!");
 
 
         // Create ReplyKeyboardMarkup object
@@ -51,14 +45,8 @@ public class TeaMessageProcessor implements MessageProcessor {
         List<InlineKeyboardButton> inlineKeyboardButtons = new ArrayList<>();
 
         InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton();
-        inlineKeyboardButton.setText("Да");
-        inlineKeyboardButton.setCallbackData("Yes");
-
-        inlineKeyboardButtons.add(inlineKeyboardButton);
-
-        inlineKeyboardButton = new InlineKeyboardButton();
-        inlineKeyboardButton.setText("Нет");
-        inlineKeyboardButton.setCallbackData("No");
+        inlineKeyboardButton.setText("Я тутъ");
+        inlineKeyboardButton.setCallbackData("who:iam");
 
         inlineKeyboardButtons.add(inlineKeyboardButton);
         keyboard.add(inlineKeyboardButtons);
@@ -75,11 +63,31 @@ public class TeaMessageProcessor implements MessageProcessor {
 
     @Override
     public boolean isRegardingCallback(CallbackQuery callbackQuery) {
+        final String callback = callbackQuery.getData();
+        if (StringUtils.containsIgnoreCase(callback, "who:")) {
+            return true;
+        }
         return false;
     }
 
     @Override
     public void processCallBack(CallbackQuery callbackQuery, AbsSender sender) throws TelegramApiException {
+        AnswerCallbackQuery answerCallbackQuery = new AnswerCallbackQuery();
+        answerCallbackQuery.setCallbackQueryId(callbackQuery.getId());
+        answerCallbackQuery.setShowAlert(true);
+        answerCallbackQuery.setText("Спасибо, братишка " + callbackQuery.getFrom().getUserName());
+        sender.answerCallbackQuery(answerCallbackQuery);
 
+        EditMessageReplyMarkup editMessageReplyMarkup = new EditMessageReplyMarkup();
+        editMessageReplyMarkup.setChatId(String.valueOf(callbackQuery.getMessage().getChatId()));
+        editMessageReplyMarkup.setMessageId(callbackQuery.getMessage().getMessageId());
+
+        EditMessageText editMessageText = new EditMessageText();
+        editMessageText.setChatId(String.valueOf(callbackQuery.getMessage().getChatId()));
+        editMessageText.setMessageId(callbackQuery.getMessage().getMessageId());
+        editMessageText.setText("Спасибо, я нашёл тут:" + callbackQuery.getFrom().getUserName());
+
+        sender.editMessageReplyMarkup(editMessageReplyMarkup);
+        sender.editMessageText(editMessageText);
     }
 }

@@ -6,7 +6,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.TelegramApiException;
 import org.telegram.telegrambots.TelegramBotsApi;
+import org.telegram.telegrambots.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
+import org.telegram.telegrambots.api.methods.updatingmessages.EditMessageReplyMarkup;
+import org.telegram.telegrambots.api.objects.CallbackQuery;
 import org.telegram.telegrambots.api.objects.Message;
 import org.telegram.telegrambots.api.objects.Update;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
@@ -51,6 +54,18 @@ public class TelegramBot extends TelegramLongPollingBot implements Bot {
                 }
             }
             commonHandler.handleMessage(telegramMessageEntity);
+        } else if (update.hasCallbackQuery()) {
+            for (MessageProcessor messageProcessor : messageProcessors) {
+                CallbackQuery callbackQuery = update.getCallbackQuery();
+                if (messageProcessor.isRegardingCallback(callbackQuery)) {
+                    try {
+                        messageProcessor.processCallBack(callbackQuery, this);
+                    } catch (TelegramApiException e) {
+                        e.printStackTrace();
+                    }
+                    return;
+                }
+            }
         }
     }
 
@@ -92,6 +107,26 @@ public class TelegramBot extends TelegramLongPollingBot implements Bot {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * @param text          The text that should be shown
+     * @param alert         If the text should be shown as a alert or not
+     * @param callbackquery
+     * @throws TelegramApiException
+     */
+    private void sendAnswerCallbackQuery(final String text, boolean alert, CallbackQuery callbackquery) throws TelegramApiException {
+        AnswerCallbackQuery answerCallbackQuery = new AnswerCallbackQuery();
+        answerCallbackQuery.setCallbackQueryId(callbackquery.getId());
+        answerCallbackQuery.setShowAlert(alert);
+        answerCallbackQuery.setText(text);
+        answerCallbackQuery(answerCallbackQuery);
+
+        EditMessageReplyMarkup editMessageReplyMarkup = new EditMessageReplyMarkup();
+        editMessageReplyMarkup.setChatId(String.valueOf(callbackquery.getMessage().getChatId()));
+        editMessageReplyMarkup.setMessageId(callbackquery.getMessage().getMessageId());
+
+        editMessageReplyMarkup(editMessageReplyMarkup);
     }
 
 }
