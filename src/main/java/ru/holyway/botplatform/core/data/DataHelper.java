@@ -25,4 +25,7 @@ public interface DataHelper {
 
     void updateRecords(List<Record> records);
 
+    List<String> getChatMembers(final String chatId);
+
+    void updateChatMembers(final String chatId, List<String> chatMembers);
 }

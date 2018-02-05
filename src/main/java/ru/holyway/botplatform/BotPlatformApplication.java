@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
+import org.telegram.telegrambots.ApiContextInitializer;
 import ru.holyway.botplatform.config.JobInitializer;
 import ru.holyway.botplatform.core.Bot;
 
@@ -25,6 +26,7 @@ public class BotPlatformApplication {
     private List<Bot> bots;
 
     public static void main(String[] args) {
+        ApiContextInitializer.init();
         SpringApplication.run(BotPlatformApplication.class, args);
     }
 

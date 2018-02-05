@@ -3,6 +3,7 @@ package ru.holyway.botplatform.core.data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
 import ru.holyway.botplatform.core.entity.Chat;
+import ru.holyway.botplatform.core.entity.ChatMembers;
 import ru.holyway.botplatform.core.entity.JSettings;
 import ru.holyway.botplatform.core.entity.Record;
 
@@ -30,6 +31,9 @@ public class MongoDataHelper implements DataHelper {
 
     @Autowired
     private RecordRepository recordRepository;
+
+    @Autowired
+    private ChatMemberRepository chatMemberRepository;
 
     @PostConstruct
     public void postConstruct() {
@@ -85,6 +89,21 @@ public class MongoDataHelper implements DataHelper {
 
     public void updateRecords(List<Record> records) {
         recordRepository.save(records);
+    }
+
+    @Override
+    public List<String> getChatMembers(String chatId) {
+        ChatMembers chatMembers = chatMemberRepository.findById(chatId);
+        if (chatMembers != null) {
+            return chatMembers.members;
+        }
+        return null;
+    }
+
+    @Override
+    public void updateChatMembers(String chatId, List<String> chatMembers) {
+        final ChatMembers members = new ChatMembers(chatId, chatMembers);
+        chatMemberRepository.save(members);
     }
 
 }

@@ -17,6 +17,7 @@ public class MemoryDataHelper implements DataHelper {
     private List<String> simpleChat = new ArrayList<>();
     private JSettings jSettings = new JSettings();
     private List<Record> records = new ArrayList<>();
+    private Map<String, List<String>> chatMembersMap = new HashMap<>();
 
 
     @Override
@@ -52,5 +53,15 @@ public class MemoryDataHelper implements DataHelper {
     @Override
     public void updateRecords(List<Record> records) {
 
+    }
+
+    @Override
+    public List<String> getChatMembers(String chatId) {
+        return chatMembersMap.get(chatId);
+    }
+
+    @Override
+    public void updateChatMembers(String chatId, List<String> chatMembers) {
+        chatMembersMap.put(chatId, chatMembers);
     }
 }

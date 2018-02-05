@@ -4,7 +4,6 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.TelegramApiException;
 import org.telegram.telegrambots.TelegramBotsApi;
 import org.telegram.telegrambots.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
@@ -47,7 +46,7 @@ public class TelegramBot extends TelegramLongPollingBot implements Bot {
                 if (messageProcessor.isNeedToHandle(telegramMessageEntity)) {
                     try {
                         messageProcessor.process(telegramMessageEntity);
-                    } catch (TelegramApiException e) {
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
                     return;
@@ -60,7 +59,7 @@ public class TelegramBot extends TelegramLongPollingBot implements Bot {
                 if (messageProcessor.isRegardingCallback(callbackQuery)) {
                     try {
                         messageProcessor.processCallBack(callbackQuery, this);
-                    } catch (TelegramApiException e) {
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
                     return;
@@ -81,12 +80,11 @@ public class TelegramBot extends TelegramLongPollingBot implements Bot {
 
     @Override
     public void init() {
-        //ApiContextInitializer.init();
         if (StringUtils.isNotEmpty(botName) && StringUtils.isNotEmpty(botToken)) {
             TelegramBotsApi telegramBotsApi = new TelegramBotsApi();
             try {
                 telegramBotsApi.registerBot(this);
-            } catch (TelegramApiException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
@@ -103,7 +101,7 @@ public class TelegramBot extends TelegramLongPollingBot implements Bot {
             SendMessage sendMessage = new SendMessage();
             sendMessage.setText(text);
             sendMessage.setChatId(chatId);
-            sendMessage(sendMessage);
+            execute(sendMessage);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -113,9 +111,8 @@ public class TelegramBot extends TelegramLongPollingBot implements Bot {
      * @param text          The text that should be shown
      * @param alert         If the text should be shown as a alert or not
      * @param callbackquery
-     * @throws TelegramApiException
      */
-    private void sendAnswerCallbackQuery(final String text, boolean alert, CallbackQuery callbackquery) throws TelegramApiException {
+    private void sendAnswerCallbackQuery(final String text, boolean alert, CallbackQuery callbackquery) throws Exception {
         AnswerCallbackQuery answerCallbackQuery = new AnswerCallbackQuery();
         answerCallbackQuery.setCallbackQueryId(callbackquery.getId());
         answerCallbackQuery.setShowAlert(alert);

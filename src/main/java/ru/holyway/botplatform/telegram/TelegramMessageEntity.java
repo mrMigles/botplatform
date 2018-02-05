@@ -1,11 +1,9 @@
 package ru.holyway.botplatform.telegram;
 
-import org.telegram.telegrambots.TelegramApiException;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.objects.Message;
-import org.telegram.telegrambots.api.objects.replykeyboard.ForceReplyKeyboard;
-import org.telegram.telegrambots.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.bots.AbsSender;
+import org.telegram.telegrambots.exceptions.TelegramApiException;
 import ru.holyway.botplatform.core.MessageEntity;
 
 /**
@@ -49,12 +47,12 @@ public class TelegramMessageEntity implements MessageEntity {
         sendMessage.setChatId(getChatId());
         sendMessage.setText(text);
         try {
-            sender.sendMessage(sendMessage);
+            sender.execute(sendMessage);
             if (false) {
                 throw new TelegramApiException("");
             }
-        } catch (TelegramApiException e) {
-            e.printStackTrace();
+        } catch (TelegramApiException telegramApiException) {
+            telegramApiException.printStackTrace();
         }
     }
 
