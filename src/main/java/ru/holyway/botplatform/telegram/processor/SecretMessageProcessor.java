@@ -1,6 +1,7 @@
 package ru.holyway.botplatform.telegram.processor;
 
 import org.apache.commons.lang.StringUtils;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.methods.updatingmessages.DeleteMessage;
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 
 @Component
+@Order(1)
 public class SecretMessageProcessor implements MessageProcessor {
 
     private Map<String, List<Integer>> secretMessages = new HashMap<>();
@@ -23,10 +25,12 @@ public class SecretMessageProcessor implements MessageProcessor {
     @Override
     public boolean isNeedToHandle(TelegramMessageEntity messageEntity) {
         final String mes = messageEntity.getText();
-        if (mes.contains("/secret") || secretMessages.get(messageEntity.getChatId()) != null) {
-            return true;
+        if (StringUtils.isNotEmpty(mes)) {
+            if (mes.contains("/secret")) {
+                return true;
+            }
         }
-        return false;
+        return secretMessages.get(messageEntity.getChatId()) != null;
     }
 
     @Override

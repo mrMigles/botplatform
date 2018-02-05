@@ -3,6 +3,7 @@ package ru.holyway.botplatform.telegram;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.TelegramBotsApi;
 import org.telegram.telegrambots.api.methods.AnswerCallbackQuery;
@@ -13,7 +14,6 @@ import org.telegram.telegrambots.api.objects.Message;
 import org.telegram.telegrambots.api.objects.Update;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import ru.holyway.botplatform.core.Bot;
-import ru.holyway.botplatform.core.CommonHandler;
 import ru.holyway.botplatform.telegram.processor.MessageProcessor;
 
 import java.util.List;
@@ -22,6 +22,7 @@ import java.util.List;
  * Created by Sergey on 1/17/2017.
  */
 @Component
+@Order(1)
 public class TelegramBot extends TelegramLongPollingBot implements Bot {
 
     @Value("${credential.telegram.login}")
@@ -29,9 +30,6 @@ public class TelegramBot extends TelegramLongPollingBot implements Bot {
 
     @Value("${credential.telegram.token}")
     private String botToken;
-
-    @Autowired
-    private CommonHandler commonHandler;
 
     @Autowired
     private List<MessageProcessor> messageProcessors;
@@ -43,27 +41,28 @@ public class TelegramBot extends TelegramLongPollingBot implements Bot {
         if (message != null) {
             TelegramMessageEntity telegramMessageEntity = new TelegramMessageEntity(message, this);
             for (MessageProcessor messageProcessor : messageProcessors) {
-                if (messageProcessor.isNeedToHandle(telegramMessageEntity)) {
-                    try {
+                try {
+                    if (messageProcessor.isNeedToHandle(telegramMessageEntity)) {
                         messageProcessor.process(telegramMessageEntity);
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                        return;
                     }
-                    return;
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
+
             }
-            commonHandler.handleMessage(telegramMessageEntity);
         } else if (update.hasCallbackQuery()) {
             for (MessageProcessor messageProcessor : messageProcessors) {
                 CallbackQuery callbackQuery = update.getCallbackQuery();
-                if (messageProcessor.isRegardingCallback(callbackQuery)) {
-                    try {
+                try {
+                    if (messageProcessor.isRegardingCallback(callbackQuery)) {
                         messageProcessor.processCallBack(callbackQuery, this);
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                        return;
                     }
-                    return;
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
+
             }
         }
     }

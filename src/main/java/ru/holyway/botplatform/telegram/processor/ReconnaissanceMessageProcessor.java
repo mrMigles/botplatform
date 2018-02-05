@@ -2,6 +2,7 @@ package ru.holyway.botplatform.telegram.processor;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.annotation.Order;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
 import org.springframework.stereotype.Component;
@@ -28,6 +29,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 @Component
+@Order(1)
 public class ReconnaissanceMessageProcessor implements MessageProcessor {
 
     private Map<String, List<String>> currentReconChatMembers = new HashMap<>();
@@ -67,12 +69,9 @@ public class ReconnaissanceMessageProcessor implements MessageProcessor {
         }
 
 
-        // Create ReplyKeyboardMarkup object
         InlineKeyboardMarkup keyboardMarkup = new InlineKeyboardMarkup();
 
-        // Create the keyboard (list of keyboard rows)
         List<List<InlineKeyboardButton>> keyboard = new ArrayList<>();
-        // Create a keyboard row
 
         List<InlineKeyboardButton> inlineKeyboardButtons = new ArrayList<>();
 
@@ -84,9 +83,6 @@ public class ReconnaissanceMessageProcessor implements MessageProcessor {
         keyboard.add(inlineKeyboardButtons);
         keyboardMarkup.setKeyboard(keyboard);
 
-
-        //keyboardMarkup.setKeyboard(keyboard);
-        // Add it to the message
         message.setReplyMarkup(keyboardMarkup);
 
         final Message mes = messageEntity.getSender().execute(message);
