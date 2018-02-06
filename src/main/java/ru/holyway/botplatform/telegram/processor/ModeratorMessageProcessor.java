@@ -3,7 +3,6 @@ package ru.holyway.botplatform.telegram.processor;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.api.methods.groupadministration.GetChatMember;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.api.objects.CallbackQuery;
@@ -35,6 +34,18 @@ public class ModeratorMessageProcessor implements MessageProcessor {
         matWords.add("долбаеб");
         matWords.add("ебать");
         matWords.add("еба");
+        matWords.add("хуй");
+        matWords.add("хуев");
+        matWords.add("алгоритм");
+        matWords.add("курс");
+        matWords.add("машин лернинг");
+        matWords.add("ML");
+        matWords.add("градиентный спуск");
+        matWords.add("скрутк");
+        matWords.add("лернинг");
+        matWords.add("свертк");
+        matWords.add("машинное обучен");
+        matWords.add("ассоциативный");
     }
 
     @Override
