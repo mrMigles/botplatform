@@ -29,7 +29,7 @@ public class SimpleQuestionHandler implements MessageHandler {
             return "да как земля";
         }
 
-        if (StringUtils.containsIgnoreCase(mes, "Привет") || StringUtils.containsIgnoreCase(mes, "Хай") || StringUtils.containsIgnoreCase(mes, "привет")) {
+        if (StringUtils.containsIgnoreCase(mes, "Привет")) {
             return "Здрасти, Дравсвуйте!";
         }
         if (StringUtils.containsIgnoreCase(mes, "скучн") || StringUtils.containsIgnoreCase(mes, "он умеет")) {
@@ -37,10 +37,6 @@ public class SimpleQuestionHandler implements MessageHandler {
         }
         if (StringUtils.containsIgnoreCase(mes, "цапл") || StringUtils.containsIgnoreCase(mes, "чайк")) {
             return "курлык-курлык!";
-        }
-
-        if (StringUtils.containsIgnoreCase(mes, "готов") || StringUtils.containsIgnoreCase(mes, "сделал") || StringUtils.containsIgnoreCase(mes, "купил")) {
-            return "о, уважаю, братишка!";
         }
         return null;
     }
