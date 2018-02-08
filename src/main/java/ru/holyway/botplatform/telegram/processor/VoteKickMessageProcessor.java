@@ -6,6 +6,7 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.api.methods.AnswerCallbackQuery;
+import org.telegram.telegrambots.api.methods.groupadministration.GetChatMemberCount;
 import org.telegram.telegrambots.api.methods.groupadministration.RestrictChatMember;
 import org.telegram.telegrambots.api.methods.pinnedmessages.PinChatMessage;
 import org.telegram.telegrambots.api.methods.pinnedmessages.UnpinChatMessage;
@@ -75,6 +76,11 @@ public class VoteKickMessageProcessor implements MessageProcessor {
         final Integer userID = messageEntity.getMessage().getFrom().getId();
         final User banUser = replyMessage.getFrom();
 
+        if (userID.equals(banUser.getId())) {
+            messageEntity.getSender().execute(new DeleteMessage().setChatId(messageEntity.getChatId()).setMessageId(messageEntity.getMessage().getMessageId()));
+            messageEntity.getSender().execute(new SendMessage().setChatId(messageEntity.getChatId()).setText(messageEntity.getMessage().getFrom().getFirstName() + ", я притворюсь, что ничего не видел"));
+        }
+
         messageEntity.getSender().execute(new DeleteMessage().setChatId(messageEntity.getChatId()).setMessageId(messageEntity.getMessage().getMessageId()));
 
         SendMessage sendMessage = new SendMessage();
@@ -138,22 +144,28 @@ public class VoteKickMessageProcessor implements MessageProcessor {
             if (banInfo.getUserIDS().contains(callbackQuery.getFrom().getId())) {
                 message = "Ты уже голосовал, почему тебе так не нравится " + banInfo.getUser().getFirstName() + "?";
             } else {
-                banInfo.addUserID(callbackQuery.getFrom().getId());
-                message = "Твой АНОНИМНЫЙ голос учтён";
-                if (banInfo.getUserIDS().size() > 2) {
-                    //sender.execute(new KickChatMember().setChatId(chatID).setUserId(banInfo.getUser().getId()));
-                    sender.execute(new RestrictChatMember().setCanSendOtherMessages(false).setChatId(chatID).setUserId(banInfo.getUser().getId()));
-                    sender.execute(new SendMessage().setChatId(chatID).setText(banInfo.getUser().getFirstName() + " был забанен на 5 минут по просьбе участников."));
-                    endVote(chatID, banInfo.getMessageID(), sender);
+                if (banInfo.user.getId().equals(callbackQuery.getFrom().getId())) {
+                    message = "Самокик!!?!??!?";
+                } else {
+                    banInfo.addUserID(callbackQuery.getFrom().getId());
+                    message = "Твой АНОНИМНЫЙ голос учтён";
+                    Integer count = sender.execute(new GetChatMemberCount().setChatId(chatID));
+                    int size = count > 10 ? 2 : 1;
+                    if (banInfo.getUserIDS().size() > size) {
+                        //sender.execute(new KickChatMember().setChatId(chatID).setUserId(banInfo.getUser().getId()));
+                        sender.execute(new RestrictChatMember().setCanSendOtherMessages(false).setChatId(chatID).setUserId(banInfo.getUser().getId()));
+                        sender.execute(new SendMessage().setChatId(chatID).setText(banInfo.getUser().getFirstName() + " был забанен на 5 минут по просьбе участников."));
+                        endVote(chatID, banInfo.getMessageID(), sender);
 
-                    scheduler.schedule(() -> {
-                        try {
-                            sender.execute(new SendMessage().setChatId(chatID).setText(banInfo.getUser().getFirstName() + " вернулся к разговору, но контекст уже упущен..."));
-                            sender.execute(new RestrictChatMember().setCanSendMessages(true).setChatId(chatID).setUserId(banInfo.getUser().getId()));
-                        } catch (TelegramApiException e) {
-                            e.printStackTrace();
-                        }
-                    }, new Date(System.currentTimeMillis() + DELAY_TO_UPDATE));
+                        scheduler.schedule(() -> {
+                            try {
+                                sender.execute(new SendMessage().setChatId(chatID).setText(banInfo.getUser().getFirstName() + " вернулся к разговору, но контекст уже упущен..."));
+                                sender.execute(new RestrictChatMember().setCanSendMessages(true).setCanSendOtherMessages(true).setCanAddWebPagePreviews(true).setCanSendMediaMessages(true).setChatId(chatID).setUserId(banInfo.getUser().getId()));
+                            } catch (TelegramApiException e) {
+                                e.printStackTrace();
+                            }
+                        }, new Date(System.currentTimeMillis() + DELAY_TO_UPDATE));
+                    }
                 }
             }
         }

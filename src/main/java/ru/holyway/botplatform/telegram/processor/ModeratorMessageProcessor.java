@@ -14,8 +14,7 @@ import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
 
-@Component
-@Order(1)
+
 public class ModeratorMessageProcessor implements MessageProcessor {
 
     private List<String> matWords = new ArrayList<>();

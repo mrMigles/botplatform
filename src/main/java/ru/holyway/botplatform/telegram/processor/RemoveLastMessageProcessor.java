@@ -44,7 +44,7 @@ public class RemoveLastMessageProcessor implements MessageProcessor {
             }
 
         } catch (Exception e) {
-            messageEntity.getSender().execute(new SendMessage().setChatId(messageEntity.getChatId()).setText("Влад, это ты?"));
+            messageEntity.getSender().execute(new SendMessage().setChatId(messageEntity.getChatId()).setText("Нимагу"));
             e.printStackTrace();
         }
     }
