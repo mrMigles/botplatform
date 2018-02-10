@@ -20,7 +20,7 @@ import org.telegram.telegrambots.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.bots.AbsSender;
 import org.telegram.telegrambots.exceptions.TelegramApiException;
-import ru.holyway.botplatform.core.data.DataHelper;
+import ru.holyway.botplatform.core.data.DataService;
 import ru.holyway.botplatform.telegram.TelegramMessageEntity;
 
 import java.util.*;
@@ -41,7 +41,7 @@ public class ReconnaissanceMessageProcessor implements MessageProcessor {
     private static final long DELAY_TO_UPDATE = TimeUnit.MINUTES.toMillis(2);
 
     @Autowired
-    DataHelper dataHelper;
+    DataService dataService;
 
     @Override
     public boolean isNeedToHandle(TelegramMessageEntity messageEntity) {
@@ -58,7 +58,7 @@ public class ReconnaissanceMessageProcessor implements MessageProcessor {
             return;
         }
         SendMessage message = new SendMessage();
-        if (dataHelper.getChatMembers(messageEntity.getChatId()) != null) {
+        if (dataService.getChatMembers(messageEntity.getChatId()) != null) {
 
             message.setChatId(messageEntity.getChatId());
             message.setText("Я уже искал тут вас, ну что вы опять начинаете... Давайте заново.\nКто тут? Отзовись!");
@@ -166,7 +166,7 @@ public class ReconnaissanceMessageProcessor implements MessageProcessor {
         }
 
         if (currentReconChatMembers.get(chatId) != null && !currentReconChatMembers.get(chatId).isEmpty()) {
-            dataHelper.updateChatMembers(chatId, currentReconChatMembers.get(chatId));
+            dataService.updateChatMembers(chatId, currentReconChatMembers.get(chatId));
         }
         currentReconChatMembers.remove(chatId);
     }

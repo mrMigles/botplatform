@@ -2,10 +2,9 @@ package ru.holyway.botplatform.core.handler;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import ru.holyway.botplatform.core.MessageEntity;
-import ru.holyway.botplatform.core.data.DataHelper;
+import ru.holyway.botplatform.core.data.DataService;
 import ru.holyway.botplatform.core.education.EducationActiveException;
 import ru.holyway.botplatform.core.education.EducationCache;
 
@@ -22,7 +21,7 @@ public class EducationHandler implements MessageHandler {
     private EducationCache educationCache;
 
     @Autowired
-    private DataHelper dataHelper;
+    private DataService dataService;
 
     @Override
     public String provideAnswer(final MessageEntity messageEntity) {
@@ -57,7 +56,7 @@ public class EducationHandler implements MessageHandler {
             }
         }
         if (educationCache.getLearningChats().contains(chatId) && !StringUtils.containsIgnoreCase(mes, "Пахом,")) {
-            for (String chatWithSync : dataHelper.getSettings().getSyncForChat(chatId)) {
+            for (String chatWithSync : dataService.getSettings().getSyncForChat(chatId)) {
                 List<String> current = educationCache.getListCurrentLearning().get(chatWithSync);
                 if (current == null) {
                     current = new ArrayList<>();
@@ -72,7 +71,7 @@ public class EducationHandler implements MessageHandler {
 
     private synchronized void writeNew() {
         try {
-            dataHelper.updateLearn(educationCache.getListCurrentLearning());
+            dataService.updateLearn(educationCache.getListCurrentLearning());
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -10,7 +10,7 @@ import org.springframework.web.client.RestTemplate;
 import ru.holyway.botplatform.core.Bot;
 import ru.holyway.botplatform.core.CommonHandler;
 import ru.holyway.botplatform.core.MessageEntity;
-import ru.holyway.botplatform.core.data.DataHelper;
+import ru.holyway.botplatform.core.data.DataService;
 import ru.holyway.botplatform.core.entity.UserAccessInfo;
 import ru.holyway.botplatform.web.entities.SimpleRequest;
 import ru.holyway.botplatform.web.entities.SimpleResponse;
@@ -33,7 +33,7 @@ public class CommonController {
     CommonHandler commonHandler;
 
     @Autowired
-    DataHelper dataHelper;
+    DataService dataService;
 
     private String query = "https://ru.wikipedia.org/w/api.php?action=query&prop=extracts&format=json&exintro=&titles=";
 
@@ -99,6 +99,6 @@ public class CommonController {
     @PreAuthorize("permitAll()")
     @RequestMapping(value = "/introspect", method = RequestMethod.POST)
     public ResponseEntity<UserAccessInfo> introspect(@RequestBody String token){
-        return ResponseEntity.ok(dataHelper.getSettings().getUserAccessInfo(token));
+        return ResponseEntity.ok(dataService.getSettings().getUserAccessInfo(token));
     }
 }

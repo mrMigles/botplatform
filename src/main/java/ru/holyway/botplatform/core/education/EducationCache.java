@@ -2,7 +2,7 @@ package ru.holyway.botplatform.core.education;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ru.holyway.botplatform.core.data.DataHelper;
+import ru.holyway.botplatform.core.data.DataService;
 
 import javax.annotation.PostConstruct;
 import java.util.*;
@@ -32,7 +32,7 @@ public class EducationCache {
 
 
     @Autowired
-    private DataHelper dataHelper;
+    private DataService dataService;
 
     @PostConstruct
     private void postConstruct() {
@@ -51,8 +51,8 @@ public class EducationCache {
 
         List<String> simpleWords = null;
         try {
-            learnWords = dataHelper.getLearn();
-            simpleWords = dataHelper.getSimple();
+            learnWords = dataService.getLearn();
+            simpleWords = dataService.getSimple();
 
         } catch (Exception e) {
             e.printStackTrace();

@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import ru.holyway.botplatform.config.JobInitializer;
-import ru.holyway.botplatform.core.data.DataHelper;
+import ru.holyway.botplatform.core.data.DataService;
 import ru.holyway.botplatform.core.handler.MessageHandler;
 
 import javax.annotation.PostConstruct;
@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 public class CommonMessageHandler implements CommonHandler {
 
     @Autowired
-    private DataHelper dataHelper;
+    private DataService dataService;
 
     @Autowired
     @Qualifier("orderedMessageHandlers")

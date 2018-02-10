@@ -11,7 +11,7 @@ import java.util.Map;
 /**
  * Created by seiv0814 on 12-10-17.
  */
-public class MemoryDataHelper implements DataHelper {
+public class MemoryDataService implements DataService {
 
     private Map<String, List<String>> learnChat = new HashMap<>();
     private List<String> simpleChat = new ArrayList<>();

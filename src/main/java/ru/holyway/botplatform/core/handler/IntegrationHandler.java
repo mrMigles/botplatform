@@ -2,10 +2,9 @@ package ru.holyway.botplatform.core.handler;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import ru.holyway.botplatform.core.MessageEntity;
-import ru.holyway.botplatform.core.data.DataHelper;
+import ru.holyway.botplatform.core.data.DataService;
 import ru.holyway.botplatform.core.education.EducationCache;
 
 import java.util.ArrayList;
@@ -21,7 +20,7 @@ public class IntegrationHandler implements MessageHandler {
     private EducationCache educationCache;
 
     @Autowired
-    private DataHelper dataHelper;
+    private DataService dataService;
 
     @Override
     public String provideAnswer(final MessageEntity messageEntity) {
@@ -51,11 +50,11 @@ public class IntegrationHandler implements MessageHandler {
                 if (mes.length() > 22) {
                     final String migChatId = mes.substring(21);
 
-                    if (dataHelper.getSettings().syncChat(chatId, migChatId)) {
-                        dataHelper.updateSettings();
+                    if (dataService.getSettings().syncChat(chatId, migChatId)) {
+                        dataService.updateSettings();
                         return "Синхроинзация установлена";
                     } else {
-                        dataHelper.updateSettings();
+                        dataService.updateSettings();
                         return "Запрос на синхронизацию получен, повторите команду на стороне чата " + migChatId;
                     }
                 }
@@ -69,7 +68,7 @@ public class IntegrationHandler implements MessageHandler {
 
     private synchronized void writeNew() {
         try {
-            dataHelper.updateLearn(educationCache.getListCurrentLearning());
+            dataService.updateLearn(educationCache.getListCurrentLearning());
         } catch (Exception e) {
             e.printStackTrace();
         }

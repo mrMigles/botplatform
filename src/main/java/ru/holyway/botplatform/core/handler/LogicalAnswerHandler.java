@@ -1,11 +1,10 @@
 package ru.holyway.botplatform.core.handler;
 
 import org.apache.commons.lang.StringUtils;
-import org.springframework.core.annotation.Order;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.holyway.botplatform.core.MessageEntity;
-import ru.holyway.botplatform.core.data.DataHelper;
+import ru.holyway.botplatform.core.data.DataService;
 import ru.holyway.botplatform.core.education.EducationCache;
 import ru.holyway.botplatform.core.education.EducationUtils;
 import ru.holyway.botplatform.core.entity.JSettings;
@@ -23,7 +22,7 @@ import java.util.Random;
 public class LogicalAnswerHandler implements MessageHandler {
 
     @Autowired
-    private DataHelper dataHelper;
+    private DataService dataService;
 
     @Autowired
     private EducationCache educationCache;
@@ -33,7 +32,7 @@ public class LogicalAnswerHandler implements MessageHandler {
 
     @PostConstruct
     public void postConstruct() {
-        settings = dataHelper.getSettings();
+        settings = dataService.getSettings();
     }
 
 

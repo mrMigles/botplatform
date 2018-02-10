@@ -9,7 +9,7 @@ import java.util.Map;
 /**
  * Created by Sergey on 4/19/2017.
  */
-public interface DataHelper {
+public interface DataService {
 
     Map<String, List<String>> getLearn();
 

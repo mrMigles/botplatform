@@ -1,11 +1,10 @@
 package ru.holyway.botplatform.core.handler;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import ru.holyway.botplatform.core.MessageEntity;
 import ru.holyway.botplatform.core.ProcessStopException;
-import ru.holyway.botplatform.core.data.DataHelper;
+import ru.holyway.botplatform.core.data.DataService;
 import ru.holyway.botplatform.core.entity.JSettings;
 
 import javax.annotation.PostConstruct;
@@ -19,11 +18,11 @@ public class SkiperHandler implements MessageHandler {
     private JSettings settings;
 
     @Autowired
-    private DataHelper dataHelper;
+    private DataService dataService;
 
     @PostConstruct
     protected void postConstruct() {
-        this.settings = dataHelper.getSettings();
+        this.settings = dataService.getSettings();
     }
 
     @Override

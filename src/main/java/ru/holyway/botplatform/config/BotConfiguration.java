@@ -7,9 +7,10 @@ import org.springframework.security.web.authentication.AnonymousAuthenticationFi
 import ru.holyway.botplatform.core.CommonHandler;
 import ru.holyway.botplatform.core.CommonMessageHandler;
 import ru.holyway.botplatform.core.Context;
-import ru.holyway.botplatform.core.data.DataHelper;
-import ru.holyway.botplatform.core.data.MemoryDataHelper;
-import ru.holyway.botplatform.core.data.MongoDataHelper;
+import ru.holyway.botplatform.core.data.DataService;
+import ru.holyway.botplatform.core.data.MemoryDataService;
+import ru.holyway.botplatform.core.data.MongoDataService;
+import ru.holyway.botplatform.core.data.TelegramService;
 import ru.holyway.botplatform.core.handler.MessageHandler;
 import ru.holyway.botplatform.security.AnonymousChatTokenSecurityFilter;
 
@@ -33,11 +34,11 @@ public class BotConfiguration {
     }
 
     @Bean
-    public DataHelper dataHelper() {
+    public DataService dataHelper() {
         if (dataType != null && dataType.equalsIgnoreCase("memory")) {
-            return new MemoryDataHelper();
+            return new TelegramService();
         }
-        return new MongoDataHelper();
+        return new MongoDataService();
     }
 
     @Bean

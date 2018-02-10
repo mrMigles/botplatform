@@ -1,11 +1,10 @@
 package ru.holyway.botplatform.core.handler;
 
 import org.apache.commons.lang.StringUtils;
-import org.springframework.core.annotation.Order;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.holyway.botplatform.core.MessageEntity;
-import ru.holyway.botplatform.core.data.DataHelper;
+import ru.holyway.botplatform.core.data.DataService;
 import ru.holyway.botplatform.core.entity.ComparatorByTime;
 import ru.holyway.botplatform.core.entity.ComparatorByValue;
 import ru.holyway.botplatform.core.entity.Record;
@@ -25,7 +24,7 @@ public class RecordsHandler implements MessageHandler {
     private Map<String, Long> currentRecordMap = new ConcurrentHashMap<>();
 
     @Autowired
-    private DataHelper dataHelper;
+    private DataService dataService;
 
     @PostConstruct
     public void postConstruct() {
@@ -62,7 +61,7 @@ public class RecordsHandler implements MessageHandler {
                         recordForName.sort(new ComparatorByValue());
                         long recordForUser = recordForName.isEmpty() ? 0 : recordForName.get(0).time;
                         recordsList.add(new Record(peopleID, currentRecord, System.currentTimeMillis()));
-                        dataHelper.updateRecords(recordsList);
+                        dataService.updateRecords(recordsList);
                         currentRecordMap.remove(peopleID);
                         Collections.sort(recordsList);
                         if (currentRecord > maximumRecord) {
@@ -168,7 +167,7 @@ public class RecordsHandler implements MessageHandler {
 
     private synchronized void initRecors() {
         recordsList.clear();
-        recordsList.addAll(dataHelper.getRecords());
+        recordsList.addAll(dataService.getRecords());
     }
 
     private List<Record> getRecordsAll() {

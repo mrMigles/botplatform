@@ -13,7 +13,7 @@ import java.util.*;
 /**
  * Created by seiv0814 on 12-10-17.
  */
-public class MongoDataHelper implements DataHelper {
+public class MongoDataService implements DataService {
 
     private JSettings settings;
 

@@ -3,10 +3,9 @@ package ru.holyway.botplatform.core.handler;
 import com.sun.jersey.core.util.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import ru.holyway.botplatform.core.MessageEntity;
-import ru.holyway.botplatform.core.data.DataHelper;
+import ru.holyway.botplatform.core.data.DataService;
 
 /**
  * Created by Sergey on 10/12/2017.
@@ -15,7 +14,7 @@ import ru.holyway.botplatform.core.data.DataHelper;
 public class AuthenticationHandler implements MessageHandler {
 
     @Autowired
-    private DataHelper dataHelper;
+    private DataService dataService;
 
     @Override
     public String provideAnswer(MessageEntity messageEntity) {
@@ -30,17 +29,17 @@ public class AuthenticationHandler implements MessageHandler {
             }
         }
         if (StringUtils.containsIgnoreCase(mes, "get token")) {
-            final String token = dataHelper.getSettings().getToken(chatId);
-            dataHelper.updateSettings();
+            final String token = dataService.getSettings().getToken(chatId);
+            dataService.updateSettings();
             return token;
         }
         if (StringUtils.containsIgnoreCase(mes, "revoke token")) {
-            final String token = dataHelper.getSettings().generateNewToken(chatId);
-            dataHelper.updateSettings();
+            final String token = dataService.getSettings().generateNewToken(chatId);
+            dataService.updateSettings();
             return token;
         }
         if (StringUtils.containsIgnoreCase(mes, "request user token")) {
-            return dataHelper.getSettings().getUserToken(chatId, messageEntity.getSenderLogin(), messageEntity.getSenderName());
+            return dataService.getSettings().getUserToken(chatId, messageEntity.getSenderLogin(), messageEntity.getSenderName());
         }
 
         return null;

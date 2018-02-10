@@ -4,7 +4,7 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.holyway.botplatform.core.MessageEntity;
-import ru.holyway.botplatform.core.data.DataHelper;
+import ru.holyway.botplatform.core.data.DataService;
 import ru.holyway.botplatform.core.entity.JSettings;
 
 import javax.annotation.PostConstruct;
@@ -18,13 +18,13 @@ import java.util.regex.Pattern;
 public class SettingsHandler implements MessageHandler {
 
     @Autowired
-    private DataHelper dataHelper;
+    private DataService dataService;
 
     private JSettings settings;
 
     @PostConstruct
     public void postConstruct() {
-        settings = dataHelper.getSettings();
+        settings = dataService.getSettings();
     }
 
 
@@ -83,7 +83,7 @@ public class SettingsHandler implements MessageHandler {
                     int ansPer = Integer.parseInt(value);
                     if (ansPer >= 0 && ansPer <= 100) {
                         settings.setProximityAnswer(chatId, ansPer);
-                        dataHelper.updateSettings();
+                        dataService.updateSettings();
                         return "ок";
                     }
                 }
@@ -99,7 +99,7 @@ public class SettingsHandler implements MessageHandler {
     private void addToMute(String chatID) {
         if (!settings.getMuteChats().contains(chatID)) {
             settings.addMuteChat(chatID);
-            dataHelper.updateSettings();
+            dataService.updateSettings();
         }
 
     }
@@ -107,14 +107,14 @@ public class SettingsHandler implements MessageHandler {
     private void removeFromMute(String chatID) {
         if (settings.getMuteChats().contains(chatID)) {
             settings.removeMuteChat(chatID);
-            dataHelper.updateSettings();
+            dataService.updateSettings();
         }
     }
 
     private void addToEazy(String chatID) {
         if (!settings.getEasyChats().contains(chatID)) {
             settings.addEasyChat(chatID);
-            dataHelper.updateSettings();
+            dataService.updateSettings();
         }
 
     }
@@ -122,7 +122,7 @@ public class SettingsHandler implements MessageHandler {
     private void removeFromEazy(String chatID) {
         if (settings.getEasyChats().contains(chatID)) {
             settings.removeEasyChat(chatID);
-            dataHelper.updateSettings();
+            dataService.updateSettings();
         }
     }
 
