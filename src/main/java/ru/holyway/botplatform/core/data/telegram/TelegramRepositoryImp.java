@@ -1,6 +1,7 @@
 package ru.holyway.botplatform.core.data.telegram;
 
 import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.telegram.telegrambots.TelegramBotsApi;
 import org.telegram.telegrambots.api.objects.Update;
@@ -16,12 +17,12 @@ public class TelegramRepositoryImp<T, ID extends Serializable> implements Telegr
 
     private final String chatID;
 
-    public TelegramRepositoryImp(AbsSender telegtamSender, @Value("${credential.telegram.login}") final String chatID) {
+    public TelegramRepositoryImp(@Autowired AbsSender telegtamSender, @Value("${credential.telegram.login}") final String chatID) {
         this.telegtamSender = telegtamSender;
         this.chatID = chatID;
     }
 
-    public TelegramRepositoryImp(final String botName, final String botToken, final String chatID) {
+    public TelegramRepositoryImp(@Value("${credential.telegram.login}") final String botName, @Value("${credential.telegram.token}") final String botToken, @Value("${credential.telegram.chat}") final String chatID) {
         this.chatID = chatID;
         if (StringUtils.isNotEmpty(botName) && StringUtils.isNotEmpty(botToken)) {
             TelegramBotsApi telegramBotsApi = new TelegramBotsApi();
