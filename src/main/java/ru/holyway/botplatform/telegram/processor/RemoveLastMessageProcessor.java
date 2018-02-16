@@ -16,12 +16,12 @@ import ru.holyway.botplatform.telegram.TelegramMessageEntity;
 import java.util.List;
 
 @Component
-@Order(1)
+@Order(2)
 public class RemoveLastMessageProcessor implements MessageProcessor {
     @Override
     public boolean isNeedToHandle(TelegramMessageEntity messageEntity) {
         final String mes = messageEntity.getText();
-        if (StringUtils.isNotEmpty(mes) && StringUtils.containsIgnoreCase(mes, "Пахом, удали")) {
+        if (StringUtils.isNotEmpty(mes) && StringUtils.equalsIgnoreCase(mes, "удали")) {
             if (messageEntity.getMessage().getReplyToMessage() != null) {
                 return true;
             }
@@ -53,7 +53,7 @@ public class RemoveLastMessageProcessor implements MessageProcessor {
         List<ChatMember> chatMembers = messageEntity.getSender().execute(new GetChatAdministrators().setChatId(messageEntity.getChatId()));
         for (ChatMember chatMember : chatMembers) {
             if (chatMember.getUser().getId().equals(messageEntity.getMessage().getFrom().getId())) {
-                if (chatMember.getCanDeleteMessages()) {
+                if (chatMember.getStatus().equals("creator") || chatMember.getCanDeleteMessages()) {
                     return true;
                 }
             }

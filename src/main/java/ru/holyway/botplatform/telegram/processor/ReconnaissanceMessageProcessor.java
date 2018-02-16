@@ -29,7 +29,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 @Component
-@Order(1)
+@Order(2)
 public class ReconnaissanceMessageProcessor implements MessageProcessor {
 
     private Map<String, List<String>> currentReconChatMembers = new HashMap<>();

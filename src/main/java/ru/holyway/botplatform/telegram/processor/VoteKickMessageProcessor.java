@@ -6,6 +6,7 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.api.methods.AnswerCallbackQuery;
+import org.telegram.telegrambots.api.methods.groupadministration.GetChatAdministrators;
 import org.telegram.telegrambots.api.methods.groupadministration.GetChatMemberCount;
 import org.telegram.telegrambots.api.methods.groupadministration.RestrictChatMember;
 import org.telegram.telegrambots.api.methods.pinnedmessages.PinChatMessage;
@@ -13,12 +14,14 @@ import org.telegram.telegrambots.api.methods.pinnedmessages.UnpinChatMessage;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.api.objects.CallbackQuery;
+import org.telegram.telegrambots.api.objects.ChatMember;
 import org.telegram.telegrambots.api.objects.Message;
 import org.telegram.telegrambots.api.objects.User;
 import org.telegram.telegrambots.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.bots.AbsSender;
 import org.telegram.telegrambots.exceptions.TelegramApiException;
+import ru.holyway.botplatform.core.data.ProcessorsContext;
 import ru.holyway.botplatform.telegram.TelegramMessageEntity;
 
 import java.util.*;
@@ -27,7 +30,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 @Component
-@Order(1)
+@Order(2)
 public class VoteKickMessageProcessor implements MessageProcessor {
 
     private Map<String, BanInfo> banList = new HashMap<>();
@@ -42,7 +45,7 @@ public class VoteKickMessageProcessor implements MessageProcessor {
     @Override
     public boolean isNeedToHandle(TelegramMessageEntity messageEntity) {
         final String mes = messageEntity.getText();
-        if (StringUtils.isNotEmpty(mes) && (StringUtils.containsIgnoreCase(mes, "кик") || StringUtils.containsIgnoreCase(mes, "бан"))) {
+        if (StringUtils.isNotEmpty(mes) && (StringUtils.equalsIgnoreCase(mes, "кик") || StringUtils.equalsIgnoreCase(mes, "бан"))) {
             if (messageEntity.getMessage().getReplyToMessage() != null) {
                 return true;
             }
@@ -110,7 +113,7 @@ public class VoteKickMessageProcessor implements MessageProcessor {
         sendMessage.setReplyMarkup(keyboardMarkup);
 
         final Message message = messageEntity.getSender().execute(sendMessage);
-        banList.put(messageEntity.getChatId(), new BanInfo(banUser, message.getMessageId()).addUserID(userID));
+        banList.put(messageEntity.getChatId(), new BanInfo(banUser, message.getMessageId(), isAdmin(messageEntity, banUser)).addUserID(userID));
         messageEntity.getSender().execute(new PinChatMessage().setChatId(messageEntity.getChatId()).setMessageId(message.getMessageId()));
 
         ex.setRemoveOnCancelPolicy(true);
@@ -152,15 +155,24 @@ public class VoteKickMessageProcessor implements MessageProcessor {
                     Integer count = sender.execute(new GetChatMemberCount().setChatId(chatID));
                     int size = count > 10 ? 2 : 1;
                     if (banInfo.getUserIDS().size() > size) {
-                        //sender.execute(new KickChatMember().setChatId(chatID).setUserId(banInfo.getUser().getId()));
-                        sender.execute(new RestrictChatMember().setCanSendOtherMessages(false).setChatId(chatID).setUserId(banInfo.getUser().getId()));
-                        sender.execute(new SendMessage().setChatId(chatID).setText(banInfo.getUser().getFirstName() + " был забанен на 5 минут по просьбе участников."));
+                        if (banInfo.isAdmin) {
+                            ProcessorsContext.getInstance().addBannedAdmin(chatID, banInfo.getUser().getId());
+                            sender.execute(new SendMessage().setChatId(chatID).setText(banInfo.getUser().getFirstName() + " хоть и админ, но был забанен на 5 минут по просьбе участников. Буду удалять его сообщения."));
+                        } else {
+                            sender.execute(new RestrictChatMember().setCanSendOtherMessages(false).setChatId(chatID).setUserId(banInfo.getUser().getId()));
+                            sender.execute(new SendMessage().setChatId(chatID).setText(banInfo.getUser().getFirstName() + " был забанен на 5 минут по просьбе участников."));
+                        }
+
                         endVote(chatID, banInfo.getMessageID(), sender);
 
                         scheduler.schedule(() -> {
                             try {
                                 sender.execute(new SendMessage().setChatId(chatID).setText(banInfo.getUser().getFirstName() + " вернулся к разговору, но контекст уже упущен..."));
-                                sender.execute(new RestrictChatMember().setCanSendMessages(true).setCanSendOtherMessages(true).setCanAddWebPagePreviews(true).setCanSendMediaMessages(true).setChatId(chatID).setUserId(banInfo.getUser().getId()));
+                                if (banInfo.isAdmin()) {
+                                    ProcessorsContext.getInstance().removeBannedAdmin(chatID, banInfo.getUser().getId());
+                                } else {
+                                    sender.execute(new RestrictChatMember().setCanSendMessages(true).setCanSendOtherMessages(true).setCanAddWebPagePreviews(true).setCanSendMediaMessages(true).setChatId(chatID).setUserId(banInfo.getUser().getId()));
+                                }
                             } catch (TelegramApiException e) {
                                 e.printStackTrace();
                             }
@@ -189,14 +201,26 @@ public class VoteKickMessageProcessor implements MessageProcessor {
 
     }
 
+    private boolean isAdmin(TelegramMessageEntity messageEntity, User banUser) throws TelegramApiException {
+        List<ChatMember> chatMembers = messageEntity.getSender().execute(new GetChatAdministrators().setChatId(messageEntity.getChatId()));
+        for (ChatMember chatMember : chatMembers) {
+            if (chatMember.getUser().getId().equals(banUser.getId())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private static class BanInfo {
         private User user;
         private List<Integer> userIDS = new ArrayList<>();
         private Integer messageID;
+        private boolean isAdmin;
 
-        private BanInfo(User user, Integer messageID) {
+        private BanInfo(User user, Integer messageID, boolean isAdmin) {
             this.user = user;
             this.messageID = messageID;
+            this.isAdmin = isAdmin;
         }
 
         public User getUser() {
@@ -219,6 +243,10 @@ public class VoteKickMessageProcessor implements MessageProcessor {
 
         public Integer getMessageID() {
             return messageID;
+        }
+
+        public boolean isAdmin() {
+            return isAdmin;
         }
     }
 }
