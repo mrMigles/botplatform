@@ -9,21 +9,23 @@ spring:
       host: ${MONGO_HOST:localhost}
       port: ${MONGO_PORT:8050}
       username: ${USERNAME:test}
+      repositories:
+        enabled: ${MONGO_ENABLED:true}
 credential:
-  skype:
-    login: ${SKYPE_USER_NAME:}
-    password: ${SKYPE_PASSWORD:}
-  skype2:
-    login: ${SKYPE2_USER_NAME:}
-    password: ${SKYPE2_PASSWORD:}
+#  skype:
+#    login: ${SKYPE_USER_NAME:}
+#    password: ${SKYPE_PASSWORD:}
+#  skype2:
+#    login: ${SKYPE2_USER_NAME:}
+#    password: ${SKYPE2_PASSWORD:}
   telegram:
     login: ${TELEGRAM_BOT_NAME:}
     token: ${TELEGRAM_BOT_TOKEN:}
+    data: ${TELEGRAM_DATA_CHAT_ID:}
   ai:
     token: ${AI_TOKEN:token}
 bot:
   config:
-    datatype: ${DATATYPE:mongo}
     silentPeriod: ${SILENTPERIOD:10}
 banner:
   charset:

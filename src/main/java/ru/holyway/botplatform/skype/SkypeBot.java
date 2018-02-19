@@ -9,14 +9,13 @@ import com.samczsun.skype4j.exceptions.ConnectionException;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 import ru.holyway.botplatform.core.Bot;
 import ru.holyway.botplatform.core.CommonHandler;
 
 /**
  * Created by Sergey on 1/17/2017.
  */
-@Component
+//@Component
 public class SkypeBot implements Bot {
 
     @Autowired

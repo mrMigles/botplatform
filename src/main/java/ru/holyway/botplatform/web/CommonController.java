@@ -98,7 +98,7 @@ public class CommonController {
 
     @PreAuthorize("permitAll()")
     @RequestMapping(value = "/introspect", method = RequestMethod.POST)
-    public ResponseEntity<UserAccessInfo> introspect(@RequestBody String token){
+    public ResponseEntity<UserAccessInfo> introspect(@RequestBody String token) {
         return ResponseEntity.ok(dataService.getSettings().getUserAccessInfo(token));
     }
 }

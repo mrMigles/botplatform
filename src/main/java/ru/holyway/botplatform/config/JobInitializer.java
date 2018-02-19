@@ -1,10 +1,8 @@
 package ru.holyway.botplatform.config;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
 import org.springframework.web.client.RestTemplate;
-import ru.holyway.botplatform.skype.SkypeBotSecond;
 
 import javax.annotation.PostConstruct;
 import java.net.URI;
@@ -19,10 +17,7 @@ public class JobInitializer {
     private final TaskScheduler scheduler;
     public static int ITER = 0;
     private static final long DELAY_TO_UPDATE = TimeUnit.MINUTES.toMillis(28);
-
-    @Autowired
-    private SkypeBotSecond skypeBotSecond;
-
+    
     public JobInitializer() {
         this.scheduler = new ConcurrentTaskScheduler();
     }
@@ -38,9 +33,6 @@ public class JobInitializer {
                 if (num < 48) {
                     try {
                         new RestTemplate().getForObject(new URI("https://botplatformpakhom.herokuapp.com"), String.class);
-                        if (skypeBotSecond != null) {
-                            skypeBotSecond.reInit();
-                        }
                     } catch (URISyntaxException e) {
                         e.printStackTrace();
                     }
