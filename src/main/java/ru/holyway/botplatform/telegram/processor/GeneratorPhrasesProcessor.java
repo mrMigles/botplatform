@@ -1,7 +1,9 @@
 package ru.holyway.botplatform.telegram.processor;
 
+import com.google.gson.Gson;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -10,13 +12,23 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import org.telegram.telegrambots.api.methods.GetFile;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
+import org.telegram.telegrambots.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.api.objects.CallbackQuery;
 import org.telegram.telegrambots.bots.AbsSender;
 import org.telegram.telegrambots.exceptions.TelegramApiException;
 import ru.holyway.botplatform.telegram.TelegramMessageEntity;
+import ru.holyway.botplatform.web.entities.ImageResponse;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
+import java.net.URL;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -26,42 +38,80 @@ public class GeneratorPhrasesProcessor implements MessageProcessor {
 
     private Map<String, String> wordsToChat = new ConcurrentHashMap<>();
 
+    private Map<String, BufferedImage> inageToChat = new ConcurrentHashMap<>();
+
     private Map<String, Boolean> askWord = new ConcurrentHashMap<>();
 
-    @Override
+    private Map<String, Boolean> askImage = new ConcurrentHashMap<>();
 
+    private final String token;
+
+    public GeneratorPhrasesProcessor(@Value("${credential.telegram.token}") String token) {
+        this.token = token;
+    }
+
+    @Override
     public boolean isNeedToHandle(TelegramMessageEntity messageEntity) {
         final String mes = messageEntity.getText();
-        if (StringUtils.isNotEmpty(mes) && (mes.equalsIgnoreCase("/gen") || mes.equalsIgnoreCase("/rep"))) {
-            return true;
-        } else return askWord.get(messageEntity.getSenderLogin()) != null;
+
+        return messageEntity.getMessage().hasPhoto() || StringUtils.isNotEmpty(mes) && (mes.equalsIgnoreCase("/gen") || mes.equalsIgnoreCase("/rep") || mes.equalsIgnoreCase("/skip")) || askWord.get(messageEntity.getSenderLogin()) != null;
     }
 
     @Override
     public void process(TelegramMessageEntity messageEntity) throws TelegramApiException {
         final String mes = messageEntity.getText();
-        if (mes.equalsIgnoreCase("/rep")) {
-            if (wordsToChat.get(messageEntity.getChatId()) != null) {
+        if (StringUtils.isNotEmpty(mes) && mes.equalsIgnoreCase("/rep")) {
+            if (wordsToChat.get(messageEntity.getChatId()) != null && inageToChat.get(messageEntity.getChatId()) != null) {
                 final String message = generate(wordsToChat.get(messageEntity.getChatId()));
-                messageEntity.getSender().execute(new SendMessage().setText(message).setChatId(messageEntity.getChatId()));
+                sendMeme(messageEntity.getChatId(), message, messageEntity);
             } else {
-                messageEntity.getSender().execute(new SendMessage().setText("Сначала напишите слово").setChatId(messageEntity.getChatId()));
-                askWord.put(messageEntity.getSenderLogin(), true);
+                messageEntity.getSender().execute(new SendMessage().setText("Давай нормально, а?").setChatId(messageEntity.getChatId()));
             }
             return;
         }
-        if (mes.equalsIgnoreCase("/gen")) {
-            messageEntity.getSender().execute(new SendMessage().setText("Напишите слово:").setChatId(messageEntity.getChatId()));
+        if (StringUtils.isNotEmpty(mes) && mes.equalsIgnoreCase("/gen")) {
+            messageEntity.getSender().execute(new SendMessage().setText("Пришлите фото (или /skip если доверяете мне)").setChatId(messageEntity.getChatId()));
+            askImage.put(messageEntity.getSenderLogin(), true);
+            return;
+        }
+        if (askImage.get(messageEntity.getSenderLogin()) != null && messageEntity.getMessage().hasPhoto()) {
+            final String url = messageEntity.getSender().execute(new GetFile().setFileId(messageEntity.getMessage().getPhoto().get(messageEntity.getMessage().getPhoto().size() - 1).getFileId())).getFileUrl(token);
+            try {
+                BufferedImage bufferedImage = ImageIO.read(new URL(url));
+                inageToChat.put(messageEntity.getChatId(), bufferedImage);
+                messageEntity.getSender().execute(new SendMessage().setText("Напишите фразу:").setChatId(messageEntity.getChatId()));
+                askWord.put(messageEntity.getSenderLogin(), true);
+                askImage.remove(messageEntity.getSenderLogin());
+                return;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        if (StringUtils.isNotEmpty(mes) && mes.equalsIgnoreCase("/skip") && askImage.get(messageEntity.getSenderLogin()) != null) {
+            messageEntity.getSender().execute(new SendMessage().setText("Напишите фразу:").setChatId(messageEntity.getChatId()));
             askWord.put(messageEntity.getSenderLogin(), true);
             return;
         }
-        if (askWord.get(messageEntity.getSenderLogin()) != null) {
+        if (StringUtils.isNotEmpty(mes) && askWord.get(messageEntity.getSenderLogin()) != null) {
             final String message = generate(mes);
             wordsToChat.put(messageEntity.getChatId(), mes);
-            messageEntity.getSender().execute(new SendMessage().setText(message).setChatId(messageEntity.getChatId()));
             askWord.remove(messageEntity.getSenderLogin());
-        }
+            if (askImage.get(messageEntity.getSenderLogin()) != null) {
+                try {
+                    SearchResults searchResults = BingImageSearch.SearchImages(mes);
+                    final String json = searchResults.jsonResponse;
+                    ImageResponse imageResponse = new Gson().fromJson(json, ImageResponse.class);
+                    final String url = imageResponse.value.get(0).contentUrl;
+                    BufferedImage bufferedImage = ImageIO.read(new URL(url));
+                    inageToChat.put(messageEntity.getChatId(), bufferedImage);
+                    askImage.remove(messageEntity.getSenderLogin());
+                } catch (Exception e) {
+                    messageEntity.getSender().execute(new SendMessage().setText("Упс").setChatId(messageEntity.getChatId()));
+                }
 
+            }
+            sendMeme(messageEntity.getChatId(), message, messageEntity);
+        }
     }
 
     @Override
@@ -93,5 +143,17 @@ public class GeneratorPhrasesProcessor implements MessageProcessor {
         int end = input.indexOf(searchEnd, start);
         System.out.println(StringEscapeUtils.unescapeJava(input.substring(start, end)));
         return StringEscapeUtils.unescapeJava(input.substring(start, end));
+    }
+
+    private void sendMeme(final String chatID, final String text, TelegramMessageEntity telegramMessageEntity) throws TelegramApiException {
+        try {
+            BufferedImage result = ImageOverlay.overlay(inageToChat.get(chatID), "", text);
+            ByteArrayOutputStream os = new ByteArrayOutputStream();
+            ImageIO.write(result, "jpg", os);
+            InputStream is = new ByteArrayInputStream(os.toByteArray());
+            telegramMessageEntity.getSender().sendPhoto(new SendPhoto().setNewPhoto("new", is).setChatId(telegramMessageEntity.getChatId()).setCaption(text));
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }
