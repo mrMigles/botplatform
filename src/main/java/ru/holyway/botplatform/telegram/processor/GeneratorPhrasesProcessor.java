@@ -55,13 +55,13 @@ public class GeneratorPhrasesProcessor implements MessageProcessor {
     public boolean isNeedToHandle(TelegramMessageEntity messageEntity) {
         final String mes = messageEntity.getText();
 
-        return messageEntity.getMessage().hasPhoto() || StringUtils.isNotEmpty(mes) && (mes.equalsIgnoreCase("/gen") || mes.equalsIgnoreCase("/rep") || mes.contains("/skip")) || askWord.get(messageEntity.getSenderLogin()) != null;
+        return messageEntity.getMessage().hasPhoto() || StringUtils.isNotEmpty(mes) && (mes.contains("/gen") || mes.contains("/rep") || mes.contains("/skip")) || askWord.get(messageEntity.getSenderLogin()) != null;
     }
 
     @Override
     public void process(TelegramMessageEntity messageEntity) throws TelegramApiException {
         final String mes = messageEntity.getText();
-        if (StringUtils.isNotEmpty(mes) && mes.equalsIgnoreCase("/rep")) {
+        if (StringUtils.isNotEmpty(mes) && mes.contains("/rep")) {
             if (wordsToChat.get(messageEntity.getChatId()) != null && inageToChat.get(messageEntity.getChatId()) != null) {
                 final String message = generate(wordsToChat.get(messageEntity.getChatId()));
                 sendMeme(messageEntity.getChatId(), message, messageEntity);
@@ -70,7 +70,7 @@ public class GeneratorPhrasesProcessor implements MessageProcessor {
             }
             return;
         }
-        if (StringUtils.isNotEmpty(mes) && mes.equalsIgnoreCase("/gen")) {
+        if (StringUtils.isNotEmpty(mes) && mes.contains("/gen")) {
             messageEntity.getSender().execute(new SendMessage().setText("Пришлите фото (или /skip если доверяете мне)").setChatId(messageEntity.getChatId()));
             askImage.put(messageEntity.getSenderLogin(), true);
             return;
