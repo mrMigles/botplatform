@@ -20,6 +20,7 @@ import org.telegram.telegrambots.bots.AbsSender;
 import org.telegram.telegrambots.exceptions.TelegramApiException;
 import ru.holyway.botplatform.telegram.TelegramMessageEntity;
 import ru.holyway.botplatform.web.entities.ImageResponse;
+import ru.holyway.botplatform.web.entities.ImageResult;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -54,7 +55,7 @@ public class GeneratorPhrasesProcessor implements MessageProcessor {
     public boolean isNeedToHandle(TelegramMessageEntity messageEntity) {
         final String mes = messageEntity.getText();
 
-        return messageEntity.getMessage().hasPhoto() || StringUtils.isNotEmpty(mes) && (mes.equalsIgnoreCase("/gen") || mes.equalsIgnoreCase("/rep") || mes.equalsIgnoreCase("/skip")) || askWord.get(messageEntity.getSenderLogin()) != null;
+        return messageEntity.getMessage().hasPhoto() || StringUtils.isNotEmpty(mes) && (mes.equalsIgnoreCase("/gen") || mes.equalsIgnoreCase("/rep") || mes.contains("/skip")) || askWord.get(messageEntity.getSenderLogin()) != null;
     }
 
     @Override
@@ -87,7 +88,7 @@ public class GeneratorPhrasesProcessor implements MessageProcessor {
                 e.printStackTrace();
             }
         }
-        if (StringUtils.isNotEmpty(mes) && mes.equalsIgnoreCase("/skip") && askImage.get(messageEntity.getSenderLogin()) != null) {
+        if (StringUtils.isNotEmpty(mes) && mes.contains("/skip") && askImage.get(messageEntity.getSenderLogin()) != null) {
             messageEntity.getSender().execute(new SendMessage().setText("Напишите фразу:").setChatId(messageEntity.getChatId()));
             askWord.put(messageEntity.getSenderLogin(), true);
             return;
@@ -101,16 +102,25 @@ public class GeneratorPhrasesProcessor implements MessageProcessor {
                     SearchResults searchResults = BingImageSearch.SearchImages(mes);
                     final String json = searchResults.jsonResponse;
                     ImageResponse imageResponse = new Gson().fromJson(json, ImageResponse.class);
-                    final String url = imageResponse.value.get(0).contentUrl;
-                    BufferedImage bufferedImage = ImageIO.read(new URL(url));
-                    inageToChat.put(messageEntity.getChatId(), bufferedImage);
-                    askImage.remove(messageEntity.getSenderLogin());
-                } catch (Exception e) {
-                    messageEntity.getSender().execute(new SendMessage().setText("Упс").setChatId(messageEntity.getChatId()));
-                }
+                    for (ImageResult imageResult : imageResponse.value) {
+                        final String url = imageResult.contentUrl;
+                        System.out.println("Image " + url);
+                        BufferedImage bufferedImage = ImageIO.read(new URL(url));
+                        if (bufferedImage != null) {
+                            inageToChat.put(messageEntity.getChatId(), bufferedImage);
+                            askImage.remove(messageEntity.getSenderLogin());
+                            sendMeme(messageEntity.getChatId(), message, messageEntity);
+                            return;
+                        }
+                    }
 
+
+                } catch (Exception e) {
+                    System.out.println("Errror: " + e);
+                }
+                messageEntity.getSender().execute(new SendMessage().setText("Упс").setChatId(messageEntity.getChatId()));
             }
-            sendMeme(messageEntity.getChatId(), message, messageEntity);
+
         }
     }
 

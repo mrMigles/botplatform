@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
+import static ru.holyway.botplatform.telegram.processor.BingImageSearch.prettify;
+
 /*
  * Gson: https://github.com/google/gson
  * Maven info:
@@ -114,5 +116,6 @@ class SearchResults {
     SearchResults(HashMap<String, String> headers, String json) {
         relevantHeaders = headers;
         jsonResponse = json;
+        System.out.println(prettify(json));
     }
 }
