@@ -1,23 +1,22 @@
 package ru.holyway.botplatform;
 
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.junit.Test;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
+import java.net.URI;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 public class BotPlatformApplicationTests {
 
     @Test
     public void contextLoads() throws IOException, ParseException {
-        String input = "Sep 04, 2017";
-        SimpleDateFormat parser = new SimpleDateFormat("MMM d, yyyy");
-        Date date = parser.parse(input);
-        System.out.println(date.getTime());
+
     }
 }
