@@ -20,7 +20,6 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by Sergey on 1/17/2017.
  */
-@Component
 public class SkypeBotSecond implements Bot {
 
     @Autowired

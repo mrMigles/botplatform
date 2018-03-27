@@ -16,7 +16,6 @@ import ru.holyway.botplatform.core.CommonHandler;
 /**
  * Created by Sergey on 1/17/2017.
  */
-@Component
 public class SkypeBot implements Bot {
 
     @Autowired
