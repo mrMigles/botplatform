@@ -117,8 +117,12 @@ public class GeneratorPhrasesProcessor implements MessageProcessor {
                         if (bufferedImage != null) {
                             inageToChat.put(messageEntity.getChatId(), bufferedImage);
                             askImage.remove(messageEntity.getSenderLogin());
-                            sendMeme(messageEntity.getChatId(), message, messageEntity);
-                            return;
+                            try {
+                                sendMeme(messageEntity.getChatId(), message, messageEntity);
+                                return;
+                            } catch (Exception e) {
+                                System.out.println(e);
+                            }
                         }
                     }
 
@@ -127,6 +131,8 @@ public class GeneratorPhrasesProcessor implements MessageProcessor {
                     System.out.println("Errror: " + e);
                 }
                 messageEntity.getSender().execute(new SendMessage().setText("Упс").setChatId(messageEntity.getChatId()));
+            } else {
+                sendMeme(messageEntity.getChatId(), message, messageEntity);
             }
 
         }
