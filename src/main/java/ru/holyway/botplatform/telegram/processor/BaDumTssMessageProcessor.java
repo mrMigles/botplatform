@@ -20,8 +20,9 @@ public class BaDumTssMessageProcessor implements MessageProcessor {
 
     @Override
     public boolean isNeedToHandle(TelegramMessageEntity messageEntity) {
-        if (StringUtils.isNotEmpty(messageEntity.getMessage().getText())) {
-            final String mes = messageEntity.getText();
+        String mes = messageEntity.getText();
+        mes = mes.replaceAll(",|\\)|:|;|\\.|\\(|'", "");
+        if (StringUtils.isNotEmpty(mes)) {
             if (isUpper(mes)) {
                 if (last.get(messageEntity.getChatId()) != null && messageEntity.getMessage().getFrom().getId().equals(last.get(messageEntity.getChatId()))) {
                     return true;
