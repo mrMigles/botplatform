@@ -52,6 +52,6 @@ public class BaDumTssMessageProcessor implements MessageProcessor {
     }
 
     private boolean isUpper(final String mes) {
-        return mes.equals(mes.toUpperCase());
+        return mes.equals(mes.toUpperCase()) && mes.length() > 3;
     }
 }
