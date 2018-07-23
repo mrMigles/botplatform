@@ -1,7 +1,5 @@
 package ru.holyway.botplatform;
 
-import java.net.Authenticator;
-import java.net.PasswordAuthentication;
 import java.util.List;
 import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,47 +19,25 @@ import ru.holyway.botplatform.core.Bot;
 @SpringBootApplication
 public class BotPlatformApplication {
 
+  private final Bot bots;
+
   @Autowired
-  private List<Bot> bots;
+  public BotPlatformApplication(Bot bots) {
+    this.bots = bots;
+  }
 
   public static void main(String[] args) {
-    setProxy();
     ApiContextInitializer.init();
     SpringApplication.run(BotPlatformApplication.class, args);
   }
 
   @PostConstruct
   private void init() {
-    bots.forEach(Bot::init);
+    bots.init();
   }
 
   @Bean
   public JobInitializer getGrabberInit() {
     return new JobInitializer();
-  }
-
-  public static void setProxy() {
-
-    System.setProperty("socksProxyHost", "185.246.153.31");
-    System.setProperty("socksProxyPort", "443");
-    System.setProperty("java.net.socks.username", "guest");
-    System.setProperty("java.net.socks.password", "rnk_go_away");
-    Authenticator.setDefault(new ProxyAuth("guest", "rnk_go_away"));
-
-
-  }
-
-  public static class ProxyAuth extends Authenticator {
-
-    private PasswordAuthentication auth;
-
-    private ProxyAuth(String user, String password) {
-      auth = new PasswordAuthentication(user,
-          password == null ? new char[]{} : password.toCharArray());
-    }
-
-    protected PasswordAuthentication getPasswordAuthentication() {
-      return auth;
-    }
   }
 }

@@ -25,5 +25,11 @@ bot:
   config:
     datatype: ${DATATYPE:mongo}
     silentPeriod: ${SILENTPERIOD:10}
+proxy:
+  config:
+    host: ${PROXY_HOST:}
+    port: ${PROXY_PORT:}
+    user: ${PROXY_USER:}
+    pass: ${PROXY_PASS:}
 banner:
   charset:
