@@ -13,12 +13,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.api.methods.GetFile;
-import org.telegram.telegrambots.api.methods.send.SendMessage;
-import org.telegram.telegrambots.api.methods.send.SendPhoto;
-import org.telegram.telegrambots.api.objects.CallbackQuery;
-import org.telegram.telegrambots.bots.AbsSender;
-import org.telegram.telegrambots.exceptions.TelegramApiException;
+import org.telegram.telegrambots.meta.api.methods.GetFile;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
+import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
+import org.telegram.telegrambots.meta.bots.AbsSender;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.holyway.botplatform.telegram.TelegramMessageEntity;
 
 @Component
@@ -113,8 +113,8 @@ public class GeneratorPhrasesProcessor implements MessageProcessor {
       ByteArrayOutputStream os = new ByteArrayOutputStream();
       ImageIO.write(result, "jpg", os);
       InputStream is = new ByteArrayInputStream(os.toByteArray());
-      telegramMessageEntity.getSender().sendPhoto(
-          new SendPhoto().setNewPhoto("new", is).setChatId(telegramMessageEntity.getChatId())
+      telegramMessageEntity.getSender().execute(
+          new SendPhoto().setPhoto("new", is).setChatId(telegramMessageEntity.getChatId())
               .setCaption(text));
     } catch (IOException | InterruptedException e) {
       e.printStackTrace();

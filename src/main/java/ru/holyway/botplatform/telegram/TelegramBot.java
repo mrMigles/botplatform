@@ -6,13 +6,14 @@ import java.util.Map;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.telegram.telegrambots.TelegramBotsApi;
-import org.telegram.telegrambots.api.methods.AnswerCallbackQuery;
-import org.telegram.telegrambots.api.methods.send.SendMessage;
-import org.telegram.telegrambots.api.methods.updatingmessages.EditMessageReplyMarkup;
-import org.telegram.telegrambots.api.objects.CallbackQuery;
-import org.telegram.telegrambots.api.objects.Message;
-import org.telegram.telegrambots.api.objects.Update;
+import org.telegram.telegrambots.bots.DefaultBotOptions;
+import org.telegram.telegrambots.meta.TelegramBotsApi;
+import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageReplyMarkup;
+import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
+import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import ru.holyway.botplatform.core.Bot;
 import ru.holyway.botplatform.telegram.processor.MessageProcessor;
@@ -35,6 +36,12 @@ public class TelegramBot extends TelegramLongPollingBot implements Bot {
 
   private Map<Integer, String> realAddresses = new HashMap<>();
 
+  public TelegramBot(DefaultBotOptions options) {
+    super(options);
+  }
+
+  public TelegramBot() {
+  }
 
   @Override
   public void onUpdateReceived(Update update) {
@@ -112,24 +119,4 @@ public class TelegramBot extends TelegramLongPollingBot implements Bot {
       e.printStackTrace();
     }
   }
-
-  /**
-   * @param text The text that should be shown
-   * @param alert If the text should be shown as a alert or not
-   */
-  private void sendAnswerCallbackQuery(final String text, boolean alert,
-      CallbackQuery callbackquery) throws Exception {
-    AnswerCallbackQuery answerCallbackQuery = new AnswerCallbackQuery();
-    answerCallbackQuery.setCallbackQueryId(callbackquery.getId());
-    answerCallbackQuery.setShowAlert(alert);
-    answerCallbackQuery.setText(text);
-    answerCallbackQuery(answerCallbackQuery);
-
-    EditMessageReplyMarkup editMessageReplyMarkup = new EditMessageReplyMarkup();
-    editMessageReplyMarkup.setChatId(String.valueOf(callbackquery.getMessage().getChatId()));
-    editMessageReplyMarkup.setMessageId(callbackquery.getMessage().getMessageId());
-
-    editMessageReplyMarkup(editMessageReplyMarkup);
-  }
-
 }

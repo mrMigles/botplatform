@@ -35,9 +35,4 @@ public class BotPlatformApplication {
   private void init() {
     bots.init();
   }
-
-  @Bean
-  public JobInitializer getGrabberInit() {
-    return new JobInitializer();
-  }
 }
