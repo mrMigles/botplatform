@@ -6,6 +6,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.PostConstruct;
@@ -21,15 +22,19 @@ import ru.holyway.botplatform.telegram.TelegramMessageEntity;
 
 @Component
 @Order(50)
-public class DynoMemeProcessor implements MessageProcessor {
+public class RandomMemeProcessor implements MessageProcessor {
 
   private Map<Long, Message> lastMessageMap = new ConcurrentHashMap<>();
   private BufferedImage dynoTemplate;
+  private BufferedImage catTemplate;
 
   @PostConstruct
   public void postConstruct() throws IOException {
     dynoTemplate = ImageIO
-        .read(DynoMemeProcessor.class.getResourceAsStream("/dyno.jpg"));
+        .read(RandomMemeProcessor.class.getResourceAsStream("/dyno.jpg"));
+
+    catTemplate = ImageIO
+        .read(RandomMemeProcessor.class.getResourceAsStream("/cat.jpg"));
   }
 
   @Override
@@ -55,9 +60,15 @@ public class DynoMemeProcessor implements MessageProcessor {
     String curText = messageEntity.getText();
     if (isOnlyCapital(curText)) {
       try {
-        if (dynoTemplate != null) {
-          BufferedImage result = DynoImageOverlay
-              .overlay(dynoTemplate, lastMessage.getText(), messageEntity.getText());
+        if (dynoTemplate != null && catTemplate != null) {
+          BufferedImage result;
+          if (new Random().nextBoolean()) {
+            result = CatImageOverlay
+                .overlay(catTemplate, lastMessage.getText(), messageEntity.getText());
+          } else {
+            result = DynoImageOverlay
+                .overlay(dynoTemplate, lastMessage.getText(), messageEntity.getText());
+          }
           ByteArrayOutputStream os = new ByteArrayOutputStream();
           ImageIO.write(result, "jpg", os);
           InputStream is = new ByteArrayInputStream(os.toByteArray());
