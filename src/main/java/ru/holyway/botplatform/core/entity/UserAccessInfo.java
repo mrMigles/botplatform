@@ -6,31 +6,32 @@ import java.util.concurrent.TimeUnit;
  * Created by seiv0814 on 10-11-17.
  */
 public class UserAccessInfo {
-    private String userName;
-    private String userLogin;
-    private String chatId;
-    private Long expirationTime;
 
-    public String getUserName() {
-        return userName;
-    }
+  private String userName;
+  private String userLogin;
+  private String chatId;
+  private Long expirationTime;
 
-    public String getUserLogin() {
-        return userLogin;
-    }
+  public String getUserName() {
+    return userName;
+  }
 
-    public String getChatId() {
-        return chatId;
-    }
+  public String getUserLogin() {
+    return userLogin;
+  }
 
-    public UserAccessInfo(String userName, String userLogin, String chatId) {
-        this.userName = userName;
-        this.userLogin = userLogin;
-        this.chatId = chatId;
-        this.expirationTime = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(5);
-    }
+  public String getChatId() {
+    return chatId;
+  }
 
-    public Long getExpirationTime() {
-        return expirationTime;
-    }
+  public UserAccessInfo(String userName, String userLogin, String chatId) {
+    this.userName = userName;
+    this.userLogin = userLogin;
+    this.chatId = chatId;
+    this.expirationTime = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(5);
+  }
+
+  public Long getExpirationTime() {
+    return expirationTime;
+  }
 }

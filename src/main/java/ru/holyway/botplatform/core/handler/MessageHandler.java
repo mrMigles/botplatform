@@ -7,8 +7,8 @@ import ru.holyway.botplatform.core.MessageEntity;
  */
 public interface MessageHandler {
 
-    /**
-     * @return
-     */
-    String provideAnswer(final MessageEntity messageEntity);
+  /**
+   * @return
+   */
+  String provideAnswer(final MessageEntity messageEntity);
 }

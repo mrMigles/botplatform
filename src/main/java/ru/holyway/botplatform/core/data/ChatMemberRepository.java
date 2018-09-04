@@ -4,5 +4,6 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import ru.holyway.botplatform.core.entity.ChatMembers;
 
 public interface ChatMemberRepository extends MongoRepository<ChatMembers, String> {
-    public ChatMembers findById(String id);
+
+  public ChatMembers findById(String id);
 }

@@ -4,13 +4,14 @@ package ru.holyway.botplatform.core;
  * Created by Sergey on 1/17/2017.
  */
 public interface MessageEntity {
-    String getText();
 
-    String getSenderName();
+  String getText();
 
-    String getSenderLogin();
+  String getSenderName();
 
-    String getChatId();
+  String getSenderLogin();
 
-    void reply(String text);
+  String getChatId();
+
+  void reply(String text);
 }

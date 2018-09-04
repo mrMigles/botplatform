@@ -2,11 +2,11 @@ package ru.holyway.botplatform.core.entity;
 
 public class Idea {
 
-    private String author;
+  private String author;
 
-    private String text;
+  private String text;
 
-    private String id;
+  private String id;
 
-    private long votes;
+  private long votes;
 }

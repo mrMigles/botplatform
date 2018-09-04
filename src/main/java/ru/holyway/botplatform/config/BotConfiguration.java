@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
+import org.telegram.telegrambots.bots.DefaultBotOptions;
+import org.telegram.telegrambots.meta.ApiContext;
 import ru.holyway.botplatform.core.Bot;
 import ru.holyway.botplatform.core.CommonHandler;
 import ru.holyway.botplatform.core.CommonMessageHandler;
@@ -27,8 +29,8 @@ import ru.holyway.botplatform.telegram.TelegramBot;
 @Configuration
 public class BotConfiguration {
 
-    @Value("${bot.config.datatype}")
-    private String dataType;
+  @Value("${bot.config.datatype}")
+  private String dataType;
 
   @Value("${proxy.config.host}")
   private String proxyHost;
@@ -50,10 +52,7 @@ public class BotConfiguration {
 
   @Bean
   public Bot telegramBot() {
-    if (StringUtils.isNotEmpty(proxyHost) && StringUtils.isNotEmpty(proxyPort)) {
-      setProxy(proxyHost, proxyPort, proxyUser, proxyPass);
-    }
-    return new TelegramBot();
+    return new TelegramBot(botOptions());
   }
 
   @Bean
@@ -82,40 +81,31 @@ public class BotConfiguration {
     orderedMessageHandlers.add(messageHandlers.get("authenticationHandler"));
     orderedMessageHandlers.add(messageHandlers.get("skiperHandler"));
     orderedMessageHandlers.add(messageHandlers.get("messageAnalyzerHandler"));
-    orderedMessageHandlers.add(messageHandlers.get("educationHandler"));
-    orderedMessageHandlers.add(messageHandlers.get("integrationHandler"));
     orderedMessageHandlers.add(messageHandlers.get("recordsHandler"));
     orderedMessageHandlers.add(messageHandlers.get("wikiHandler"));
-    orderedMessageHandlers.add(messageHandlers.get("startupIdeaMessageHandler"));
-    orderedMessageHandlers.add(messageHandlers.get("logicalAnswerHandler"));
     orderedMessageHandlers.add(messageHandlers.get("simpleQuestionHandler"));
     return orderedMessageHandlers;
   }
 
-  private void setProxy(final String host, final String port, final String user,
-      final String pass) {
-    System.setProperty("socksProxyHost", host);
-    System.setProperty("socksProxyPort", port);
-    if (StringUtils.isNotEmpty(user) && StringUtils.isNotEmpty(pass)) {
-      System.setProperty("java.net.socks.username", user);
-      System.setProperty("java.net.socks.password", pass);
+  @Bean
+  public DefaultBotOptions botOptions() {
+    if (!org.apache.commons.lang3.StringUtils
+        .isEmpty(proxyUser) && !org.apache.commons.lang3.StringUtils.isEmpty(proxyPass)) {
+      Authenticator.setDefault(new Authenticator() {
+        @Override
+        protected PasswordAuthentication getPasswordAuthentication() {
+          return new PasswordAuthentication(proxyUser, proxyPass.toCharArray());
+        }
+      });
     }
 
-    Authenticator.setDefault(new ProxyAuth(user, pass));
+    DefaultBotOptions botOptions = ApiContext.getInstance(DefaultBotOptions.class);
+
+    if (!StringUtils.isEmpty(proxyHost) && !StringUtils.isEmpty(proxyPort)) {
+      botOptions.setProxyHost(proxyHost);
+      botOptions.setProxyPort(Integer.valueOf(proxyPort));
+      botOptions.setProxyType(DefaultBotOptions.ProxyType.SOCKS5);
+    }
+    return botOptions;
   }
-
-  public static class ProxyAuth extends Authenticator {
-
-    private PasswordAuthentication auth;
-
-    private ProxyAuth(String user, String password) {
-      auth = new PasswordAuthentication(user,
-          password == null ? new char[]{} : password.toCharArray());
-    }
-
-    protected PasswordAuthentication getPasswordAuthentication() {
-      return auth;
-    }
-  }
-
 }
