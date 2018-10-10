@@ -4,6 +4,6 @@ import java.util.List;
 
 public class ImageResponse {
 
-    public List<ImageResult> value;
+  public List<ImageResult> value;
 
 }

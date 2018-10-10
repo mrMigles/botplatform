@@ -23,6 +23,8 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 import org.springframework.web.client.RestTemplate;
+import org.telegram.telegrambots.bots.DefaultBotOptions;
+import org.telegram.telegrambots.meta.ApiContext;
 import ru.holyway.botplatform.core.Bot;
 import ru.holyway.botplatform.core.CommonHandler;
 import ru.holyway.botplatform.core.CommonMessageHandler;
@@ -40,8 +42,8 @@ import ru.holyway.botplatform.telegram.TelegramBot;
 @Configuration
 public class BotConfiguration {
 
-    @Value("${bot.config.datatype}")
-    private String dataType;
+  @Value("${bot.config.datatype}")
+  private String dataType;
 
   @Value("${proxy.config.host}")
   private String proxyHost;
@@ -63,10 +65,7 @@ public class BotConfiguration {
 
   @Bean
   public Bot telegramBot() {
-    if (StringUtils.isNotEmpty(proxyHost) && StringUtils.isNotEmpty(proxyPort)) {
-      setProxy(proxyHost, proxyPort, proxyUser, proxyPass);
-    }
-    return new TelegramBot();
+    return new TelegramBot(botOptions());
   }
 
   @Bean
@@ -95,12 +94,8 @@ public class BotConfiguration {
     orderedMessageHandlers.add(messageHandlers.get("authenticationHandler"));
     orderedMessageHandlers.add(messageHandlers.get("skiperHandler"));
     orderedMessageHandlers.add(messageHandlers.get("messageAnalyzerHandler"));
-    orderedMessageHandlers.add(messageHandlers.get("educationHandler"));
-    orderedMessageHandlers.add(messageHandlers.get("integrationHandler"));
     orderedMessageHandlers.add(messageHandlers.get("recordsHandler"));
     orderedMessageHandlers.add(messageHandlers.get("wikiHandler"));
-    orderedMessageHandlers.add(messageHandlers.get("startupIdeaMessageHandler"));
-    orderedMessageHandlers.add(messageHandlers.get("logicalAnswerHandler"));
     orderedMessageHandlers.add(messageHandlers.get("simpleQuestionHandler"));
     return orderedMessageHandlers;
   }
@@ -158,5 +153,25 @@ public class BotConfiguration {
       return auth;
     }
   }
+  @Bean
+  public DefaultBotOptions botOptions() {
+    if (!org.apache.commons.lang3.StringUtils
+        .isEmpty(proxyUser) && !org.apache.commons.lang3.StringUtils.isEmpty(proxyPass)) {
+      Authenticator.setDefault(new Authenticator() {
+        @Override
+        protected PasswordAuthentication getPasswordAuthentication() {
+          return new PasswordAuthentication(proxyUser, proxyPass.toCharArray());
+        }
+      });
+    }
 
+    DefaultBotOptions botOptions = ApiContext.getInstance(DefaultBotOptions.class);
+
+    if (!StringUtils.isEmpty(proxyHost) && !StringUtils.isEmpty(proxyPort)) {
+      botOptions.setProxyHost(proxyHost);
+      botOptions.setProxyPort(Integer.valueOf(proxyPort));
+      botOptions.setProxyType(DefaultBotOptions.ProxyType.SOCKS5);
+    }
+    return botOptions;
+  }
 }

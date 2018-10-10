@@ -13,26 +13,27 @@ import ru.holyway.botplatform.telegram.TelegramMessageEntity;
 @Order(100)
 public class CommonMessageProcessor implements MessageProcessor {
 
-    @Autowired
-    private CommonHandler commonMessageHandler;
+  @Autowired
+  private CommonHandler commonMessageHandler;
 
-    @Override
-    public boolean isNeedToHandle(TelegramMessageEntity messageEntity) {
-        return true;
-    }
+  @Override
+  public boolean isNeedToHandle(TelegramMessageEntity messageEntity) {
+    return true;
+  }
 
-    @Override
-    public void process(TelegramMessageEntity messageEntity) throws TelegramApiException {
-        commonMessageHandler.handleMessage(messageEntity);
-    }
+  @Override
+  public void process(TelegramMessageEntity messageEntity) throws TelegramApiException {
+    commonMessageHandler.handleMessage(messageEntity);
+  }
 
-    @Override
-    public boolean isRegardingCallback(CallbackQuery callbackQuery) {
-        return false;
-    }
+  @Override
+  public boolean isRegardingCallback(CallbackQuery callbackQuery) {
+    return false;
+  }
 
-    @Override
-    public void processCallBack(CallbackQuery callbackQuery, AbsSender sender) throws TelegramApiException {
+  @Override
+  public void processCallBack(CallbackQuery callbackQuery, AbsSender sender)
+      throws TelegramApiException {
 
-    }
+  }
 }

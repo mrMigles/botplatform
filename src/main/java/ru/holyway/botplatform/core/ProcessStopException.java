@@ -5,7 +5,7 @@ package ru.holyway.botplatform.core;
  */
 public class ProcessStopException extends RuntimeException {
 
-    public ProcessStopException(String message) {
-        super(message);
-    }
+  public ProcessStopException(String message) {
+    super(message);
+  }
 }

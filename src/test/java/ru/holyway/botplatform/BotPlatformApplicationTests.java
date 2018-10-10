@@ -12,8 +12,5 @@ public class BotPlatformApplicationTests {
 
     @Test
     public void contextLoads() throws IOException, ParseException {
-        String url = "https://api.telegram.org/file/bot275590037:AAGkJCYGcOyNxPqlWnHmktYod8vWOMCHZYM/photos/file_2.jpg";
-        new URL(url);
-        final BufferedImage bufferedImage = ImageIO.read(new URL("url"));
     }
 }

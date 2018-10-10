@@ -23,7 +23,7 @@ import ru.holyway.botplatform.telegram.TelegramMessageEntity;
 
 @Component
 @Order(10)
-public class GeneratorPhrasesProcessor implements MessageProcessor {
+public class GeneratorMemesProcessor implements MessageProcessor {
 
   private Map<String, String> wordsToChat = new ConcurrentHashMap<>();
 
@@ -35,7 +35,7 @@ public class GeneratorPhrasesProcessor implements MessageProcessor {
 
   private final String token;
 
-  public GeneratorPhrasesProcessor(@Value("${credential.telegram.token}") String token) {
+  public GeneratorMemesProcessor(@Value("${credential.telegram.token}") String token) {
     this.token = token;
   }
 
@@ -109,7 +109,7 @@ public class GeneratorPhrasesProcessor implements MessageProcessor {
   private void sendMeme(final String chatID, final String text,
       TelegramMessageEntity telegramMessageEntity) throws TelegramApiException {
     try {
-      BufferedImage result = ImageOverlay.overlay(inageToChat.get(chatID), "", text);
+      BufferedImage result = MemeImageOverlay.overlay(inageToChat.get(chatID), "", text);
       ByteArrayOutputStream os = new ByteArrayOutputStream();
       ImageIO.write(result, "jpg", os);
       InputStream is = new ByteArrayInputStream(os.toByteArray());
