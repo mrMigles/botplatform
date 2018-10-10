@@ -1,5 +1,6 @@
 package ru.holyway.botplatform.core.entity;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -59,6 +60,10 @@ public class JSettings {
   public void addFollow(String chatId, String follow) {
     if (instaFollows.get(chatId) != null) {
       instaFollows.get(chatId).add(new InstaFollow(follow, "0"));
+    } else {
+      Set<InstaFollow> instaFollowsSet = new HashSet<>();
+      instaFollowsSet.add(new InstaFollow(follow, "0"));
+      instaFollows.put(chatId, instaFollowsSet);
     }
   }
 
@@ -81,7 +86,7 @@ public class JSettings {
   public InstaFollow getFollow(String chatId, String follow) {
     if (instaFollows.get(chatId) != null) {
       return instaFollows.get(chatId).stream()
-          .filter(instaFollow -> instaFollow.getUserName().equals(follow)).findFirst().get();
+          .filter(instaFollow -> instaFollow.getUserName().equals(follow)).findFirst().orElse(null);
     }
     return null;
   }

@@ -5,7 +5,7 @@ import java.util.Objects;
 public class InstaFollow {
 
   private String userName;
-  private String lastId;
+  private String lastId = "0";
 
   public InstaFollow(String userName, String lastId) {
     this.userName = userName;
