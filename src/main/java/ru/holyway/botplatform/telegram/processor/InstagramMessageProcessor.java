@@ -107,14 +107,17 @@ public class InstagramMessageProcessor implements MessageProcessor, MessagePostL
   private void sendInstaForUser(AbsSender sender, String chatId, String userName)
       throws TelegramApiException {
     InstaUser instaUser = perfrom(chatId, userName);
-    int size = instaUser.getPosts().size() > 1 ? 1 : instaUser.getPosts().size();
-    if (size > 0) {
-      InstaFollow instaFollow = dataHelper.getSettings()
-          .getFollow(chatId, userName);
-      if (instaFollow != null) {
-        instaFollow.setLastId(instaUser.getPosts().get(0).getID());
-        dataHelper.updateSettings();
+    if (instaUser.getPosts().size() < 1) {
+      return;
+    }
+    int size = instaUser.getPosts().size() > 5 ? 5 : instaUser.getPosts().size();
+    InstaFollow instaFollow = dataHelper.getSettings().getFollow(chatId, userName);
+    if (instaFollow != null) {
+      if (instaFollow.getLastId() == null || instaFollow.getLastId().equalsIgnoreCase("0")) {
+        size = 1;
       }
+      instaFollow.setLastId(instaUser.getPosts().get(0).getID());
+      dataHelper.updateSettings();
     }
     for (int i = 0; i < size; i++) {
       InstaPost instaPost = instaUser.getPosts().get(i);
