@@ -3,6 +3,7 @@ package ru.holyway.botplatform.telegram;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.PostConstruct;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,6 +15,7 @@ import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.holyway.botplatform.core.Bot;
+import ru.holyway.botplatform.telegram.processor.MessagePostLoader;
 import ru.holyway.botplatform.telegram.processor.MessageProcessor;
 
 /**
@@ -30,6 +32,9 @@ public class TelegramBot extends TelegramLongPollingBot implements Bot {
   @Autowired
   private List<MessageProcessor> messageProcessors;
 
+  @Autowired
+  private List<MessagePostLoader> messagePostLoaders;
+
   private Map<Integer, String> locations = new HashMap<>();
 
   private Map<Integer, String> realAddresses = new HashMap<>();
@@ -39,6 +44,12 @@ public class TelegramBot extends TelegramLongPollingBot implements Bot {
   }
 
   public TelegramBot() {
+
+  }
+
+  @PostConstruct
+  public void postConstruct() {
+    messagePostLoaders.forEach(messagePostLoader -> messagePostLoader.postRun(this));
   }
 
   @Override

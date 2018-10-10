@@ -4,7 +4,6 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.StringUtils;
@@ -24,7 +23,7 @@ import ru.holyway.botplatform.telegram.TelegramMessageEntity;
 
 @Component
 @Order(11)
-public class InstagramMessageProcessor implements MessageProcessor {
+public class InstagramMessageProcessor implements MessageProcessor, MessagePostLoader {
 
   private final DataHelper dataHelper;
   private final TaskScheduler taskScheduler;
@@ -64,7 +63,7 @@ public class InstagramMessageProcessor implements MessageProcessor {
       }
       dataHelper.getSettings().addFollow(messageEntity.getChatId(), userName);
       dataHelper.updateSettings();
-      initScheduller(messageEntity);
+      initScheduller(messageEntity.getSender(), messageEntity.getChatId());
       messageEntity.getSender()
           .execute(new SendMessage().setChatId(messageEntity.getChatId()).setText("Ok"));
     }
@@ -72,30 +71,31 @@ public class InstagramMessageProcessor implements MessageProcessor {
       String userName = text.substring(10);
       dataHelper.getSettings().removeFollow(messageEntity.getChatId(), userName);
       dataHelper.updateSettings();
-      initScheduller(messageEntity);
+      initScheduller(messageEntity.getSender(), messageEntity.getChatId());
       messageEntity.getSender()
           .execute(new SendMessage().setChatId(messageEntity.getChatId()).setText("Ok"));
     }
     if (text.startsWith("/insta ")) {
       String userName = text.substring(7);
-      sendInstaForUser(messageEntity, userName);
+      sendInstaForUser(messageEntity.getSender(), messageEntity.getChatId(), userName);
     }
 
 
   }
 
-  private void initScheduller(TelegramMessageEntity messageEntity) {
-    ScheduledFuture scheduledFuture = futureMap.get(messageEntity.getChatId());
+  private void initScheduller(AbsSender sender, String chatID) {
+    ScheduledFuture scheduledFuture = futureMap.get(chatID);
     if (scheduledFuture != null) {
       scheduledFuture.cancel(true);
     }
-    futureMap.put(messageEntity.getChatId(), taskScheduler.scheduleAtFixedRate(() -> {
+    futureMap.put(chatID, taskScheduler.scheduleAtFixedRate(() -> {
       Set<InstaFollow> instaFollows = dataHelper.getSettings().getFollows()
-          .get(messageEntity.getChatId());
+          .get(chatID);
 
       for (InstaFollow instaFollow : instaFollows) {
         try {
-          sendInstaForUser(messageEntity, instaFollow.getUserName());
+          sendInstaForUser(sender, chatID,
+              instaFollow.getUserName());
         } catch (TelegramApiException e) {
           e.printStackTrace();
         }
@@ -104,13 +104,13 @@ public class InstagramMessageProcessor implements MessageProcessor {
     }, TimeUnit.MINUTES.toMillis(2)));
   }
 
-  private void sendInstaForUser(TelegramMessageEntity messageEntity, String userName)
+  private void sendInstaForUser(AbsSender sender, String chatId, String userName)
       throws TelegramApiException {
-    InstaUser instaUser = perfrom(messageEntity.getChatId(), userName);
+    InstaUser instaUser = perfrom(chatId, userName);
     int size = instaUser.getPosts().size() > 1 ? 1 : instaUser.getPosts().size();
     if (size > 0) {
       InstaFollow instaFollow = dataHelper.getSettings()
-          .getFollow(messageEntity.getChatId(), userName);
+          .getFollow(chatId, userName);
       if (instaFollow != null) {
         instaFollow.setLastId(instaUser.getPosts().get(0).getID());
         dataHelper.updateSettings();
@@ -118,11 +118,11 @@ public class InstagramMessageProcessor implements MessageProcessor {
     }
     for (int i = 0; i < size; i++) {
       InstaPost instaPost = instaUser.getPosts().get(i);
-      messageEntity.getSender().execute(new SendMessage().setText(
+      sender.execute(new SendMessage().setText(
           "Instapost[.](" + instaPost.getPhotoUrl() + ") By user [" + instaUser.getUserName() + "]("
               + "https://instagram.com/" + instaUser.getUserName() + ")\n\n"
               + instaPost.getDescription() + "\n\nlook at [original post](" + instaPost.getPostUrl()
-              + ") \n").setChatId(messageEntity.getChatId()).enableMarkdown(true));
+              + ") \n").setChatId(chatId).enableMarkdown(true));
     }
   }
 
@@ -146,5 +146,13 @@ public class InstagramMessageProcessor implements MessageProcessor {
   public void processCallBack(CallbackQuery callbackQuery, AbsSender sender)
       throws TelegramApiException {
 
+  }
+
+  @Override
+  public void postRun(AbsSender absSender) {
+    Map<String, Set<InstaFollow>> follows = dataHelper.getSettings().getFollows();
+    for (String chatId : follows.keySet()) {
+      initScheduller(absSender, chatId);
+    }
   }
 }
