@@ -75,7 +75,7 @@ public class JSettings {
 
   public void updateFollow(String chatId, String follow, String lastId) {
     if (instaFollows.get(chatId) != null) {
-      instaFollows.get(chatId).add(new InstaFollow(follow, lastId, null));
+      instaFollows.get(chatId).add(new InstaFollow(follow, lastId));
     }
   }
 

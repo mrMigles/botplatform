@@ -6,16 +6,17 @@ public class InstaFollow {
 
   private String userName;
   private String lastPostIdId = "0";
-  private String lastStoryId = "0";
 
-  public InstaFollow(String userName, String lastPostIdId, String lastStoryId) {
+  public InstaFollow(String userName, String lastPostIdId) {
     this.userName = userName;
     this.lastPostIdId = lastPostIdId;
-    this.lastStoryId = lastStoryId;
   }
 
   public InstaFollow(String userName) {
     this.userName = userName;
+  }
+
+  public InstaFollow() {
   }
 
   public String getUserName() {
@@ -32,14 +33,6 @@ public class InstaFollow {
 
   public void setLastPostIdId(String lastPostIdId) {
     this.lastPostIdId = lastPostIdId;
-  }
-
-  public String getLastStoryId() {
-    return lastStoryId;
-  }
-
-  public void setLastStoryId(String lastStoryId) {
-    this.lastStoryId = lastStoryId;
   }
 
   @Override
