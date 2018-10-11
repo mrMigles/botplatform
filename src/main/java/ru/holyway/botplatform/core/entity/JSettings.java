@@ -59,10 +59,10 @@ public class JSettings {
 
   public void addFollow(String chatId, String follow) {
     if (instaFollows.get(chatId) != null) {
-      instaFollows.get(chatId).add(new InstaFollow(follow, "0"));
+      instaFollows.get(chatId).add(new InstaFollow(follow));
     } else {
       Set<InstaFollow> instaFollowsSet = new HashSet<>();
-      instaFollowsSet.add(new InstaFollow(follow, "0"));
+      instaFollowsSet.add(new InstaFollow(follow));
       instaFollows.put(chatId, instaFollowsSet);
     }
   }
@@ -75,7 +75,7 @@ public class JSettings {
 
   public void updateFollow(String chatId, String follow, String lastId) {
     if (instaFollows.get(chatId) != null) {
-      instaFollows.get(chatId).add(new InstaFollow(follow, lastId));
+      instaFollows.get(chatId).add(new InstaFollow(follow, lastId, null));
     }
   }
 
