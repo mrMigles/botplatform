@@ -106,17 +106,17 @@ public class InstagramMessageProcessor implements MessageProcessor, MessagePostL
 
   private void sendInstaForUser(AbsSender sender, String chatId, String userName)
       throws TelegramApiException {
-    InstaUser instaUser = perfrom(chatId, userName);
+    InstaUser instaUser = getPosts(chatId, userName);
     if (instaUser.getPosts().size() < 1) {
       return;
     }
     int size = instaUser.getPosts().size() > 5 ? 5 : instaUser.getPosts().size();
     InstaFollow instaFollow = dataHelper.getSettings().getFollow(chatId, userName);
     if (instaFollow != null) {
-      if (instaFollow.getLastId() == null || instaFollow.getLastId().equalsIgnoreCase("0")) {
+      if (instaFollow.getLastPostIdId() == null || instaFollow.getLastPostIdId().equalsIgnoreCase("0")) {
         size = 1;
       }
-      instaFollow.setLastId(instaUser.getPosts().get(0).getID());
+      instaFollow.setLastPostIdId(instaUser.getPosts().get(0).getID());
       dataHelper.updateSettings();
     }
     for (int i = 0; i < size; i++) {
@@ -129,14 +129,14 @@ public class InstagramMessageProcessor implements MessageProcessor, MessagePostL
     }
   }
 
-  private InstaUser perfrom(final String chatId, final String userId) {
+  private InstaUser getPosts(final String chatId, final String userId) {
     final InstaFollow instaFollow = dataHelper.getSettings().getFollow(chatId, userId);
     String last = "0";
     if (instaFollow != null) {
-      last = instaFollow.getLastId();
+      last = instaFollow.getLastPostIdId();
     }
     return restTemplate
-        .getForObject(URI.create("https://instaprovider.now.sh/api/insta/" + userId + "/" + last),
+        .getForObject(URI.create("https://instaprovider.now.sh/api/posts/" + userId + "/" + last),
             InstaUser.class);
   }
 
