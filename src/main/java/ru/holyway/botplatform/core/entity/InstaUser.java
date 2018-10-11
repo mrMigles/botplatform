@@ -11,6 +11,17 @@ public class InstaUser {
   @JsonProperty("posts")
   private List<InstaPost> posts;
 
+  @JsonProperty("stories")
+  private List<InstaStory> stories;
+
+  public List<InstaStory> getStories() {
+    return stories;
+  }
+
+  public void setStories(List<InstaStory> stories) {
+    this.stories = stories;
+  }
+
   public InstaUser(String userName,
       List<InstaPost> posts) {
     this.userName = userName;

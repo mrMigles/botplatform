@@ -5,11 +5,12 @@ import java.util.Objects;
 public class InstaFollow {
 
   private String userName;
+  private String lastStoryId = "0";
   private String lastPostIdId = "0";
 
-  public InstaFollow(String userName, String lastPostIdId) {
+  public InstaFollow(String userName, String lastPostId) {
     this.userName = userName;
-    this.lastPostIdId = lastPostIdId;
+    this.lastPostIdId = lastPostId;
   }
 
   public InstaFollow(String userName) {
@@ -33,6 +34,15 @@ public class InstaFollow {
 
   public void setLastPostIdId(String lastPostIdId) {
     this.lastPostIdId = lastPostIdId;
+  }
+
+
+  public String getLastStoryId() {
+    return lastStoryId;
+  }
+
+  public void setLastStoryId(String lastStoryId) {
+    this.lastStoryId = lastStoryId;
   }
 
   @Override

@@ -18,6 +18,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.holyway.botplatform.core.data.DataHelper;
 import ru.holyway.botplatform.core.entity.InstaFollow;
 import ru.holyway.botplatform.core.entity.InstaPost;
+import ru.holyway.botplatform.core.entity.InstaStory;
 import ru.holyway.botplatform.core.entity.InstaUser;
 import ru.holyway.botplatform.telegram.TelegramMessageEntity;
 
@@ -78,6 +79,7 @@ public class InstagramMessageProcessor implements MessageProcessor, MessagePostL
     if (text.startsWith("/insta ")) {
       String userName = text.substring(7);
       sendInstaForUser(messageEntity.getSender(), messageEntity.getChatId(), userName);
+      sendStoryForUser(messageEntity.getSender(), messageEntity.getChatId(), userName);
     }
 
 
@@ -96,7 +98,9 @@ public class InstagramMessageProcessor implements MessageProcessor, MessagePostL
         try {
           sendInstaForUser(sender, chatID,
               instaFollow.getUserName());
-        } catch (TelegramApiException e) {
+          sendStoryForUser(sender, chatID,
+              instaFollow.getUserName());
+        } catch (Exception e) {
           e.printStackTrace();
         }
       }
@@ -106,27 +110,36 @@ public class InstagramMessageProcessor implements MessageProcessor, MessagePostL
 
   private void sendInstaForUser(AbsSender sender, String chatId, String userName)
       throws TelegramApiException {
-    InstaUser instaUser = getPosts(chatId, userName);
-    if (instaUser.getPosts().size() < 1) {
-      return;
-    }
-    int size = instaUser.getPosts().size() > 5 ? 5 : instaUser.getPosts().size();
-    InstaFollow instaFollow = dataHelper.getSettings().getFollow(chatId, userName);
-    if (instaFollow != null) {
-      if (instaFollow.getLastPostIdId() == null || instaFollow.getLastPostIdId().equalsIgnoreCase("0")) {
-        size = 1;
+    try {
+      InstaUser instaUser = getPosts(chatId, userName);
+      if (instaUser.getPosts().size() < 1) {
+        return;
       }
-      instaFollow.setLastPostIdId(instaUser.getPosts().get(0).getID());
-      dataHelper.updateSettings();
+      int size = instaUser.getPosts().size() > 5 ? 5 : instaUser.getPosts().size();
+      InstaFollow instaFollow = dataHelper.getSettings().getFollow(chatId, userName);
+      if (instaFollow != null) {
+        if (instaFollow.getLastPostIdId() == null || instaFollow.getLastPostIdId()
+            .equalsIgnoreCase("0")) {
+          size = 1;
+        }
+        instaFollow.setLastPostIdId(instaUser.getPosts().get(0).getID());
+        dataHelper.updateSettings();
+      }
+      for (int i = 0; i < size; i++) {
+        InstaPost instaPost = instaUser.getPosts().get(i);
+        sender.execute(new SendMessage().setText(
+            "Instapost[.](" + instaPost.getPhotoUrl() + ") By user [" + instaUser.getUserName()
+                + "]("
+                + "https://instagram.com/" + instaUser.getUserName() + ")\n\n"
+                + instaPost.getDescription() + "\n\nlook at [original post](" + instaPost
+                .getPostUrl()
+                + ") \n").setChatId(chatId).enableMarkdown(true));
+      }
+    } catch (Exception e) {
+      System.out.println("UUUUUUUUUUUUUUUps");
+      e.printStackTrace();
     }
-    for (int i = 0; i < size; i++) {
-      InstaPost instaPost = instaUser.getPosts().get(i);
-      sender.execute(new SendMessage().setText(
-          "Instapost[.](" + instaPost.getPhotoUrl() + ") By user [" + instaUser.getUserName() + "]("
-              + "https://instagram.com/" + instaUser.getUserName() + ")\n\n"
-              + instaPost.getDescription() + "\n\nlook at [original post](" + instaPost.getPostUrl()
-              + ") \n").setChatId(chatId).enableMarkdown(true));
-    }
+
   }
 
   private InstaUser getPosts(final String chatId, final String userId) {
@@ -137,6 +150,52 @@ public class InstagramMessageProcessor implements MessageProcessor, MessagePostL
     }
     return restTemplate
         .getForObject(URI.create("https://instaprovider.now.sh/api/posts/" + userId + "/" + last),
+            InstaUser.class);
+  }
+
+  private void sendStoryForUser(AbsSender sender, String chatId, String userName)
+      throws TelegramApiException {
+    try {
+      InstaUser instaUser = getStories(chatId, userName);
+      if (instaUser.getStories().size() < 1) {
+        return;
+      }
+      int size = instaUser.getStories().size() > 5 ? 5 : instaUser.getStories().size();
+      InstaFollow instaFollow = dataHelper.getSettings().getFollow(chatId, userName);
+      if (instaFollow != null) {
+        if (instaFollow.getLastStoryId() == null || instaFollow.getLastStoryId()
+            .equalsIgnoreCase("0")) {
+          size = 1;
+        }
+        instaFollow
+            .setLastStoryId(instaUser.getStories().get(instaUser.getStories().size() - 1).getId());
+        dataHelper.updateSettings();
+      }
+      for (int i = instaUser.getStories().size() - 1; i >= instaUser.getStories().size() - size; i--) {
+        InstaStory instaPost = instaUser.getStories().get(i);
+        sender.execute(new SendMessage().setText(
+            "Instastory[.](" + instaPost.getMediaUrl() + ") By user [" + instaUser.getUserName()
+                + "]("
+                + "https://instagram.com/" + instaUser.getUserName() + ")\n\n"
+                + "look at [original post](" + instaPost
+                .getStoryURL()
+                + ") \n").setChatId(chatId).enableMarkdown(true));
+      }
+    } catch (Exception e) {
+      System.out.println("UUUUUUUUUUUUUUUps");
+      e.printStackTrace();
+    }
+
+  }
+
+  private InstaUser getStories(final String chatId, final String userId) {
+    final InstaFollow instaFollow = dataHelper.getSettings().getFollow(chatId, userId);
+    String last = "0";
+    if (instaFollow != null) {
+      last = instaFollow.getLastStoryId();
+    }
+    return restTemplate
+        .getForObject(URI.create("https://instaprovider.now.sh/api/stories/" + userId + "/" + last),
             InstaUser.class);
   }
 
