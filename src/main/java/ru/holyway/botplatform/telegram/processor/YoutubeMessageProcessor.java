@@ -20,7 +20,6 @@ import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.holyway.botplatform.core.data.DataHelper;
-import ru.holyway.botplatform.core.entity.InstaFollow;
 import ru.holyway.botplatform.core.entity.YouTubeChanel;
 import ru.holyway.botplatform.core.entity.YoutubeVideo;
 import ru.holyway.botplatform.telegram.TelegramMessageEntity;
@@ -60,12 +59,12 @@ public class YoutubeMessageProcessor implements MessageProcessor, MessagePostLoa
     final String text = messageEntity.getText();
     if (text.startsWith("/followy ")) {
       String userName = text.substring(9);
-      if (dataHelper.getSettings().getInstaFollow(messageEntity.getChatId(), userName) != null) {
+      if (dataHelper.getSettings().getYoutubeFollow(messageEntity.getChatId(), userName) != null) {
         messageEntity.getSender().execute(
             new SendMessage().setText("Уже подписан на него").setChatId(messageEntity.getChatId()));
         return;
       }
-      dataHelper.getSettings().addFollow(messageEntity.getChatId(), userName);
+      dataHelper.getSettings().addYoutubeFollow(messageEntity.getChatId(), userName);
       dataHelper.updateSettings();
       initScheduller(messageEntity.getSender(), messageEntity.getChatId());
       messageEntity.getSender()
@@ -73,7 +72,7 @@ public class YoutubeMessageProcessor implements MessageProcessor, MessagePostLoa
     }
     if (text.startsWith("/unfollowy ")) {
       String userName = text.substring(11);
-      dataHelper.getSettings().removeInstaFollow(messageEntity.getChatId(), userName);
+      dataHelper.getSettings().removeYoutubeFollow(messageEntity.getChatId(), userName);
       dataHelper.updateSettings();
       initScheduller(messageEntity.getSender(), messageEntity.getChatId());
       messageEntity.getSender()
@@ -93,13 +92,13 @@ public class YoutubeMessageProcessor implements MessageProcessor, MessagePostLoa
       scheduledFuture.cancel(true);
     }
     futureMap.put(chatID, taskScheduler.scheduleAtFixedRate(() -> {
-      Set<InstaFollow> instaFollows = dataHelper.getSettings().getInstaFollows()
+      Set<YouTubeChanel> youTubeChanels = dataHelper.getSettings().getYoutubeFollows()
           .get(chatID);
 
-      for (InstaFollow instaFollow : instaFollows) {
+      for (YouTubeChanel youTubeChanel : youTubeChanels) {
         try {
           sendYoutubeForUser(sender, chatID,
-              instaFollow.getUserName());
+              youTubeChanel.getChannelName());
         } catch (Exception e) {
           e.printStackTrace();
         }
@@ -144,10 +143,10 @@ public class YoutubeMessageProcessor implements MessageProcessor, MessagePostLoa
   }
 
   private List<YoutubeVideo> getPosts(final String chatId, final String userId) {
-    final YouTubeChanel instaFollow = dataHelper.getSettings().getYoutubeFollow(chatId, userId);
+    final YouTubeChanel youtubeFollow = dataHelper.getSettings().getYoutubeFollow(chatId, userId);
     String last = "0";
-    if (instaFollow != null) {
-      last = instaFollow.getLastId();
+    if (youtubeFollow != null) {
+      last = youtubeFollow.getLastId();
     }
     ResponseEntity<List<YoutubeVideo>> response = restTemplate.exchange(
         "https://instaprovider.now.sh/api/youtube/" + userId,

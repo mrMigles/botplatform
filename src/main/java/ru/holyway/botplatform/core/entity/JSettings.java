@@ -58,7 +58,7 @@ public class JSettings {
     easyChats.add(chatId);
   }
 
-  public void addFollow(String chatId, String follow) {
+  public void addInstaFollow(String chatId, String follow) {
     if (instaFollows.get(chatId) != null) {
       instaFollows.get(chatId).add(new InstaFollow(follow));
     } else {
@@ -86,6 +86,16 @@ public class JSettings {
     return null;
   }
 
+  public void addYoutubeFollow(String chatId, String follow) {
+    if (youtubeFollows.get(chatId) != null) {
+      youtubeFollows.get(chatId).add(new YouTubeChanel(follow));
+    } else {
+      Set<YouTubeChanel> youTubeChanels = new HashSet<>();
+      youTubeChanels.add(new YouTubeChanel(follow));
+      youtubeFollows.put(chatId, youTubeChanels);
+    }
+  }
+
   public void removeYoutubeFollow(String chatId, String follow) {
     if (youtubeFollows.get(chatId) != null) {
       youtubeFollows.get(chatId).remove(new YouTubeChanel(follow));
@@ -99,7 +109,8 @@ public class JSettings {
   public YouTubeChanel getYoutubeFollow(String chatId, String follow) {
     if (youtubeFollows.get(chatId) != null) {
       return youtubeFollows.get(chatId).stream()
-          .filter(youtubeFollow -> youtubeFollow.getChannelName().equals(follow)).findFirst().orElse(null);
+          .filter(youtubeFollow -> youtubeFollow.getChannelName().equals(follow)).findFirst()
+          .orElse(null);
     }
     return null;
   }

@@ -62,7 +62,7 @@ public class InstagramMessageProcessor implements MessageProcessor, MessagePostL
             new SendMessage().setText("Уже подписан на него").setChatId(messageEntity.getChatId()));
         return;
       }
-      dataHelper.getSettings().addFollow(messageEntity.getChatId(), userName);
+      dataHelper.getSettings().addInstaFollow(messageEntity.getChatId(), userName);
       dataHelper.updateSettings();
       initScheduller(messageEntity.getSender(), messageEntity.getChatId());
       messageEntity.getSender()
