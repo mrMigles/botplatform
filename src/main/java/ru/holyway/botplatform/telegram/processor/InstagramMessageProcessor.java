@@ -57,7 +57,7 @@ public class InstagramMessageProcessor implements MessageProcessor, MessagePostL
     final String text = messageEntity.getText();
     if (text.startsWith("/follow ")) {
       String userName = text.substring(8);
-      if (dataHelper.getSettings().getFollow(messageEntity.getChatId(), userName) != null) {
+      if (dataHelper.getSettings().getInstaFollow(messageEntity.getChatId(), userName) != null) {
         messageEntity.getSender().execute(
             new SendMessage().setText("Уже подписан на него").setChatId(messageEntity.getChatId()));
         return;
@@ -70,7 +70,7 @@ public class InstagramMessageProcessor implements MessageProcessor, MessagePostL
     }
     if (text.startsWith("/unfollow ")) {
       String userName = text.substring(10);
-      dataHelper.getSettings().removeFollow(messageEntity.getChatId(), userName);
+      dataHelper.getSettings().removeInstaFollow(messageEntity.getChatId(), userName);
       dataHelper.updateSettings();
       initScheduller(messageEntity.getSender(), messageEntity.getChatId());
       messageEntity.getSender()
@@ -91,7 +91,7 @@ public class InstagramMessageProcessor implements MessageProcessor, MessagePostL
       scheduledFuture.cancel(true);
     }
     futureMap.put(chatID, taskScheduler.scheduleAtFixedRate(() -> {
-      Set<InstaFollow> instaFollows = dataHelper.getSettings().getFollows()
+      Set<InstaFollow> instaFollows = dataHelper.getSettings().getInstaFollows()
           .get(chatID);
 
       for (InstaFollow instaFollow : instaFollows) {
@@ -116,7 +116,7 @@ public class InstagramMessageProcessor implements MessageProcessor, MessagePostL
         return;
       }
       int size = instaUser.getPosts().size() > 5 ? 5 : instaUser.getPosts().size();
-      InstaFollow instaFollow = dataHelper.getSettings().getFollow(chatId, userName);
+      InstaFollow instaFollow = dataHelper.getSettings().getInstaFollow(chatId, userName);
       if (instaFollow != null) {
         if (instaFollow.getLastPostIdId() == null || instaFollow.getLastPostIdId()
             .equalsIgnoreCase("0")) {
@@ -143,7 +143,7 @@ public class InstagramMessageProcessor implements MessageProcessor, MessagePostL
   }
 
   private InstaUser getPosts(final String chatId, final String userId) {
-    final InstaFollow instaFollow = dataHelper.getSettings().getFollow(chatId, userId);
+    final InstaFollow instaFollow = dataHelper.getSettings().getInstaFollow(chatId, userId);
     String last = "0";
     if (instaFollow != null) {
       last = instaFollow.getLastPostIdId();
@@ -161,7 +161,7 @@ public class InstagramMessageProcessor implements MessageProcessor, MessagePostL
         return;
       }
       int size = instaUser.getStories().size() > 5 ? 5 : instaUser.getStories().size();
-      InstaFollow instaFollow = dataHelper.getSettings().getFollow(chatId, userName);
+      InstaFollow instaFollow = dataHelper.getSettings().getInstaFollow(chatId, userName);
       if (instaFollow != null) {
         if (instaFollow.getLastStoryId() == null || instaFollow.getLastStoryId()
             .equalsIgnoreCase("0")) {
@@ -189,7 +189,7 @@ public class InstagramMessageProcessor implements MessageProcessor, MessagePostL
   }
 
   private InstaUser getStories(final String chatId, final String userId) {
-    final InstaFollow instaFollow = dataHelper.getSettings().getFollow(chatId, userId);
+    final InstaFollow instaFollow = dataHelper.getSettings().getInstaFollow(chatId, userId);
     String last = "0";
     if (instaFollow != null) {
       last = instaFollow.getLastStoryId();
@@ -212,7 +212,7 @@ public class InstagramMessageProcessor implements MessageProcessor, MessagePostL
 
   @Override
   public void postRun(AbsSender absSender) {
-    Map<String, Set<InstaFollow>> follows = dataHelper.getSettings().getFollows();
+    Map<String, Set<InstaFollow>> follows = dataHelper.getSettings().getInstaFollows();
     for (String chatId : follows.keySet()) {
       initScheduller(absSender, chatId);
     }

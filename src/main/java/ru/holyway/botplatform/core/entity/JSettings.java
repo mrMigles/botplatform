@@ -1,6 +1,5 @@
 package ru.holyway.botplatform.core.entity;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -22,6 +21,7 @@ public class JSettings {
   private Map<String, Set<String>> syncChats;
   private Map<String, String> tokens;
   private Map<String, Set<InstaFollow>> instaFollows;
+  private Map<String, Set<YouTubeChanel>> youtubeFollows;
 
   @Id
   public String id;
@@ -43,6 +43,7 @@ public class JSettings {
     syncChats = new ConcurrentHashMap<>();
     tokens = new ConcurrentHashMap<>();
     instaFollows = new ConcurrentHashMap<>();
+    youtubeFollows = new ConcurrentHashMap<>();
   }
 
   public void addMuteChat(String chatId) {
@@ -67,26 +68,38 @@ public class JSettings {
     }
   }
 
-  public void removeFollow(String chatId, String follow) {
+  public void removeInstaFollow(String chatId, String follow) {
     if (instaFollows.get(chatId) != null) {
       instaFollows.get(chatId).remove(new InstaFollow(follow));
     }
   }
 
-  public void updateFollow(String chatId, String follow, String lastId) {
-    if (instaFollows.get(chatId) != null) {
-      instaFollows.get(chatId).add(new InstaFollow(follow, lastId));
-    }
-  }
-
-  public Map<String, Set<InstaFollow>> getFollows() {
+  public Map<String, Set<InstaFollow>> getInstaFollows() {
     return instaFollows;
   }
 
-  public InstaFollow getFollow(String chatId, String follow) {
+  public InstaFollow getInstaFollow(String chatId, String follow) {
     if (instaFollows.get(chatId) != null) {
       return instaFollows.get(chatId).stream()
           .filter(instaFollow -> instaFollow.getUserName().equals(follow)).findFirst().orElse(null);
+    }
+    return null;
+  }
+
+  public void removeYoutubeFollow(String chatId, String follow) {
+    if (youtubeFollows.get(chatId) != null) {
+      youtubeFollows.get(chatId).remove(new YouTubeChanel(follow));
+    }
+  }
+
+  public Map<String, Set<YouTubeChanel>> getYoutubeFollows() {
+    return youtubeFollows;
+  }
+
+  public YouTubeChanel getYoutubeFollow(String chatId, String follow) {
+    if (youtubeFollows.get(chatId) != null) {
+      return youtubeFollows.get(chatId).stream()
+          .filter(youtubeFollow -> youtubeFollow.getChannelName().equals(follow)).findFirst().orElse(null);
     }
     return null;
   }
