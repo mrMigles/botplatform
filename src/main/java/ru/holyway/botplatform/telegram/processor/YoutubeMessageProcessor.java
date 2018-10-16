@@ -127,13 +127,10 @@ public class YoutubeMessageProcessor implements MessageProcessor, MessagePostLoa
       for (int i = 0; i < size; i++) {
         YoutubeVideo video = videos.get(i);
         sender.execute(new SendMessage().setText(
-            "YouTube " + (video.getLive() ? "Live" : "Video") + " [.](" + video.getLink()
-                + ") By channel [" + userName
+            "New [" + (video.getLive() ? "live" : "video") + "](" + video.getLink()
+                + ") on channel [" + userName
                 + "]("
-                + "https://www.youtube.com/user/" + userName + ")\n\n"
-                + video.getDescription() + "\n\nlook at [original video](" + video
-                .getLink()
-                + ") \n").setChatId(chatId).enableMarkdown(true));
+                + "https://www.youtube.com/user/" + userName + ")").setChatId(chatId).enableMarkdown(true));
       }
     } catch (Exception e) {
       System.out.println("UUUUUUUUUUUUUUUps");
