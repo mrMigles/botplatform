@@ -13,6 +13,17 @@ public class YoutubeVideo {
   @JsonProperty("description")
   private String description;
 
+  public String getChanelUrl() {
+    return chanelUrl;
+  }
+
+  public void setChanelUrl(String chanelUrl) {
+    this.chanelUrl = chanelUrl;
+  }
+
+  @JsonProperty("channel_url")
+  private String chanelUrl;
+
   @JsonProperty("live")
   private Boolean isLive;
 
