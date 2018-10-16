@@ -104,7 +104,7 @@ public class YoutubeMessageProcessor implements MessageProcessor, MessagePostLoa
         }
       }
 
-    }, TimeUnit.MINUTES.toMillis(2)));
+    }, TimeUnit.MINUTES.toMillis(15)));
   }
 
   private void sendYoutubeForUser(AbsSender sender, String chatId, String userName)

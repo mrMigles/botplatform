@@ -105,7 +105,7 @@ public class InstagramMessageProcessor implements MessageProcessor, MessagePostL
         }
       }
 
-    }, TimeUnit.MINUTES.toMillis(2)));
+    }, TimeUnit.MINUTES.toMillis(5)));
   }
 
   private void sendInstaForUser(AbsSender sender, String chatId, String userName)
