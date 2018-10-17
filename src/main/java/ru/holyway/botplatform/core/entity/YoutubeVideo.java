@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class YoutubeVideo {
 
-  @JsonProperty("Id")
+  @JsonProperty("id")
   private String id;
 
   @JsonProperty("link")

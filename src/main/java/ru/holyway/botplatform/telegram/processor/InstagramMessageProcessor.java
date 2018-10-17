@@ -149,7 +149,7 @@ public class InstagramMessageProcessor implements MessageProcessor, MessagePostL
       last = instaFollow.getLastPostIdId();
     }
     return restTemplate
-        .getForObject(URI.create("https://instaprovider.now.sh/api/posts/" + userId + "/" + last),
+        .getForObject(URI.create("https://instaprovider.now.sh/api/instagram/posts/" + userId + "/" + last),
             InstaUser.class);
   }
 
@@ -195,7 +195,7 @@ public class InstagramMessageProcessor implements MessageProcessor, MessagePostL
       last = instaFollow.getLastStoryId();
     }
     return restTemplate
-        .getForObject(URI.create("https://instaprovider.now.sh/api/stories/" + userId + "/" + last),
+        .getForObject(URI.create("https://instaprovider.now.sh/api/instagram/stories/" + userId + "/" + last),
             InstaUser.class);
   }
 
