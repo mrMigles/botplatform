@@ -19,6 +19,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.retry.backoff.FixedBackOffPolicy;
+import org.springframework.retry.policy.SimpleRetryPolicy;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
@@ -153,6 +156,7 @@ public class BotConfiguration {
       return auth;
     }
   }
+
   @Bean
   public DefaultBotOptions botOptions() {
     if (!org.apache.commons.lang3.StringUtils
@@ -173,5 +177,20 @@ public class BotConfiguration {
       botOptions.setProxyType(DefaultBotOptions.ProxyType.SOCKS5);
     }
     return botOptions;
+  }
+
+  @Bean
+  public RetryTemplate retryTemplate() {
+    RetryTemplate retryTemplate = new RetryTemplate();
+
+    FixedBackOffPolicy fixedBackOffPolicy = new FixedBackOffPolicy();
+    fixedBackOffPolicy.setBackOffPeriod(1000);
+    retryTemplate.setBackOffPolicy(fixedBackOffPolicy);
+
+    SimpleRetryPolicy retryPolicy = new SimpleRetryPolicy();
+    retryPolicy.setMaxAttempts(2);
+    retryTemplate.setRetryPolicy(retryPolicy);
+
+    return retryTemplate;
   }
 }

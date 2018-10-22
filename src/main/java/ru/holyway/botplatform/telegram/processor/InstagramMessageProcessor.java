@@ -8,6 +8,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.annotation.Order;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -29,14 +30,17 @@ public class InstagramMessageProcessor implements MessageProcessor, MessagePostL
   private final DataHelper dataHelper;
   private final TaskScheduler taskScheduler;
   private final RestTemplate restTemplate;
+  private final RetryTemplate retryTemplate;
 
   private Map<String, ScheduledFuture> futureMap = new HashMap<>();
 
   public InstagramMessageProcessor(DataHelper dataHelper,
-      TaskScheduler taskScheduler, RestTemplate restTemplate) {
+      TaskScheduler taskScheduler, RestTemplate restTemplate,
+      RetryTemplate retryTemplate) {
     this.dataHelper = dataHelper;
     this.taskScheduler = taskScheduler;
     this.restTemplate = restTemplate;
+    this.retryTemplate = retryTemplate;
   }
 
   @Override
@@ -127,13 +131,13 @@ public class InstagramMessageProcessor implements MessageProcessor, MessagePostL
       }
       for (int i = 0; i < size; i++) {
         InstaPost instaPost = instaUser.getPosts().get(i);
-        sender.execute(new SendMessage().setText(
+        retryTemplate.execute(retryContext -> sender.execute(new SendMessage().setText(
             "Instapost[.](" + instaPost.getPhotoUrl() + ") By user [" + instaUser.getUserName()
                 + "]("
                 + "https://instagram.com/" + instaUser.getUserName() + ")\n\n"
                 + instaPost.getDescription() + "\n\nlook at [original post](" + instaPost
                 .getPostUrl()
-                + ") \n").setChatId(chatId).enableMarkdown(true));
+                + ") \n").setChatId(chatId).enableMarkdown(true)));
       }
     } catch (Exception e) {
       System.out.println("UUUUUUUUUUUUUUUps");
@@ -149,7 +153,8 @@ public class InstagramMessageProcessor implements MessageProcessor, MessagePostL
       last = instaFollow.getLastPostIdId();
     }
     return restTemplate
-        .getForObject(URI.create("https://instaprovider.now.sh/api/instagram/posts/" + userId + "/" + last),
+        .getForObject(
+            URI.create("https://instaprovider.now.sh/api/instagram/posts/" + userId + "/" + last),
             InstaUser.class);
   }
 
@@ -171,15 +176,16 @@ public class InstagramMessageProcessor implements MessageProcessor, MessagePostL
             .setLastStoryId(instaUser.getStories().get(instaUser.getStories().size() - 1).getId());
         dataHelper.updateSettings();
       }
-      for (int i = instaUser.getStories().size() - 1; i >= instaUser.getStories().size() - size; i--) {
+      for (int i = instaUser.getStories().size() - 1; i >= instaUser.getStories().size() - size;
+          i--) {
         InstaStory instaPost = instaUser.getStories().get(i);
-        sender.execute(new SendMessage().setText(
+        retryTemplate.execute(retryContext -> sender.execute(new SendMessage().setText(
             "Instastory[.](" + instaPost.getMediaUrl() + ") By user [" + instaUser.getUserName()
                 + "]("
                 + "https://instagram.com/" + instaUser.getUserName() + ")\n\n"
                 + "look at [original post](" + instaPost
                 .getStoryURL()
-                + ") \n").setChatId(chatId).enableMarkdown(true));
+                + ") \n").setChatId(chatId).enableMarkdown(true)));
       }
     } catch (Exception e) {
       System.out.println("UUUUUUUUUUUUUUUps");
@@ -195,7 +201,8 @@ public class InstagramMessageProcessor implements MessageProcessor, MessagePostL
       last = instaFollow.getLastStoryId();
     }
     return restTemplate
-        .getForObject(URI.create("https://instaprovider.now.sh/api/instagram/stories/" + userId + "/" + last),
+        .getForObject(
+            URI.create("https://instaprovider.now.sh/api/instagram/stories/" + userId + "/" + last),
             InstaUser.class);
   }
 
