@@ -22,6 +22,7 @@ public class JSettings {
   private Map<String, String> tokens;
   private Map<String, Set<InstaFollow>> instaFollows;
   private Map<String, Set<YouTubeChanel>> youtubeFollows;
+  private Map<String, Set<TwitterFollow>> twitterFollows;
 
   @Id
   public String id;
@@ -44,6 +45,7 @@ public class JSettings {
     tokens = new ConcurrentHashMap<>();
     instaFollows = new ConcurrentHashMap<>();
     youtubeFollows = new ConcurrentHashMap<>();
+    twitterFollows = new ConcurrentHashMap<>();
   }
 
   public void addMuteChat(String chatId) {
@@ -110,6 +112,35 @@ public class JSettings {
     if (youtubeFollows.get(chatId) != null) {
       return youtubeFollows.get(chatId).stream()
           .filter(youtubeFollow -> youtubeFollow.getChannelName().equals(follow)).findFirst()
+          .orElse(null);
+    }
+    return null;
+  }
+
+  public void addTwitterFollow(String chatId, String follow) {
+    if (twitterFollows.get(chatId) != null) {
+      twitterFollows.get(chatId).add(new TwitterFollow(follow));
+    } else {
+      Set<TwitterFollow> twitterUsers = new HashSet<>();
+      twitterUsers.add(new TwitterFollow(follow));
+      twitterFollows.put(chatId, twitterUsers);
+    }
+  }
+
+  public void removeTwitterFollow(String chatId, String follow) {
+    if (twitterFollows.get(chatId) != null) {
+      twitterFollows.get(chatId).remove(new TwitterFollow(follow));
+    }
+  }
+
+  public Map<String, Set<TwitterFollow>> getTwitterFollows() {
+    return twitterFollows;
+  }
+
+  public TwitterFollow getTwitterFollow(String chatId, String follow) {
+    if (twitterFollows.get(chatId) != null) {
+      return twitterFollows.get(chatId).stream()
+          .filter(twitterFollow -> twitterFollow.getUserName().equals(follow)).findFirst()
           .orElse(null);
     }
     return null;
