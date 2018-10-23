@@ -57,6 +57,10 @@ public class SettingsHandler implements MessageHandler {
           "`Пахом, стоп [ИМЯ]` - Остановить счёт для указанного имени\n" +
           "`Пахом, статистика [ИМЯ]` - Показать все результатты для имени\n" +
           "`Пахом, рекорд` - Показать рекорды подсчётов\n" +
+          "`/follow INSTAGRAM_USER` - Подписаться чатом на instagram аккаунт\n" +
+          "`/followy YOUTUBE_CHANEL` - Подписаться чатом на youtube канал\n" +
+          "`/followt TWITTER_USER` - Подписаться чатом на twitter аккаунт\n" +
+          "`/unfollow[t,y] NAME` - Отписаться\n" +
           "`Пахом, ид` - показать ID данного чата\n";
     }
     if (StringUtils.containsIgnoreCase(mes, "Пахом, процент")) {

@@ -45,7 +45,10 @@ public class RandomMemeProcessor implements MessageProcessor {
         if (lastMessage.getFrom().getId().equals(messageEntity.getMessage().getFrom().getId())) {
           if (messageEntity.getMessage().getDate() - lastMessage.getDate() < TimeUnit.SECONDS
               .toMillis(30)) {
-            return true;
+            if (isOnlyCapital(messageEntity.getText()) && messageEntity.getText().length() >= 3
+                && lastMessage.getText().length() >= 3) {
+              return true;
+            }
           }
         }
       }
