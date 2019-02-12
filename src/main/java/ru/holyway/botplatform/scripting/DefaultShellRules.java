@@ -33,7 +33,9 @@ public final class DefaultShellRules {
       MessageScriptEntity.class.getName(),
       ScriptEntityContext.class.getName(),
       TelegramScriptEntity.class.getName(),
-      ContextChatStorage.class.getName());
+      ContextChatStorage.class.getName(),
+      TextScriptEntity.class.getName(),
+      UserScriptEntity.class.getName());
 
   public static final List<String> receiversBlackList =
       Collections.singletonList(Thread.class.getName());

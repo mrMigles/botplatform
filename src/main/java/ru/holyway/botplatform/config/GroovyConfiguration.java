@@ -21,6 +21,8 @@ import ru.holyway.botplatform.scripting.ScriptCompiler;
 import ru.holyway.botplatform.scripting.ScriptCompilerImpl;
 import ru.holyway.botplatform.scripting.ScriptEntityContext;
 import ru.holyway.botplatform.scripting.TelegramScriptEntity;
+import ru.holyway.botplatform.scripting.TextScriptEntity;
+import ru.holyway.botplatform.scripting.UserScriptEntity;
 
 @Configuration
 public class GroovyConfiguration {
@@ -37,6 +39,8 @@ public class GroovyConfiguration {
     mapping.put("ctx", new ScriptEntityContext());
     mapping.put("telegram", new TelegramScriptEntity());
     mapping.put("map", new ContextChatStorage());
+    mapping.put("text", new TextScriptEntity());
+    mapping.put("user", new UserScriptEntity());
 
     Binding binding = new Binding(mapping);
     GroovyShell groovyShell = new GroovyShell(binding, configuration);

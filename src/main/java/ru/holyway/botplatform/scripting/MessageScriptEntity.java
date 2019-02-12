@@ -69,7 +69,7 @@ public class MessageScriptEntity {
     return s -> {
       try {
         s.message.messageEntity.getSender()
-            .execute(new DeleteMessage().setMessageId(messageEntity.getMessage().getMessageId())
+            .execute(new DeleteMessage().setMessageId(s.message.messageEntity.getMessage().getMessageId())
                 .setChatId(s.message.messageEntity.getChatId()));
       } catch (TelegramApiException e) {
         e.printStackTrace();
