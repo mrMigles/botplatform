@@ -5,24 +5,24 @@ import java.util.function.Predicate;
 
 public class Script {
 
-  private Predicate<ScriptEntityContext> predicates;
-  private Consumer<ScriptEntityContext> function;
+  private Predicate<ScriptContext> predicates;
+  private Consumer<ScriptContext> function;
 
-  public Script when(Predicate<ScriptEntityContext> predicates) {
+  public Script when(Predicate<ScriptContext> predicates) {
     this.predicates = predicates;
     return this;
   }
 
-  public Script then(Consumer<ScriptEntityContext> function) {
+  public Script then(Consumer<ScriptContext> function) {
     this.function = function;
     return this;
   }
 
-  public boolean check(ScriptEntityContext str) {
+  public boolean check(ScriptContext str) {
     return predicates.test(str);
   }
 
-  public void execute(ScriptEntityContext s) {
+  public void execute(ScriptContext s) {
     function.accept(s);
   }
 

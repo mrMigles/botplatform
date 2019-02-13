@@ -1,16 +1,17 @@
 package ru.holyway.botplatform.scripting;
 
-public class ScriptEntityContext {
+import ru.holyway.botplatform.scripting.entity.MessageScriptEntity;
+
+public class ScriptContext {
 
   public MessageScriptEntity message = new MessageScriptEntity();
 
   public TelegramScriptEntity telegram = new TelegramScriptEntity();
 
-  public ScriptEntityContext() {
+  public ScriptContext() {
   }
 
-  public ScriptEntityContext(MessageScriptEntity message,
-      TelegramScriptEntity telegram) {
+  public ScriptContext(MessageScriptEntity message, TelegramScriptEntity telegram) {
     this.message = message;
     this.telegram = telegram;
   }

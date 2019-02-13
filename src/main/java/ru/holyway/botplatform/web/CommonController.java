@@ -89,7 +89,7 @@ public class CommonController {
   @PreAuthorize("hasAuthority('USER')")
   @RequestMapping(value = "/send", method = RequestMethod.GET)
   public ResponseEntity<String> restart(@RequestParam("chatId") String chatId,
-      @RequestParam("message") String message) throws UnsupportedEncodingException {
+      @RequestParam("entity") String message) throws UnsupportedEncodingException {
     for (Bot bot : bots) {
       bot.sendMessage(message, chatId);
     }
@@ -99,7 +99,7 @@ public class CommonController {
   @PreAuthorize("permitAll()")
   @RequestMapping(value = "/mes", method = RequestMethod.GET)
   public ResponseEntity<String> message(@RequestParam("id") String chatId,
-      @RequestParam("message") String message) throws UnsupportedEncodingException {
+      @RequestParam("entity") String message) throws UnsupportedEncodingException {
 
     MessageEntity messageEntity = new WebMessageEntity(chatId, "web", message);
     final String answer = commonHandler.generateAnswer(messageEntity);

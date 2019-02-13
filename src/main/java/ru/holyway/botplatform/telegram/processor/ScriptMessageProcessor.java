@@ -9,10 +9,10 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import ru.holyway.botplatform.scripting.MessageScriptEntity;
+import ru.holyway.botplatform.scripting.entity.MessageScriptEntity;
 import ru.holyway.botplatform.scripting.Script;
 import ru.holyway.botplatform.scripting.ScriptCompiler;
-import ru.holyway.botplatform.scripting.ScriptEntityContext;
+import ru.holyway.botplatform.scripting.ScriptContext;
 import ru.holyway.botplatform.scripting.TelegramScriptEntity;
 import ru.holyway.botplatform.telegram.TelegramMessageEntity;
 
@@ -48,7 +48,7 @@ public class ScriptMessageProcessor implements MessageProcessor {
     for (Script script : scripts.get(messageEntity.getChatId())) {
       MessageScriptEntity message = new MessageScriptEntity(messageEntity);
       TelegramScriptEntity telegram = new TelegramScriptEntity(messageEntity.getSender());
-      ScriptEntityContext ctx = new ScriptEntityContext(message, telegram);
+      ScriptContext ctx = new ScriptContext(message, telegram);
       try {
         if (script.check(ctx)) {
           script.execute(ctx);

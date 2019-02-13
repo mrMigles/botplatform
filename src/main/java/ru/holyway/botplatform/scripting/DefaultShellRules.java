@@ -10,6 +10,10 @@ import org.codehaus.groovy.ast.stmt.ForStatement;
 import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.ast.stmt.WhileStatement;
 import org.codehaus.groovy.classgen.BytecodeSequence;
+import ru.holyway.botplatform.scripting.entity.MessageScriptEntity;
+import ru.holyway.botplatform.scripting.entity.TextScriptEntity;
+import ru.holyway.botplatform.scripting.entity.UserScriptEntity;
+import ru.holyway.botplatform.scripting.util.ContextChatStorage;
 
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -31,7 +35,7 @@ public final class DefaultShellRules {
       java.math.BigInteger.class.getName(),
       Script.class.getName(),
       MessageScriptEntity.class.getName(),
-      ScriptEntityContext.class.getName(),
+      ScriptContext.class.getName(),
       TelegramScriptEntity.class.getName(),
       ContextChatStorage.class.getName(),
       TextScriptEntity.class.getName(),

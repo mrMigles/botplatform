@@ -1,4 +1,4 @@
-package ru.holyway.botplatform.scripting;
+package ru.holyway.botplatform.scripting.entity;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -6,6 +6,7 @@ import java.util.function.Predicate;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import ru.holyway.botplatform.scripting.ScriptContext;
 import ru.holyway.botplatform.telegram.TelegramMessageEntity;
 
 public class MessageScriptEntity {
@@ -23,15 +24,15 @@ public class MessageScriptEntity {
     this.messageEntity = messageEntity;
   }
 
-  public Predicate<ScriptEntityContext> hasSticker(String text) {
+  public Predicate<ScriptContext> hasSticker(String text) {
     return mes -> mes.message.messageEntity.getMessage().getSticker().getFileId().equals(text);
   }
 
-  public Predicate<ScriptEntityContext> hasSticker() {
+  public Predicate<ScriptContext> hasSticker() {
     return mes -> mes.message.messageEntity.getMessage().hasSticker();
   }
 
-  public Consumer<ScriptEntityContext> send(String text) {
+  public Consumer<ScriptContext> send(String text) {
     return s -> {
       try {
         s.message.messageEntity.getSender()
@@ -43,11 +44,11 @@ public class MessageScriptEntity {
     };
   }
 
-  public Consumer<ScriptEntityContext> send(Function<ScriptEntityContext, String> supplierText) {
+  public Consumer<ScriptContext> send(Function<ScriptContext, String> supplierText) {
     return s -> send(supplierText.apply(s)).accept(s);
   }
 
-  public Consumer<ScriptEntityContext> reply(String text) {
+  public Consumer<ScriptContext> reply(String text) {
     return s -> {
       try {
         s.message.messageEntity.getSender()
@@ -61,11 +62,11 @@ public class MessageScriptEntity {
     };
   }
 
-  public Consumer<ScriptEntityContext> reply(Function<ScriptEntityContext, String> supplierText) {
+  public Consumer<ScriptContext> reply(Function<ScriptContext, String> supplierText) {
     return s -> reply(supplierText.apply(s)).accept(s);
   }
 
-  public Consumer<ScriptEntityContext> delete() {
+  public Consumer<ScriptContext> delete() {
     return s -> {
       try {
         s.message.messageEntity.getSender()

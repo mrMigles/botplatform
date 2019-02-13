@@ -12,17 +12,17 @@ import org.codehaus.groovy.control.customizers.ImportCustomizer;
 import org.codehaus.groovy.control.customizers.SecureASTCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import ru.holyway.botplatform.scripting.ContextChatStorage;
+import ru.holyway.botplatform.scripting.util.ContextChatStorage;
 import ru.holyway.botplatform.scripting.DefaultShellRules;
-import ru.holyway.botplatform.scripting.MessageScriptEntity;
+import ru.holyway.botplatform.scripting.entity.MessageScriptEntity;
 import ru.holyway.botplatform.scripting.MethodsBlacklistExpressionChecker;
 import ru.holyway.botplatform.scripting.Script;
 import ru.holyway.botplatform.scripting.ScriptCompiler;
 import ru.holyway.botplatform.scripting.ScriptCompilerImpl;
-import ru.holyway.botplatform.scripting.ScriptEntityContext;
+import ru.holyway.botplatform.scripting.ScriptContext;
 import ru.holyway.botplatform.scripting.TelegramScriptEntity;
-import ru.holyway.botplatform.scripting.TextScriptEntity;
-import ru.holyway.botplatform.scripting.UserScriptEntity;
+import ru.holyway.botplatform.scripting.entity.TextScriptEntity;
+import ru.holyway.botplatform.scripting.entity.UserScriptEntity;
 
 @Configuration
 public class GroovyConfiguration {
@@ -36,7 +36,7 @@ public class GroovyConfiguration {
 
     Map<String, Object> mapping = new HashMap<>();
     mapping.put("message", new MessageScriptEntity());
-    mapping.put("ctx", new ScriptEntityContext());
+    mapping.put("ctx", new ScriptContext());
     mapping.put("telegram", new TelegramScriptEntity());
     mapping.put("map", new ContextChatStorage());
     mapping.put("text", new TextScriptEntity());

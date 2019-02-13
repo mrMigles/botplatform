@@ -63,7 +63,7 @@ public class EventMessageProcessor implements MessageProcessor {
     keyboardMarkup.setKeyboard(keyboard);
 
     //keyboardMarkup.setKeyboard(keyboard);
-    // Add it to the message
+    // Add it to the entity
     message.setReplyMarkup(keyboardMarkup);
 
     messageEntity.getSender().execute(message);
