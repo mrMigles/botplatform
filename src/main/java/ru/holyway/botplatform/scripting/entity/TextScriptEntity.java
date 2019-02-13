@@ -21,4 +21,12 @@ public class TextScriptEntity {
   public Predicate<ScriptContext> contains(String text) {
     return mes -> mes.message.messageEntity.getText().contains(text);
   }
+
+  public Predicate<ScriptContext> startWith(String text) {
+    return mes -> mes.message.messageEntity.getText().startsWith(text);
+  }
+
+  public Predicate<ScriptContext> matches(String text) {
+    return mes -> mes.message.messageEntity.getText().matches(text);
+  }
 }

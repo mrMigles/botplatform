@@ -1,7 +1,9 @@
 package ru.holyway.botplatform.core.entity;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -23,6 +25,7 @@ public class JSettings {
   private Map<String, Set<InstaFollow>> instaFollows;
   private Map<String, Set<YouTubeChanel>> youtubeFollows;
   private Map<String, Set<TwitterFollow>> twitterFollows;
+  private Map<String, List<String>> scripts;
 
   @Id
   public String id;
@@ -46,6 +49,7 @@ public class JSettings {
     instaFollows = new ConcurrentHashMap<>();
     youtubeFollows = new ConcurrentHashMap<>();
     twitterFollows = new ConcurrentHashMap<>();
+    scripts = new ConcurrentHashMap<>();
   }
 
   public void addMuteChat(String chatId) {
@@ -235,4 +239,15 @@ public class JSettings {
     }
     return false;
   }
+
+  public void addScript(final String chatId, final String script) {
+    if (scripts.get(chatId) != null) {
+      scripts.get(chatId).add(script);
+    } else {
+      List<String> scr = new ArrayList<>();
+      scr.add(script);
+      scripts.put(chatId, scr);
+    }
+  }
+
 }

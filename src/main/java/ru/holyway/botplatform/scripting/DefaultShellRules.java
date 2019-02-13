@@ -14,6 +14,9 @@ import ru.holyway.botplatform.scripting.entity.MessageScriptEntity;
 import ru.holyway.botplatform.scripting.entity.TextScriptEntity;
 import ru.holyway.botplatform.scripting.entity.UserScriptEntity;
 import ru.holyway.botplatform.scripting.util.ContextChatStorage;
+import ru.holyway.botplatform.scripting.util.Request;
+import ru.holyway.botplatform.scripting.util.Text;
+import ru.holyway.botplatform.scripting.util.Time;
 
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -39,7 +42,10 @@ public final class DefaultShellRules {
       TelegramScriptEntity.class.getName(),
       ContextChatStorage.class.getName(),
       TextScriptEntity.class.getName(),
-      UserScriptEntity.class.getName());
+      UserScriptEntity.class.getName(),
+      Text.class.getName(),
+      Time.class.getName(),
+      Request.class.getName());
 
   public static final List<String> receiversBlackList =
       Collections.singletonList(Thread.class.getName());

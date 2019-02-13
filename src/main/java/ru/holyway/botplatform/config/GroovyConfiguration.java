@@ -12,17 +12,19 @@ import org.codehaus.groovy.control.customizers.ImportCustomizer;
 import org.codehaus.groovy.control.customizers.SecureASTCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import ru.holyway.botplatform.scripting.util.ContextChatStorage;
 import ru.holyway.botplatform.scripting.DefaultShellRules;
-import ru.holyway.botplatform.scripting.entity.MessageScriptEntity;
 import ru.holyway.botplatform.scripting.MethodsBlacklistExpressionChecker;
 import ru.holyway.botplatform.scripting.Script;
 import ru.holyway.botplatform.scripting.ScriptCompiler;
 import ru.holyway.botplatform.scripting.ScriptCompilerImpl;
 import ru.holyway.botplatform.scripting.ScriptContext;
 import ru.holyway.botplatform.scripting.TelegramScriptEntity;
+import ru.holyway.botplatform.scripting.entity.MessageScriptEntity;
 import ru.holyway.botplatform.scripting.entity.TextScriptEntity;
 import ru.holyway.botplatform.scripting.entity.UserScriptEntity;
+import ru.holyway.botplatform.scripting.util.ContextChatStorage;
+import ru.holyway.botplatform.scripting.util.Text;
+import ru.holyway.botplatform.scripting.util.Time;
 
 @Configuration
 public class GroovyConfiguration {
@@ -51,7 +53,9 @@ public class GroovyConfiguration {
   private ImportCustomizer customImports(@Nonnull String[] allowedImports) {
     return new ImportCustomizer()
         .addStaticStars(
-            Script.class.getName())
+            Script.class.getName(),
+            Time.class.getName(),
+            Text.class.getName())
         .addImports(allowedImports)
         .addStarImports(DefaultShellRules.starImportsWhiteArray);
   }

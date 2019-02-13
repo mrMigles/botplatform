@@ -9,11 +9,11 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import ru.holyway.botplatform.scripting.entity.MessageScriptEntity;
 import ru.holyway.botplatform.scripting.Script;
 import ru.holyway.botplatform.scripting.ScriptCompiler;
 import ru.holyway.botplatform.scripting.ScriptContext;
 import ru.holyway.botplatform.scripting.TelegramScriptEntity;
+import ru.holyway.botplatform.scripting.entity.MessageScriptEntity;
 import ru.holyway.botplatform.telegram.TelegramMessageEntity;
 
 @Component
@@ -38,11 +38,17 @@ public class ScriptMessageProcessor implements MessageProcessor {
   public void process(TelegramMessageEntity messageEntity) throws TelegramApiException {
     if (messageEntity.getMessage().hasText() && messageEntity.getMessage().getText()
         .startsWith("script()")) {
-      final Script script = scriptCompiler.compile(messageEntity.getText());
-      scripts.add(messageEntity.getChatId(), script);
-      messageEntity.getSender()
-          .execute(new SendMessage().setChatId(messageEntity.getChatId()).setText("Ok"));
-      return;
+      try {
+        final Script script = scriptCompiler.compile(messageEntity.getText());
+        scripts.add(messageEntity.getChatId(), script);
+        messageEntity.getSender()
+            .execute(new SendMessage().setChatId(messageEntity.getChatId()).setText("Ok"));
+        return;
+      } catch (Exception e) {
+        messageEntity.getSender().execute(new SendMessage().setText("DEBUG: \n" + e.getMessage())
+            .setChatId(messageEntity.getChatId()));
+        throw e;
+      }
     }
 
     for (Script script : scripts.get(messageEntity.getChatId())) {
@@ -55,6 +61,8 @@ public class ScriptMessageProcessor implements MessageProcessor {
           return;
         }
       } catch (Exception e) {
+        messageEntity.getSender().execute(new SendMessage().setText("DEBUG: \n" + e.getMessage())
+            .setChatId(messageEntity.getChatId()));
         System.out.println(e);
       }
     }

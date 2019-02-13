@@ -153,9 +153,9 @@
             <version>2.3.0</version>
         </dependency>
         <dependency>
-            <groupId>com.mysema.querydsl</groupId>
+            <groupId>com.querydsl</groupId>
             <artifactId>querydsl-core</artifactId>
-            <version>3.7.4</version>
+            <version>4.0.8</version>
         </dependency>
         <!--<dependency>-->
             <!--<groupId>org.telegram</groupId>-->
