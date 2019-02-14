@@ -1,5 +1,6 @@
 package ru.holyway.botplatform.telegram.processor;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -12,6 +13,7 @@ import ru.holyway.botplatform.telegram.TelegramMessageEntity;
 @Order(98)
 public class ScriptManagerProcessor implements MessageProcessor {
 
+  @Autowired
   private ScriptMessageProcessor scriptMessageProcessor;
 
   @Override
