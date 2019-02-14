@@ -16,7 +16,8 @@ import org.springframework.data.annotation.Id;
 public class JSettings {
 
   private final static Map<String, UserAccessInfo> userTokens = new ConcurrentHashMap<>();
-
+  @Id
+  public String id;
   private Set<String> muteChats;
   private Set<String> easyChats;
   private Map<String, Integer> answerProximity;
@@ -26,9 +27,6 @@ public class JSettings {
   private Map<String, Set<YouTubeChanel>> youtubeFollows;
   private Map<String, Set<TwitterFollow>> twitterFollows;
   private Map<String, List<String>> scripts;
-
-  @Id
-  public String id;
 
   public JSettings(Set<String> muteChats, Set<String> easyChats,
       Map<String, Integer> answerProximity, Map<String, Set<String>> syncChats,
@@ -248,6 +246,14 @@ public class JSettings {
       scr.add(script);
       scripts.put(chatId, scr);
     }
+  }
+
+  public Map<String, List<String>> getScripts() {
+    return scripts;
+  }
+
+  public List<String> getScripts(final String chatID) {
+    return scripts.get(chatID);
   }
 
 }
