@@ -7,6 +7,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import ru.holyway.botplatform.scripting.Script;
 import ru.holyway.botplatform.telegram.TelegramMessageEntity;
 
 @Component
@@ -18,15 +19,35 @@ public class ScriptManagerProcessor implements MessageProcessor {
 
   @Override
   public boolean isNeedToHandle(TelegramMessageEntity messageEntity) {
-    return messageEntity.getMessage().hasText() && messageEntity.getMessage().getText()
-        .startsWith("/clear_scripts");
+    return messageEntity.getMessage().hasText() && (messageEntity.getMessage().getText()
+        .startsWith("/clear_scripts") || messageEntity.getMessage().getText()
+        .startsWith("/list_scripts") || (messageEntity.getMessage().isReply() && messageEntity
+        .getMessage().getReplyToMessage().getText().startsWith("script()") && messageEntity
+        .getMessage().getText().startsWith("/remove_script")));
   }
 
   @Override
   public void process(TelegramMessageEntity messageEntity) throws TelegramApiException {
-    scriptMessageProcessor.clearScripts(messageEntity.getChatId());
-    messageEntity.getSender()
-        .execute(new SendMessage().setChatId(messageEntity.getChatId()).setText("Cleared"));
+    if (messageEntity.getMessage().getText()
+        .startsWith("/clear_scripts")) {
+      scriptMessageProcessor.clearScripts(messageEntity.getChatId());
+      messageEntity.getSender()
+          .execute(new SendMessage().setChatId(messageEntity.getChatId()).setText("Cleared"));
+    } else if (messageEntity.getMessage().getText()
+        .startsWith("/list_scripts")) {
+      messageEntity.getSender().execute(new SendMessage().setChatId(messageEntity.getChatId())
+          .setText("List of scripts:"));
+      for (Script script : scriptMessageProcessor.getScripts(messageEntity.getChatId())) {
+        messageEntity.getSender().execute(new SendMessage().setChatId(messageEntity.getChatId())
+            .setText(script.getStringScript()));
+      }
+    } else if (messageEntity.getMessage().getText()
+        .startsWith("/remove_script")) {
+      final String script = messageEntity.getMessage().getReplyToMessage().getText();
+      scriptMessageProcessor.removeScript(messageEntity.getChatId(), script);
+      messageEntity.getSender()
+          .execute(new SendMessage().setChatId(messageEntity.getChatId()).setText("Removed"));
+    }
   }
 
   @Override

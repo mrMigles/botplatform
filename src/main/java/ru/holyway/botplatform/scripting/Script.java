@@ -2,6 +2,7 @@ package ru.holyway.botplatform.scripting;
 
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 public class Script {
@@ -55,5 +56,20 @@ public class Script {
 
   public static Script script() {
     return new Script();
+  }
+
+  public static Predicate<ScriptContext> any() {
+    return scriptContext -> true;
+  }
+
+  public static Consumer<ScriptContext> sout(Object obj) {
+    return scriptContext -> {
+      if (obj instanceof Function) {
+        System.out
+            .println(((Function<ScriptContext, String>) obj).apply(scriptContext));
+      } else {
+        System.out.println(String.valueOf(obj));
+      }
+    };
   }
 }

@@ -101,5 +101,16 @@ public class ScriptMessageProcessor implements MessageProcessor {
   public void clearScripts(final String chatId) {
     scripts.remove(chatId);
     dataHelper.getSettings().getScripts().remove(chatId);
+    dataHelper.updateSettings();
+  }
+
+  public List<Script> getScripts(final String chatId) {
+    return scripts.get(chatId);
+  }
+
+  public void removeScript(final String chatId, final String script) {
+    scripts.get(chatId).removeIf(script1 -> script1.getStringScript().equals(script));
+    dataHelper.getSettings().getScripts().get(chatId).remove(script);
+    dataHelper.updateSettings();
   }
 }

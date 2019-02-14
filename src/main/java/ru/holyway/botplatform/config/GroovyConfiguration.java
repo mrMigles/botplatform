@@ -23,7 +23,8 @@ import ru.holyway.botplatform.scripting.entity.MessageScriptEntity;
 import ru.holyway.botplatform.scripting.entity.TextScriptEntity;
 import ru.holyway.botplatform.scripting.entity.UserScriptEntity;
 import ru.holyway.botplatform.scripting.util.ContextChatStorage;
-import ru.holyway.botplatform.scripting.util.Text;
+import ru.holyway.botplatform.scripting.util.Request;
+import ru.holyway.botplatform.scripting.util.TextJoiner;
 import ru.holyway.botplatform.scripting.util.Time;
 
 @Configuration
@@ -55,7 +56,8 @@ public class GroovyConfiguration {
         .addStaticStars(
             Script.class.getName(),
             Time.class.getName(),
-            Text.class.getName())
+            TextJoiner.class.getName(),
+            Request.class.getName())
         .addImports(allowedImports)
         .addStarImports(DefaultShellRules.starImportsWhiteArray);
   }

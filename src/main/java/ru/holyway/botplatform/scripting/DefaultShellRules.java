@@ -15,7 +15,7 @@ import ru.holyway.botplatform.scripting.entity.TextScriptEntity;
 import ru.holyway.botplatform.scripting.entity.UserScriptEntity;
 import ru.holyway.botplatform.scripting.util.ContextChatStorage;
 import ru.holyway.botplatform.scripting.util.Request;
-import ru.holyway.botplatform.scripting.util.Text;
+import ru.holyway.botplatform.scripting.util.TextJoiner;
 import ru.holyway.botplatform.scripting.util.Time;
 
 
@@ -43,7 +43,7 @@ public final class DefaultShellRules {
       ContextChatStorage.class.getName(),
       TextScriptEntity.class.getName(),
       UserScriptEntity.class.getName(),
-      Text.class.getName(),
+      TextJoiner.class.getName(),
       Time.class.getName(),
       Request.class.getName());
 
