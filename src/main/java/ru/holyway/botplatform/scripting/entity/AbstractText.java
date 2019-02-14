@@ -14,6 +14,10 @@ public abstract class AbstractText {
     return ctx -> value().apply(ctx).equals(text);
   }
 
+  public Predicate<ScriptContext> eqic(String text) {
+    return ctx -> value().apply(ctx).equalsIgnoreCase(text);
+  }
+
   public Predicate<ScriptContext> contains(String text) {
     return ctx -> value().apply(ctx).contains(text);
   }
@@ -32,10 +36,10 @@ public abstract class AbstractText {
       Pattern pattern = Pattern.compile(regexp);
 
       Matcher m = pattern.matcher(value().apply(scriptContext));
+      m.find();
       return m.group(group);
     };
   }
-
 
 
 }
