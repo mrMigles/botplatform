@@ -65,7 +65,7 @@ public class TelegramBot extends TelegramLongPollingBot implements Bot {
         try {
           if (messageProcessor.isNeedToHandle(telegramMessageEntity)) {
             messageProcessor.process(telegramMessageEntity);
-            return;
+            break;
           }
         } catch (Exception e) {
           e.printStackTrace();
