@@ -77,7 +77,7 @@ public class SettingsHandler implements MessageHandler {
           + "`now().value()` - возвращает текущее время. Может быть изменено методами `now().hours(num of hours).value()`\n"
           + "`text(some text).add(another text).value()` - используется для конкатенкции.\n"
           + "`post(http://url).header(name, value).param(name, value).param(name, value).body(text).asJson(name of JSON field)|.asHtml(startTag, endTag)|.asString()` - возвращает результат выполнения запроса с возможностью выборки.\n"
-          + "Команды:"
+          + "Команды:\n"
           + "`/list_scripts` - выводит список скриптов для чата\n"
           + "`/clear_scripts` - очищает все скрипты для чата\n"
           + "`/remove_script` - удаляет скприт (применимо только к пересланному сообщению со скриптом)\n\n"
