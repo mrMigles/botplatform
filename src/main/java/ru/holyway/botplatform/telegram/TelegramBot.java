@@ -15,6 +15,7 @@ import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.holyway.botplatform.core.Bot;
+import ru.holyway.botplatform.core.CommonHandler;
 import ru.holyway.botplatform.telegram.processor.MessagePostLoader;
 import ru.holyway.botplatform.telegram.processor.MessageProcessor;
 
@@ -34,6 +35,9 @@ public class TelegramBot extends TelegramLongPollingBot implements Bot {
 
   @Autowired
   private List<MessagePostLoader> messagePostLoaders;
+
+  @Autowired
+  private CommonHandler commonMessageHandler;
 
   private Map<Integer, String> locations = new HashMap<>();
 
@@ -66,8 +70,8 @@ public class TelegramBot extends TelegramLongPollingBot implements Bot {
         } catch (Exception e) {
           e.printStackTrace();
         }
-
       }
+      commonMessageHandler.handleMessage(telegramMessageEntity);
     } else if (update.hasCallbackQuery()) {
       for (MessageProcessor messageProcessor : messageProcessors) {
         CallbackQuery callbackQuery = update.getCallbackQuery();

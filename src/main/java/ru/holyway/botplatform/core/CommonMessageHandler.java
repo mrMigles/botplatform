@@ -66,9 +66,15 @@ public class CommonMessageHandler implements CommonHandler {
   @Override
   public void handleMessage(MessageEntity messageEntity) {
     final String answer = generateAnswer(messageEntity);
-    if (!StringUtils.isEmpty(answer)) {
-      sendMessage(messageEntity, answer);
+    try {
+      if (!StringUtils.isEmpty(answer)) {
+        sendMessage(messageEntity, answer);
+      }
+    } catch (Exception e){
+      e.printStackTrace();
+      System.out.println(e);
     }
+
   }
 
   private void sendMessage(MessageEntity messageEntity, String text) {
