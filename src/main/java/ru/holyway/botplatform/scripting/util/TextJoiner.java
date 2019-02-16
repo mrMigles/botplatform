@@ -2,6 +2,7 @@ package ru.holyway.botplatform.scripting.util;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.function.Function;
 import ru.holyway.botplatform.scripting.ScriptContext;
 import ru.holyway.botplatform.scripting.entity.AbstractText;
@@ -49,5 +50,13 @@ public class TextJoiner extends AbstractText {
 
   public static TextJoiner text(final Function<ScriptContext, String> textSupplier) {
     return new TextJoiner().add(textSupplier);
+  }
+
+  public static TextJoiner text(final TextJoiner joiner) {
+    return new TextJoiner().add(joiner);
+  }
+
+  public static Function<ScriptContext, String> random(int start, int end) {
+    return scriptContext -> String.valueOf(new Random().nextInt(end) + start);
   }
 }

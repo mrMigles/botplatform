@@ -56,7 +56,8 @@ public class Request {
     return this;
   }
 
-  public TextJoiner asJson(String jsonPath) {
+
+  public TextJoiner asJson(Object jsonPath) {
     return TextJoiner.text(scriptContext -> {
       RestTemplate restTemplate = new RestTemplate();
       final String url = this.url instanceof Function ? ((Function<ScriptContext, String>) this.url)
@@ -92,7 +93,10 @@ public class Request {
             .exchange(url, method, httpEntity, String.class, params).getBody();
         scriptContext.setContextValue("request", response);
       }
-      Object res = JsonPath.read(response, jsonPath);
+
+      String stringPath = jsonPath instanceof String ? String.valueOf(jsonPath)
+          : ((Function<ScriptContext, String>) jsonPath).apply(scriptContext);
+      Object res = JsonPath.read(response, stringPath);
       return String.valueOf(res);
     });
   }

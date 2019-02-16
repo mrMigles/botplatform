@@ -22,6 +22,14 @@ public abstract class AbstractTelegramEntity {
     return mes -> entity().apply(mes).hasSticker();
   }
 
+  public Predicate<ScriptContext> isReply() {
+    return mes -> entity().apply(mes).isReply();
+  }
+
+  public Predicate<ScriptContext> isForward() {
+    return mes -> entity().apply(mes).getForwardFromMessageId() != null;
+  }
+
   public Consumer<ScriptContext> send(String text) {
     return s -> {
       try {
