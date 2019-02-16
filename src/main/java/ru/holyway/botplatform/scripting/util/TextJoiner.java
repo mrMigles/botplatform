@@ -20,6 +20,11 @@ public class TextJoiner extends AbstractText {
     return this;
   }
 
+  public TextJoiner add(final TextJoiner joiner) {
+    value.add(joiner.value());
+    return this;
+  }
+
   public Function<ScriptContext, String> value() {
     return scriptContext -> {
       final StringBuilder stringBuilder = new StringBuilder();

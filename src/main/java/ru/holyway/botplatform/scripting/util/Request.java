@@ -1,5 +1,6 @@
 package ru.holyway.botplatform.scripting.util;
 
+import com.jayway.jsonpath.JsonPath;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -8,10 +9,8 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.json.JSONObject;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
@@ -21,6 +20,8 @@ import ru.holyway.botplatform.scripting.ScriptContext;
 public class Request {
 
   private Map<String, Object> params = new HashMap<>();
+
+  private boolean isLast = false;
 
   private Object body = "";
 
@@ -55,8 +56,8 @@ public class Request {
     return this;
   }
 
-  public Function<ScriptContext, String> asJson(String jsonPath) {
-    return scriptContext -> {
+  public TextJoiner asJson(String jsonPath) {
+    return TextJoiner.text(scriptContext -> {
       RestTemplate restTemplate = new RestTemplate();
       final String url = this.url instanceof Function ? ((Function<ScriptContext, String>) this.url)
           .apply(scriptContext) : String.valueOf(this.url);
@@ -82,15 +83,22 @@ public class Request {
         httpEntity = new HttpEntity<>(body, headers);
       }
 
-      ResponseEntity<String> response = restTemplate
-          .exchange(url, method, httpEntity, String.class, params);
-      final JSONObject jsonObject = new JSONObject(response.getBody());
-      return jsonObject.getString(jsonPath) != null ? jsonObject.getString(jsonPath) : "Not Found";
-    };
+      final String response;
+
+      if (isLast && scriptContext.getContextValue("request") != null) {
+        response = scriptContext.getContextValue("request");
+      } else {
+        response = restTemplate
+            .exchange(url, method, httpEntity, String.class, params).getBody();
+        scriptContext.setContextValue("request", response);
+      }
+      Object res = JsonPath.read(response, jsonPath);
+      return String.valueOf(res);
+    });
   }
 
-  public Function<ScriptContext, String> asHtml(String startTag, String endTag) {
-    return scriptContext -> {
+  public TextJoiner asHtml(String startTag, String endTag) {
+    return TextJoiner.text(scriptContext -> {
       RestTemplate restTemplate = new RestTemplate();
       final String url = this.url instanceof Function ? ((Function<ScriptContext, String>) this.url)
           .apply(scriptContext) : String.valueOf(this.url);
@@ -116,24 +124,30 @@ public class Request {
         httpEntity = new HttpEntity<>(body, headers);
       }
 
-      ResponseEntity<String> response = restTemplate
-          .exchange(url, method, httpEntity, String.class, params);
-      final String res = response.getBody();
+      final String response;
+
+      if (isLast && scriptContext.getContextValue("request") != null) {
+        response = scriptContext.getContextValue(url);
+      } else {
+        response = restTemplate
+            .exchange(url, method, httpEntity, String.class, params).getBody();
+        scriptContext.setContextValue("request", response);
+      }
 
       Pattern pattern = Pattern
           .compile("^(.|\\s)*(" + startTag + ")(.*)(" + endTag + ")(.|\\s)*$", Pattern.MULTILINE);
 
-      Matcher m = pattern.matcher(res);
+      Matcher m = pattern.matcher(response);
       if (m.find()) {
         return m.group(3);
       } else {
         return "Not found";
       }
-    };
+    });
   }
 
-  public Function<ScriptContext, String> asString() {
-    return scriptContext -> {
+  public TextJoiner asString() {
+    return TextJoiner.text(scriptContext -> {
       RestTemplate restTemplate = new RestTemplate();
       final String url = this.url instanceof Function ? ((Function<ScriptContext, String>) this.url)
           .apply(scriptContext) : String.valueOf(this.url);
@@ -159,20 +173,33 @@ public class Request {
         httpEntity = new HttpEntity<>(body, headers);
       }
 
-      ResponseEntity<String> response = restTemplate
-          .exchange(url, method, httpEntity, String.class, params);
-      return response.getBody();
-    };
+      final String response;
+
+      if (isLast && scriptContext.getContextValue("request") != null) {
+        response = scriptContext.getContextValue(url);
+      } else {
+        response = restTemplate
+            .exchange(url, method, httpEntity, String.class, params).getBody();
+        scriptContext.setContextValue("request", response);
+      }
+      return response;
+    });
   }
 
 
-  public static Request post(Object url) {
-    return new Request().setMethod(HttpMethod.POST).url(url);
+  public Request post(Object url) {
+    return setMethod(HttpMethod.POST).url(url);
   }
 
-  public static Request get(Object url) {
-    return new Request().setMethod(HttpMethod.GET).url(url);
+  public Request get(Object url) {
+    return setMethod(HttpMethod.GET).url(url);
   }
+
+  public Request last() {
+    this.isLast = true;
+    return this;
+  }
+
 
   public static Function<ScriptContext, String> encode(Object o) {
     return scriptContext -> {

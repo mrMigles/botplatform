@@ -19,7 +19,9 @@ import ru.holyway.botplatform.scripting.ScriptCompiler;
 import ru.holyway.botplatform.scripting.ScriptCompilerImpl;
 import ru.holyway.botplatform.scripting.ScriptContext;
 import ru.holyway.botplatform.scripting.TelegramScriptEntity;
+import ru.holyway.botplatform.scripting.entity.ForwardScriptEntity;
 import ru.holyway.botplatform.scripting.entity.MessageScriptEntity;
+import ru.holyway.botplatform.scripting.entity.ReplyScriptEntity;
 import ru.holyway.botplatform.scripting.entity.TextScriptEntity;
 import ru.holyway.botplatform.scripting.entity.UserScriptEntity;
 import ru.holyway.botplatform.scripting.util.ContextChatStorage;
@@ -39,11 +41,14 @@ public class GroovyConfiguration {
 
     Map<String, Object> mapping = new HashMap<>();
     mapping.put("message", new MessageScriptEntity());
+    mapping.put("forward", new ForwardScriptEntity());
+    mapping.put("reply", new ReplyScriptEntity());
     mapping.put("ctx", new ScriptContext());
     mapping.put("telegram", new TelegramScriptEntity());
     mapping.put("map", new ContextChatStorage());
     mapping.put("text", new TextScriptEntity());
     mapping.put("user", new UserScriptEntity());
+    mapping.put("request", new Request());
 
     Binding binding = new Binding(mapping);
     GroovyShell groovyShell = new GroovyShell(binding, configuration);

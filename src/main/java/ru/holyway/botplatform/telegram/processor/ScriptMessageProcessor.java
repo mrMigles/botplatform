@@ -57,10 +57,11 @@ public class ScriptMessageProcessor implements MessageProcessor {
     if (messageEntity.getMessage().hasText() && messageEntity.getMessage().getText()
         .startsWith("script()")) {
       try {
-        final Script script = scriptCompiler.compile(messageEntity.getText());
-        script.setStringScript(messageEntity.getText());
+        final String scriptString = messageEntity.getText().replaceAll("\\$", "\\\\\\$");
+        final Script script = scriptCompiler.compile(scriptString);
+        script.setStringScript(scriptString);
         scripts.add(messageEntity.getChatId(), script);
-        dataHelper.getSettings().addScript(messageEntity.getChatId(), messageEntity.getText());
+        dataHelper.getSettings().addScript(messageEntity.getChatId(), scriptString);
         dataHelper.updateSettings();
         messageEntity.getSender()
             .execute(new SendMessage().setChatId(messageEntity.getChatId()).setText("Ok"));

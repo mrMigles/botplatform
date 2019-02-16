@@ -50,6 +50,7 @@ public class SettingsHandler implements MessageHandler {
           "/anon - анонимный контекст. Делаю анонимными все сообщения, начиная с ввода данной команды.\n" +
           "`@all` - вызвать всех в чате\n" +
           "`Пахом, кик` + reply сообщения - Создаёт голосование на временный бан отправителя пересланного сообщения\n" +
+          "/script - help для скриптинга\n" +
           "`/follow INSTAGRAM_USER` - Подписаться чатом на instagram аккаунт\n" +
           "`/followy YOUTUBE_CHANEL` - Подписаться чатом на youtube канал\n" +
           "`/followt TWITTER_USER` - Подписаться чатом на twitter аккаунт\n" +
@@ -58,25 +59,27 @@ public class SettingsHandler implements MessageHandler {
     }
 
     if (StringUtils.containsIgnoreCase(mes, "/script")) {
-      return "Скриптинг позволяет Вам конфигурировать фичи Пахома.\n"
-          + "Пример скипта: \n`script().when(ctx.message.text.eq(\"Привет\")).then(ctx.message.reply(text(\"И тебе привет, \").add(ctx.message.user.value()).value()))`\n\n"
-          + "`.where(predicate)` - содержит предикаты, объединенные по условию `.and(predicate)/.or(predicate)`, которые говорят о том, на что должен реагировать скрипт.\n"
-          + "`.then(consumer)` - содержит саму реакцию, действие, которое должно быть выполнено. Может быть объеденено, с использованием `.andThen(consumer)`\n\n"
+      return "Скриптинг позволяет создавать, хранить и кастомизировать фичи Пахома в рантайме и без передеплоя.\n"
+          + "Пример скипта: \n`script().when(ctx.message.text.eqic(\"Привет\")).then(ctx.message.reply(text(\"И тебе привет, \").add(ctx.message.user.value()).value()))`\n\n"
+          + "- `.where(predicate)` - содержит предикаты, объединенные по условию `.and(predicate)/.or(predicate)`, которые говорят о том, на что должен реагировать скрипт.\n"
+          + "- `.then(consumer)` - содержит саму реакцию, действие, которое должно быть выполнено. Может быть объеденено, с использованием `.andThen(consumer)`\n\n"
           + "Частичный список возможных предикатов:\n"
-          + "`any()` - всегда `true`\n"
-          + "`ctx.message.text.eq|eqic|contains|startWith|matches|(string)` - применимо к тексту сообщения\n"
-          + "`ctx.message.user.eq|eqic|contains|startWith|matches|(string)` - применимо к отправителю сообщения\n"
-          + "`ctx.message.hasSticker()|.hasSticker(file id)`\n\n"
+          + "- `any()` - всегда `true`\n"
+          + "- `ctx.message.text.[eq|eqic|contains|startWith|matches](string)` - применимо к тексту сообщения\n"
+          + "- `ctx.message.user.[eq|eqic|contains|startWith|matches](string)` - применимо к отправителю сообщения\n"
+          + "- `ctx.message.[hasSticker()|.hasSticker(file id)] - проверка на стикер`\n\n"
           + "Список возможных действий:\n"
-          + "`ctx.message.send|reply(text message)|.delete()` - работа с сообщениями в данном чате\n"
-          + "`ctx.telegram.send(chatID, text message)` - отправить сообщение в другой чат\n"
-          + "`sout(function)` - не возвращает ничего, просто выполняет функцию\n\n"
+          + "- `ctx.message.[send|reply(text message)|.sendSticker(sticker file id)|.delete()]` - работа с сообщениями в данном чате\n"
+          + "- `ctx.telegram.send(chatID, text message)` - отправить сообщение в другой чат\n"
+          + "- `sout(function)` - не возвращает ничего, просто выполняет функцию\n\n"
           + "Для получения значений необходимо использовать функции:\n"
-          + "`ctx.message.text.value()` - возвращает текст сообщения.\n"
-          + "`ctx.message.text.regexp(regexp, num of group)` - возвращает группу для регулярки.\n"
-          + "`now().value()` - возвращает текущее время. Может быть изменено методами `now().hours(num of hours).value()`\n"
-          + "`text(some text).add(another text).value()` - используется для конкатенкции.\n"
-          + "`post(http://url).header(name, value).param(name, value).param(name, value).body(text).asJson(name of JSON field)|.asHtml(startTag, endTag)|.asString()` - возвращает результат выполнения запроса с возможностью выборки.\n"
+          + "- `ctx.message.text.value()` - возвращает текст сообщения.\n"
+          + "- `.value() - также можно использовать для получения значения других сущностей.`"
+          + "- `ctx.message.text.regexp(regexp, num of group)` - возвращает группу для регулярки.\n"
+          + "- `now().value()` - возвращает текущее время. Может быть изменено методами `now().hours(num of hours).value()`\n"
+          + "- `text(some text).add(another text).value()` - используется для конкатенкции. \n"
+          + "- `text(function).eq|eqic(text)...` также можно использвовать для применения предикатов для результатов функции\n"
+          + "- `request.post|get(http://url).header(name, value).param(name, value).param(name, value).body(text).[asJson(\"$.param\")|.asHtml(startTag, endTag)|.asString()].value()` - возвращает результат выполнения http запроса с возможностью выборки.\n\n"
           + "Команды:\n"
           + "`/list_scripts` - выводит список скриптов для чата\n"
           + "`/clear_scripts` - очищает все скрипты для чата\n"
@@ -88,36 +91,8 @@ public class SettingsHandler implements MessageHandler {
           settings.getAnswerProximity(chatId) == null ? 15 : settings.getAnswerProximity(chatId);
       return percent + "%";
     }
-    if (StringUtils.equals(mes, "Пахом, ид") || StringUtils
-        .containsIgnoreCase(mes, "Пахом, что это за чат?")) {
+    if (StringUtils.equals(mes, "Пахом, ид") || mes.equals("/id")) {
       return chatId;
-    }
-    if (StringUtils.containsIgnoreCase(mes, "Пахом, умный")) {
-      addToEazy(chatId);
-      return "Разговариваю только обученными фразами.";
-    }
-    if (StringUtils.containsIgnoreCase(mes, "Пахом, всякий")) {
-      removeFromEazy(chatId);
-      return "Режим собеседника активирован, братишка.";
-    }
-    if (StringUtils.containsIgnoreCase(mes, "Пахом,") && mes.endsWith("%")) {
-      try {
-        Pattern pattern = Pattern.compile("\\d+");
-        Matcher matcher = pattern.matcher(mes);
-        if (matcher.find(0)) {
-          String value = mes.substring(matcher.start(), matcher.end());
-          int ansPer = Integer.parseInt(value);
-          if (ansPer >= 0 && ansPer <= 100) {
-            settings.setProximityAnswer(chatId, ansPer);
-            dataHelper.updateSettings();
-            return "ок";
-          }
-        }
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-      return "Тебя разве не учили в 6м училище, что такое проценты?";
-
     }
     return null;
   }
@@ -133,21 +108,6 @@ public class SettingsHandler implements MessageHandler {
   private void removeFromMute(String chatID) {
     if (settings.getMuteChats().contains(chatID)) {
       settings.removeMuteChat(chatID);
-      dataHelper.updateSettings();
-    }
-  }
-
-  private void addToEazy(String chatID) {
-    if (!settings.getEasyChats().contains(chatID)) {
-      settings.addEasyChat(chatID);
-      dataHelper.updateSettings();
-    }
-
-  }
-
-  private void removeFromEazy(String chatID) {
-    if (settings.getEasyChats().contains(chatID)) {
-      settings.removeEasyChat(chatID);
       dataHelper.updateSettings();
     }
   }
