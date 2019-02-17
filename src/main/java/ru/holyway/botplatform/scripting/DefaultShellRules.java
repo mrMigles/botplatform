@@ -14,6 +14,7 @@ import ru.holyway.botplatform.scripting.entity.MessageScriptEntity;
 import ru.holyway.botplatform.scripting.entity.TextScriptEntity;
 import ru.holyway.botplatform.scripting.entity.UserScriptEntity;
 import ru.holyway.botplatform.scripting.util.ContextChatStorage;
+import ru.holyway.botplatform.scripting.util.NumberOperations;
 import ru.holyway.botplatform.scripting.util.Request;
 import ru.holyway.botplatform.scripting.util.TextJoiner;
 import ru.holyway.botplatform.scripting.util.Time;
@@ -45,7 +46,8 @@ public final class DefaultShellRules {
       UserScriptEntity.class.getName(),
       TextJoiner.class.getName(),
       Time.class.getName(),
-      Request.class.getName());
+      Request.class.getName(),
+      NumberOperations.class.getName());
 
   public static final List<String> receiversBlackList =
       Collections.singletonList(Thread.class.getName());

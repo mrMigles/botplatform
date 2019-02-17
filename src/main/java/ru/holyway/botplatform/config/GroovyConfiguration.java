@@ -25,6 +25,7 @@ import ru.holyway.botplatform.scripting.entity.ReplyScriptEntity;
 import ru.holyway.botplatform.scripting.entity.TextScriptEntity;
 import ru.holyway.botplatform.scripting.entity.UserScriptEntity;
 import ru.holyway.botplatform.scripting.util.ContextChatStorage;
+import ru.holyway.botplatform.scripting.util.NumberOperations;
 import ru.holyway.botplatform.scripting.util.Request;
 import ru.holyway.botplatform.scripting.util.TextJoiner;
 import ru.holyway.botplatform.scripting.util.Time;
@@ -62,7 +63,8 @@ public class GroovyConfiguration {
             Script.class.getName(),
             Time.class.getName(),
             TextJoiner.class.getName(),
-            Request.class.getName())
+            Request.class.getName(),
+            NumberOperations.class.getName())
         .addImports(allowedImports)
         .addStarImports(DefaultShellRules.starImportsWhiteArray);
   }

@@ -67,7 +67,8 @@ public class ScriptMessageProcessor implements MessageProcessor {
             .execute(new SendMessage().setChatId(messageEntity.getChatId()).setText("Ok"));
         return;
       } catch (Exception e) {
-        messageEntity.getSender().execute(new SendMessage().setText("DEBUG: \n" + e.getMessage())
+        final String message = e.getMessage().substring(0, Math.min(e.getMessage().length(), 1000));
+        messageEntity.getSender().execute(new SendMessage().setText("DEBUG: \n" + message)
             .setChatId(messageEntity.getChatId()));
         throw e;
       }
