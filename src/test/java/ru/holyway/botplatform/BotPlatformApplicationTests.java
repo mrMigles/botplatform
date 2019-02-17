@@ -27,14 +27,14 @@ public class BotPlatformApplicationTests {
 //    //Script script = scriptCompiler.compile(
 //      //  "script().when(any()).then(sout(get(\"https://jsonplaceholder.typicode.com/todos/1\").asJson(\"title\")))");
 //
-    ScriptContext ctx = new ScriptContext();
+    //ScriptContext ctx = new ScriptContext();
 //
 //    Script script = script().when(any()).then(sout(get(text("https://yandex.ru/search/?text=").add(encode("что такое человек?")).value()).asHtml("<span class=\"text-cut2 typo typo_text_m typo_line_m\">", "<a class=\"link")));
 //
 //    if (script.check(ctx)) {
 //      script.execute(ctx);
 //    }
-    script().when(ctx.message.text.eqic(new String("стопаньки"))).then(sout(new TextJoiner(){}.value()));
+    //script().when(ctx.message.text.eqic(new String("стопаньки"))).then(sout(new TextJoiner(){}.value()));
 
   }
 
