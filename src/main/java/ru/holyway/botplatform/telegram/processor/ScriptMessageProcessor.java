@@ -76,7 +76,7 @@ public class ScriptMessageProcessor implements MessageProcessor {
 
     for (Script script : scripts.get(messageEntity.getChatId())) {
       MessageScriptEntity message = new MessageScriptEntity(messageEntity);
-      TelegramScriptEntity telegram = new TelegramScriptEntity(messageEntity.getSender());
+      TelegramScriptEntity telegram = new TelegramScriptEntity();
       ScriptContext ctx = new ScriptContext(message, telegram);
       try {
         if (script.check(ctx)) {
