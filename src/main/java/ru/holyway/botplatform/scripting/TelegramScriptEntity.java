@@ -1,27 +1,20 @@
 package ru.holyway.botplatform.scripting;
 
 import java.util.function.Consumer;
+import java.util.function.Function;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import ru.holyway.botplatform.scripting.entity.MessageScriptEntity;
 
 public class TelegramScriptEntity {
-
-  private AbsSender sender;
-
-  public TelegramScriptEntity(AbsSender sender) {
-    this.sender = sender;
-  }
 
   public TelegramScriptEntity() {
 
   }
 
-  public Consumer<MessageScriptEntity> send(String chatId, String text) {
+  public Consumer<ScriptContext> send(String chatId, String text) {
     return s -> {
       try {
-        sender
+        s.message.messageEntity.getSender()
             .execute(new SendMessage().setText(text).setChatId(chatId));
       } catch (TelegramApiException e) {
         e.printStackTrace();
@@ -29,14 +22,22 @@ public class TelegramScriptEntity {
     };
   }
 
-  public Consumer<MessageScriptEntity> send(Long chatId, String text) {
+  public Consumer<ScriptContext> send(Long chatId, String text) {
     return s -> {
       try {
-        sender
+        s.message.messageEntity.getSender()
             .execute(new SendMessage().setText(text).setChatId(chatId));
       } catch (TelegramApiException e) {
         e.printStackTrace();
       }
     };
+  }
+
+  public Consumer<ScriptContext> send(Long chatId, Function<ScriptContext, String> supplierText) {
+    return s -> send(chatId, supplierText.apply(s)).accept(s);
+  }
+
+  public Consumer<ScriptContext> send(String chatId, Function<ScriptContext, String> supplierText) {
+    return s -> send(chatId, supplierText.apply(s)).accept(s);
   }
 }
