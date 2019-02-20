@@ -3,6 +3,7 @@ package ru.holyway.botplatform.scripting.entity;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import org.telegram.telegrambots.meta.api.methods.ForwardMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendSticker;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
@@ -67,6 +68,30 @@ public abstract class AbstractTelegramEntity {
                 new SendMessage()
                     .setReplyToMessageId(entity().apply(s).getMessageId())
                     .setText(text).setChatId(entity().apply(s).getChatId()));
+      } catch (TelegramApiException e) {
+        e.printStackTrace();
+      }
+    };
+  }
+
+  public Consumer<ScriptContext> forward(String chatId) {
+    return s -> {
+      try {
+        s.message.messageEntity.getSender()
+            .execute(new ForwardMessage().setMessageId(entity().apply(s).getMessageId())
+                .setChatId(chatId).setFromChatId(entity().apply(s).getChatId()));
+      } catch (TelegramApiException e) {
+        e.printStackTrace();
+      }
+    };
+  }
+
+  public Consumer<ScriptContext> forward(Long chatId) {
+    return s -> {
+      try {
+        s.message.messageEntity.getSender()
+            .execute(new ForwardMessage().setMessageId(entity().apply(s).getMessageId())
+                .setChatId(chatId).setFromChatId(entity().apply(s).getChatId()));
       } catch (TelegramApiException e) {
         e.printStackTrace();
       }

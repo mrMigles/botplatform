@@ -3,6 +3,7 @@ package ru.holyway.botplatform.scripting.util;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Random;
 import java.util.function.Function;
 import ru.holyway.botplatform.scripting.ScriptContext;
 import ru.holyway.botplatform.scripting.entity.AbstractNumber;

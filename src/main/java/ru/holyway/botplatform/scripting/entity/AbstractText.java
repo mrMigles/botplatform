@@ -5,6 +5,7 @@ import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import ru.holyway.botplatform.scripting.ScriptContext;
+import ru.holyway.botplatform.scripting.util.NumberOperations;
 
 public abstract class AbstractText {
 
@@ -30,6 +31,9 @@ public abstract class AbstractText {
     return ctx -> value().apply(ctx).matches(text);
   }
 
+  public NumberOperations asNumber() {
+    return new NumberOperations().add(value());
+  }
 
   public Function<ScriptContext, String> regexp(final String regexp, final Integer group) {
     return scriptContext -> {
