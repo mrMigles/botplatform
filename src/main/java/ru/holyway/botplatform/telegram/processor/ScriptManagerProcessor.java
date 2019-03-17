@@ -20,21 +20,22 @@ public class ScriptManagerProcessor implements MessageProcessor {
   @Override
   public boolean isNeedToHandle(TelegramMessageEntity messageEntity) {
     return messageEntity.getMessage().hasText() && (messageEntity.getMessage().getText()
-        .startsWith("/clear_scripts") || messageEntity.getMessage().getText()
-        .startsWith("/list_scripts") || (messageEntity.getMessage().isReply() && messageEntity
-        .getMessage().getReplyToMessage().getText().startsWith("script()") && messageEntity
-        .getMessage().getText().startsWith("/remove_script")));
+        .startsWith("/clear") || messageEntity.getMessage().getText()
+        .startsWith("/list") || (messageEntity.getMessage().isReply() && messageEntity
+        .getMessage().getReplyToMessage().getText().startsWith("script()") && (messageEntity
+        .getMessage().getText().startsWith("/remove") || messageEntity
+        .getMessage().getText().equals("-"))));
   }
 
   @Override
   public void process(TelegramMessageEntity messageEntity) throws TelegramApiException {
     if (messageEntity.getMessage().getText()
-        .startsWith("/clear_scripts")) {
+        .startsWith("/clear")) {
       scriptMessageProcessor.clearScripts(messageEntity.getChatId());
       messageEntity.getSender()
           .execute(new SendMessage().setChatId(messageEntity.getChatId()).setText("Cleared"));
     } else if (messageEntity.getMessage().getText()
-        .startsWith("/list_scripts")) {
+        .startsWith("/list")) {
       messageEntity.getSender().execute(new SendMessage().setChatId(messageEntity.getChatId())
           .setText("List of scripts:"));
       for (Script script : scriptMessageProcessor.getScripts(messageEntity.getChatId())) {
@@ -42,7 +43,8 @@ public class ScriptManagerProcessor implements MessageProcessor {
             .setText(script.getStringScript()));
       }
     } else if (messageEntity.getMessage().getText()
-        .startsWith("/remove_script")) {
+        .startsWith("/remove") || messageEntity.getMessage().getText()
+        .equals("-")) {
       final String script = messageEntity.getMessage().getReplyToMessage().getText();
       scriptMessageProcessor.removeScript(messageEntity.getChatId(), script);
       messageEntity.getSender()

@@ -52,7 +52,7 @@ public class SettingsHandler implements MessageHandler {
           "`Пахом, кик` + reply сообщения - Создаёт голосование на временный бан отправителя пересланного сообщения\n" +
           "/script - help для скриптинга\n" +
           "`/follow INSTAGRAM_USER` - Подписаться чатом на instagram аккаунт\n" +
-          "`/followy YOUTUBE_CHANEL` - Подписаться чатом на youtube канал\n" +
+          "`/followy YOUTUBE_CHANEL` - Подписаться чатом на youtube канал (ФУНКЦИЯ ВРЕМЕННО НЕДОСТУПНА)\n" +
           "`/followt TWITTER_USER` - Подписаться чатом на twitter аккаунт\n" +
           "`/unfollow[t,y] NAME` - Отписаться\n" +
           "`Пахом, ид` - показать ID данного чата\n";
@@ -73,6 +73,7 @@ public class SettingsHandler implements MessageHandler {
           + "- `message.[hasSticker()|.hasSticker(file id)] - проверка на стикер`\n\n"
           + "Список возможных действий:\n"
           + "- `message.[send|reply(text message)|.sendSticker(sticker file id)|.delete()]` - работа с сообщениями в данном чате\n"
+          + "- `message.[.sendMedia(file url)|.sendVideo(video or gif url)]` - позвляет прикреплять видео или фото к чату\n"
           + "- `telegram.send(chatID, text message)` - отправить сообщение в другой чат\n"
           + "- `sout(function)` - не возвращает ничего, просто выполняет функцию\n\n"
           + "Для получения значений необходимо использовать функции:\n"
@@ -87,9 +88,9 @@ public class SettingsHandler implements MessageHandler {
           + "- `random(0, 50)` - рандомное значение от 0 до 50. Для конверации в число можно использовать `.asNumber()`\n"
           + "- `request.post|get(http://url).header(name, value).param(name, value).param(name, value).body(text).[asJson(\"$.param\")|.asHtml(startTag, endTag)|.asString()].value()` - возвращает результат выполнения http запроса с возможностью выборки.\n\n"
           + "Команды:\n"
-          + "`/list_scripts` - выводит список скриптов для чата\n"
-          + "`/clear_scripts` - очищает все скрипты для чата\n"
-          + "`/remove_script` - удаляет скприт (применимо только к пересланному сообщению со скриптом)\n\n"
+          + "/list - выводит список скриптов для чата\n"
+          + "/clear - очищает все скрипты для чата\n"
+          + "/remove - удаляет скприт (применимо только к пересланному сообщению со скриптом)\n\n"
           + "И да поможет вам DEBUG! Да не забудешь ты использовать `.value()` для получения значения!\n\n"
           + "P.S. Синтаксис. Да - сложно, но тыж программист \uD83D\uDE0A \nНа самом деле стоит учитывать, что groovy/java скрипты компилируются в рантайме и должны"
           + " быть достаточно безопасными. Предикатно/функциональный подход с заранее определенным АПИ пока единсвенное видимое решение. "
