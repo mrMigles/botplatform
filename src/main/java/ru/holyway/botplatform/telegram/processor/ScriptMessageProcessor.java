@@ -81,7 +81,9 @@ public class ScriptMessageProcessor implements MessageProcessor {
       try {
         if (script.check(ctx)) {
           script.execute(ctx);
-          return;
+          if (script.isStopable()) {
+            return;
+          }
         }
       } catch (Exception e) {
         System.out.println(e);

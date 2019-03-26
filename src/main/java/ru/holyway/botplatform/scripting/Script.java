@@ -9,6 +9,7 @@ public class Script {
 
   private Predicate<ScriptContext> predicates;
   private Consumer<ScriptContext> function;
+  private boolean isStopable = true;
   private String stringScript;
 
   public Script when(Predicate<ScriptContext> predicates) {
@@ -21,12 +22,21 @@ public class Script {
     return this;
   }
 
+  public Script stopable(boolean isStopable) {
+    this.isStopable = isStopable;
+    return this;
+  }
+
   public boolean check(ScriptContext str) {
     return predicates.test(str);
   }
 
   public void execute(ScriptContext s) {
     function.accept(s);
+  }
+
+  public boolean isStopable() {
+    return isStopable;
   }
 
   public String getStringScript() {

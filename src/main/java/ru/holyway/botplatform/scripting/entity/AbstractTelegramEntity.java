@@ -5,7 +5,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import org.telegram.telegrambots.meta.api.methods.ForwardMessage;
-import org.telegram.telegrambots.meta.api.methods.send.SendAnimation;
 import org.telegram.telegrambots.meta.api.methods.send.SendMediaGroup;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
@@ -40,9 +39,10 @@ public abstract class AbstractTelegramEntity {
   public Consumer<ScriptContext> send(String text) {
     return s -> {
       try {
-        s.message.messageEntity.getSender()
+        s.setContextValue("lastMessage", s.message.messageEntity.getSender()
             .execute(
-                new SendMessage().setText(text).setChatId(entity().apply(s).getChatId()));
+                new SendMessage().setText(text).setChatId(entity().apply(s).getChatId()))
+            .getMessageId().toString());
       } catch (TelegramApiException e) {
         e.printStackTrace();
       }
@@ -52,10 +52,10 @@ public abstract class AbstractTelegramEntity {
   public Consumer<ScriptContext> sendSticker(String fileId) {
     return s -> {
       try {
-        s.message.messageEntity.getSender()
+        s.setContextValue("lastMessage", s.message.messageEntity.getSender()
             .execute(
                 new SendSticker().setSticker(fileId)
-                    .setChatId(entity().apply(s).getChatId()));
+                    .setChatId(entity().apply(s).getChatId())).getMessageId().toString());
       } catch (TelegramApiException e) {
         e.printStackTrace();
       }
@@ -83,8 +83,8 @@ public abstract class AbstractTelegramEntity {
         SendPhoto sendMediaGroup = new SendPhoto()
             .setChatId(entity().apply(s).getChatId());
         sendMediaGroup.setPhoto(url);
-        s.message.messageEntity.getSender()
-            .execute(sendMediaGroup);
+        s.setContextValue("lastMessage", s.message.messageEntity.getSender()
+            .execute(sendMediaGroup).getMessageId().toString());
       } catch (TelegramApiException e) {
         e.printStackTrace();
       }
@@ -97,8 +97,8 @@ public abstract class AbstractTelegramEntity {
         SendVideo sendMediaGroup = new SendVideo()
             .setChatId(entity().apply(s).getChatId());
         sendMediaGroup.setVideo(url);
-        s.message.messageEntity.getSender()
-            .execute(sendMediaGroup);
+        s.setContextValue("lastMessage", s.message.messageEntity.getSender()
+            .execute(sendMediaGroup).getMessageId().toString());
       } catch (TelegramApiException e) {
         e.printStackTrace();
       }
@@ -112,11 +112,12 @@ public abstract class AbstractTelegramEntity {
   public Consumer<ScriptContext> reply(String text) {
     return s -> {
       try {
-        s.message.messageEntity.getSender()
+        s.setContextValue("lastMessage", s.message.messageEntity.getSender()
             .execute(
                 new SendMessage()
                     .setReplyToMessageId(entity().apply(s).getMessageId())
-                    .setText(text).setChatId(entity().apply(s).getChatId()));
+                    .setText(text).setChatId(entity().apply(s).getChatId())).getMessageId()
+            .toString());
       } catch (TelegramApiException e) {
         e.printStackTrace();
       }
@@ -126,9 +127,10 @@ public abstract class AbstractTelegramEntity {
   public Consumer<ScriptContext> forward(String chatId) {
     return s -> {
       try {
-        s.message.messageEntity.getSender()
+        s.setContextValue("lastMessage", s.message.messageEntity.getSender()
             .execute(new ForwardMessage().setMessageId(entity().apply(s).getMessageId())
-                .setChatId(chatId).setFromChatId(entity().apply(s).getChatId()));
+                .setChatId(chatId).setFromChatId(entity().apply(s).getChatId())).getMessageId()
+            .toString());
       } catch (TelegramApiException e) {
         e.printStackTrace();
       }
@@ -138,9 +140,10 @@ public abstract class AbstractTelegramEntity {
   public Consumer<ScriptContext> forward(Long chatId) {
     return s -> {
       try {
-        s.message.messageEntity.getSender()
+        s.setContextValue("lastMessage", s.message.messageEntity.getSender()
             .execute(new ForwardMessage().setMessageId(entity().apply(s).getMessageId())
-                .setChatId(chatId).setFromChatId(entity().apply(s).getChatId()));
+                .setChatId(chatId).setFromChatId(entity().apply(s).getChatId())).getMessageId()
+            .toString());
       } catch (TelegramApiException e) {
         e.printStackTrace();
       }
@@ -162,6 +165,18 @@ public abstract class AbstractTelegramEntity {
         e.printStackTrace();
       }
     };
+  }
+
+  private Function<ScriptContext, String> getChatId() {
+    return scriptContext -> entity().apply(scriptContext).getChatId().toString();
+  }
+
+  public ChatTelegramEntity chat() {
+    return new ChatTelegramEntity(getChatId());
+  }
+
+  public Function<ScriptContext, String> last() {
+    return scriptContext -> scriptContext.getContextValue("lastMessage");
   }
 
 }

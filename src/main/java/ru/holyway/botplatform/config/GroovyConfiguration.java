@@ -19,6 +19,7 @@ import ru.holyway.botplatform.scripting.ScriptCompiler;
 import ru.holyway.botplatform.scripting.ScriptCompilerImpl;
 import ru.holyway.botplatform.scripting.ScriptContext;
 import ru.holyway.botplatform.scripting.TelegramScriptEntity;
+import ru.holyway.botplatform.scripting.entity.ChatTelegramEntity;
 import ru.holyway.botplatform.scripting.entity.ForwardScriptEntity;
 import ru.holyway.botplatform.scripting.entity.MessageScriptEntity;
 import ru.holyway.botplatform.scripting.entity.ReplyScriptEntity;
@@ -50,6 +51,7 @@ public class GroovyConfiguration {
     mapping.put("text", new TextScriptEntity());
     mapping.put("user", new UserScriptEntity());
     mapping.put("request", new Request());
+    mapping.put("chat", new ChatTelegramEntity(null));
 
     Binding binding = new Binding(mapping);
     GroovyShell groovyShell = new GroovyShell(binding, configuration);
@@ -64,6 +66,7 @@ public class GroovyConfiguration {
             Time.class.getName(),
             TextJoiner.class.getName(),
             Request.class.getName(),
+            ChatTelegramEntity.class.getName(),
             NumberOperations.class.getName())
         .addImports(allowedImports)
         .addStarImports(DefaultShellRules.starImportsWhiteArray);
