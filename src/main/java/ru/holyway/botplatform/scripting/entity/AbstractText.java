@@ -4,6 +4,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.apache.commons.lang3.StringUtils;
 import ru.holyway.botplatform.scripting.ScriptContext;
 import ru.holyway.botplatform.scripting.util.NumberOperations;
 
@@ -21,6 +22,10 @@ public abstract class AbstractText {
 
   public Predicate<ScriptContext> contains(String text) {
     return ctx -> value().apply(ctx).contains(text);
+  }
+
+  public Predicate<ScriptContext> cic(String text) {
+    return ctx -> StringUtils.containsIgnoreCase(value().apply(ctx), text);
   }
 
   public Predicate<ScriptContext> startWith(String text) {
