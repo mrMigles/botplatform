@@ -15,9 +15,16 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
+import ru.holyway.botplatform.config.RequestFactory.HttpComponentsClientHttpRequestWithBodyFactory;
 import ru.holyway.botplatform.scripting.ScriptContext;
 
 public class Request {
+
+  private static RestTemplate restTemplate = new RestTemplate();
+
+  static {
+    restTemplate.setRequestFactory(new HttpComponentsClientHttpRequestWithBodyFactory());
+  }
 
   private Map<String, Object> params = new HashMap<>();
 
@@ -30,6 +37,40 @@ public class Request {
   private Object url = "";
 
   private HttpMethod method;
+
+  public static Function<ScriptContext, String> encode(Object o) {
+    return scriptContext -> {
+      String url;
+      if (o instanceof Function) {
+        url = ((Function<ScriptContext, String>) o).apply(scriptContext);
+      } else {
+        url = String.valueOf(o);
+      }
+      try {
+        return URLEncoder.encode(url, "UTF-8");
+      } catch (UnsupportedEncodingException e) {
+        System.out.println(e);
+        return url;
+      }
+    };
+  }
+
+  public static Function<ScriptContext, String> decode(Object o) {
+    return scriptContext -> {
+      String text;
+      if (o instanceof Function) {
+        text = ((Function<ScriptContext, String>) o).apply(scriptContext);
+      } else {
+        text = String.valueOf(o);
+      }
+      try {
+        return URLDecoder.decode(text, "UTF-8");
+      } catch (UnsupportedEncodingException e) {
+        System.out.println(e);
+        return text;
+      }
+    };
+  }
 
   public Request param(String key, Object value) {
     this.params.put(key, value);
@@ -56,30 +97,31 @@ public class Request {
     return this;
   }
 
-
   public TextJoiner asJson(Object jsonPath) {
     return TextJoiner.text(scriptContext -> {
-      RestTemplate restTemplate = new RestTemplate();
       final String url = this.url instanceof Function ? ((Function<ScriptContext, String>) this.url)
           .apply(scriptContext) : String.valueOf(this.url);
       final String body =
           this.body instanceof Function ? ((Function<ScriptContext, String>) this.body)
               .apply(scriptContext) : String.valueOf(this.body);
 
-      Map<String, String> params = new HashMap<>();
+      MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
       for (Map.Entry<String, Object> param : this.params.entrySet()) {
         if (param.getValue() instanceof Function) {
-          params.put(param.getKey(), ((Function<ScriptContext, String>) param.getValue())
+          params.add(param.getKey(), ((Function<ScriptContext, String>) param.getValue())
               .apply(scriptContext));
         } else {
-          params.put(param.getKey(), String.valueOf(param.getValue()));
+          params.add(param.getKey(), String.valueOf(param.getValue()));
         }
       }
 
       HttpEntity httpEntity;
 
+      if (!this.params.isEmpty()) {
+        headers.add("Content-Type", "application/x-www-form-urlencoded");
+      }
       if (StringUtils.isEmpty(body)) {
-        httpEntity = new HttpEntity(headers);
+        httpEntity = new HttpEntity(params, headers);
       } else {
         httpEntity = new HttpEntity<>(body, headers);
       }
@@ -90,7 +132,7 @@ public class Request {
         response = scriptContext.getContextValue("request");
       } else {
         response = restTemplate
-            .exchange(url, method, httpEntity, String.class, params).getBody();
+            .exchange(url, method, httpEntity, String.class).getBody();
         scriptContext.setContextValue("request", response);
       }
 
@@ -190,7 +232,6 @@ public class Request {
     });
   }
 
-
   public Request post(Object url) {
     return setMethod(HttpMethod.POST).url(url);
   }
@@ -202,41 +243,6 @@ public class Request {
   public Request last() {
     this.isLast = true;
     return this;
-  }
-
-
-  public static Function<ScriptContext, String> encode(Object o) {
-    return scriptContext -> {
-      String url;
-      if (o instanceof Function) {
-        url = ((Function<ScriptContext, String>) o).apply(scriptContext);
-      } else {
-        url = String.valueOf(o);
-      }
-      try {
-        return URLEncoder.encode(url, "UTF-8");
-      } catch (UnsupportedEncodingException e) {
-        System.out.println(e);
-        return url;
-      }
-    };
-  }
-
-  public static Function<ScriptContext, String> decode(Object o) {
-    return scriptContext -> {
-      String text;
-      if (o instanceof Function) {
-        text = ((Function<ScriptContext, String>) o).apply(scriptContext);
-      } else {
-        text = String.valueOf(o);
-      }
-      try {
-        return URLDecoder.decode(text, "UTF-8");
-      } catch (UnsupportedEncodingException e) {
-        System.out.println(e);
-        return text;
-      }
-    };
   }
 
 }
