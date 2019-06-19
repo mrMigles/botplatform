@@ -1,6 +1,8 @@
 # Pakhom Bot
+https://t.me/pakhom_bot
 
 Crazy multifunctional bot for telegram.
+
 
 This bot has a lot of features:
 * Meme generation: you can send photo and text and bot will generate meme for it
