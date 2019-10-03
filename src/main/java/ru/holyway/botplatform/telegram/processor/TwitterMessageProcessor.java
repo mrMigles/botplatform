@@ -10,6 +10,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
@@ -37,7 +38,8 @@ public class TwitterMessageProcessor implements MessageProcessor, MessagePostLoa
   private Map<String, ScheduledFuture> futureMap = new HashMap<>();
 
   public TwitterMessageProcessor(DataHelper dataHelper,
-      TaskScheduler taskScheduler, RestTemplate restTemplate) {
+      TaskScheduler taskScheduler,
+      @Qualifier("instaproviderTemplate") RestTemplate restTemplate) {
     this.dataHelper = dataHelper;
     this.taskScheduler = taskScheduler;
     this.restTemplate = restTemplate;
@@ -155,7 +157,7 @@ public class TwitterMessageProcessor implements MessageProcessor, MessagePostLoa
       last = twitterFollow.getLastId();
     }
     ResponseEntity<TwitterResponse> response = restTemplate.exchange(
-        "https://instaprovider.now.sh/api/twitter/" + userId,
+        "/api/twitter/" + userId,
         HttpMethod.GET,
         null,
         TwitterResponse.class);

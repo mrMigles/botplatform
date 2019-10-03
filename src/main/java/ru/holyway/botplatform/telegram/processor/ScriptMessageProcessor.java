@@ -1,7 +1,10 @@
 package ru.holyway.botplatform.telegram.processor;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -9,6 +12,8 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.holyway.botplatform.core.data.DataHelper;
@@ -60,16 +65,25 @@ public class ScriptMessageProcessor implements MessageProcessor {
         final String scriptString = messageEntity.getText().replaceAll("\\$", "\\\\\\$");
         final Script script = scriptCompiler.compile(scriptString);
         script.setStringScript(scriptString);
+        if (scripts.getOrDefault(messageEntity.getChatId(), Collections.emptyList())
+            .contains(script)) {
+          messageEntity.getSender()
+              .execute(new SendMessage().setText("Скрипт уже существует")
+                  .setChatId(messageEntity.getChatId())
+                  .setReplyToMessageId(messageEntity.getMessage().getMessageId()));
+          return;
+        }
         scripts.add(messageEntity.getChatId(), script);
         dataHelper.getSettings().addScript(messageEntity.getChatId(), scriptString);
         dataHelper.updateSettings();
-        messageEntity.getSender()
-            .execute(new SendMessage().setChatId(messageEntity.getChatId()).setText("Ok"));
+
+        sendScriptMenu(messageEntity, scriptString, script);
         return;
       } catch (Exception e) {
         final String message = e.getMessage().substring(0, Math.min(e.getMessage().length(), 1000));
-        messageEntity.getSender().execute(new SendMessage().setText("DEBUG: \n" + message)
-            .setChatId(messageEntity.getChatId()));
+        messageEntity.getSender()
+            .execute(new SendMessage().setText("Ошибка компиляции: \n" + message)
+                .setChatId(messageEntity.getChatId()));
         throw e;
       }
     }
@@ -89,6 +103,38 @@ public class ScriptMessageProcessor implements MessageProcessor {
         System.out.println(e);
       }
     }
+  }
+
+  protected void sendScriptMenu(TelegramMessageEntity messageEntity, String scriptString,
+      Script script) throws TelegramApiException {
+    InlineKeyboardMarkup keyboardMarkup = new InlineKeyboardMarkup();
+
+    List<List<InlineKeyboardButton>> keyboard = new ArrayList<>();
+
+    List<InlineKeyboardButton> inlineKeyboardButtons = new ArrayList<>();
+
+    InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton();
+    inlineKeyboardButton.setText("Удалить");
+    inlineKeyboardButton.setCallbackData("script:delete:" + script.hashCode());
+    inlineKeyboardButtons.add(inlineKeyboardButton);
+
+//        inlineKeyboardButton = new InlineKeyboardButton();
+//        inlineKeyboardButton.setText("Остановить");
+//        inlineKeyboardButton.setCallbackData("script:stop:" + script.hashCode());
+//        inlineKeyboardButtons.add(inlineKeyboardButton);
+
+    inlineKeyboardButton = new InlineKeyboardButton();
+    inlineKeyboardButton.setText("Редактировать");
+    inlineKeyboardButton.setCallbackData("script:edit:" + script.hashCode());
+    inlineKeyboardButtons.add(inlineKeyboardButton);
+
+    keyboard.add(inlineKeyboardButtons);
+    keyboardMarkup.setKeyboard(keyboard);
+
+    messageEntity.getSender()
+        .execute(new SendMessage().setChatId(messageEntity.getChatId())
+            .setText(scriptString)
+            .setReplyMarkup(keyboardMarkup));
   }
 
   @Override
@@ -112,9 +158,24 @@ public class ScriptMessageProcessor implements MessageProcessor {
     return scripts.get(chatId);
   }
 
-  public void removeScript(final String chatId, final String script) {
-    scripts.get(chatId).removeIf(script1 -> script1.getStringScript().equals(script));
-    dataHelper.getSettings().getScripts().get(chatId).remove(script);
-    dataHelper.updateSettings();
+  public boolean removeScript(final String chatId, final String script) {
+    if (scripts.get(chatId).removeIf(script1 -> script1.getStringScript().equals(script))) {
+      dataHelper.getSettings().getScripts().get(chatId).remove(script);
+      dataHelper.updateSettings();
+      return true;
+    }
+    return false;
+  }
+
+  public boolean removeScript(final String chatId, final Integer scriptCode) {
+    Optional<Script> s = scripts.get(chatId).stream()
+        .filter(script -> script.hashCode() == scriptCode).findFirst();
+    if (s.isPresent()) {
+      scripts.get(chatId).remove(s.get());
+      dataHelper.getSettings().getScripts().get(chatId).remove(s.get().getStringScript());
+      dataHelper.updateSettings();
+      return true;
+    }
+    return false;
   }
 }

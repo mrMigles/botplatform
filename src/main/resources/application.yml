@@ -31,5 +31,7 @@ proxy:
     port: ${PROXY_PORT:}
     user: ${PROXY_USER:}
     pass: ${PROXY_PASS:}
+instaprovider:
+  url: ${INSTAPROVIDER_URL:https://instaprovider.now.sh}
 banner:
   charset:

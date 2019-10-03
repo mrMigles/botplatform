@@ -1,6 +1,7 @@
 package ru.holyway.botplatform.scripting;
 
 import java.util.Objects;
+import java.util.Random;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -10,7 +11,17 @@ public class Script {
   private Predicate<ScriptContext> predicates;
   private Consumer<ScriptContext> function;
   private boolean isStopable = true;
+  private boolean isEnabled = true;
   private String stringScript;
+  private final String name;
+
+  public Script(String name) {
+    this.name = name;
+  }
+
+  public String getName() {
+    return name;
+  }
 
   public Script when(Predicate<ScriptContext> predicates) {
     this.predicates = predicates;
@@ -27,6 +38,11 @@ public class Script {
     return this;
   }
 
+  public Script enabled(boolean isEnabled) {
+    this.isEnabled = isEnabled;
+    return this;
+  }
+
   public boolean check(ScriptContext str) {
     return predicates.test(str);
   }
@@ -37,6 +53,10 @@ public class Script {
 
   public boolean isStopable() {
     return isStopable;
+  }
+
+  public boolean isEnabled() {
+    return isEnabled;
   }
 
   public String getStringScript() {
@@ -65,7 +85,11 @@ public class Script {
   }
 
   public static Script script() {
-    return new Script();
+    return new Script(String.valueOf(new Random().nextInt(99999999)));
+  }
+
+  public static Script script(final String name) {
+    return new Script(name);
   }
 
   public static Predicate<ScriptContext> any() {

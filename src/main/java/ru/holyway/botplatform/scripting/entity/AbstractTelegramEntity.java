@@ -167,8 +167,12 @@ public abstract class AbstractTelegramEntity {
     };
   }
 
-  private Function<ScriptContext, String> getChatId() {
+  public Function<ScriptContext, String> getChatId() {
     return scriptContext -> entity().apply(scriptContext).getChatId().toString();
+  }
+
+  public Function<ScriptContext, String> getId() {
+    return scriptContext -> entity().apply(scriptContext).getMessageId().toString();
   }
 
   public ChatTelegramEntity chat() {

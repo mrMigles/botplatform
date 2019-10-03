@@ -15,9 +15,12 @@ import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustStrategy;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.retry.backoff.FixedBackOffPolicy;
 import org.springframework.retry.policy.SimpleRetryPolicy;
@@ -59,6 +62,9 @@ public class BotConfiguration {
 
   @Value("${proxy.config.pass}")
   private String proxyPass;
+
+  @Value("${instaprovider.url}")
+  private String instaproviderUrl;
 
 
   @Bean
@@ -109,8 +115,16 @@ public class BotConfiguration {
   }
 
   @Bean
+  @Primary
   public RestTemplate restTemplate()
       throws KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
+    HttpComponentsClientHttpRequestFactory requestFactory = buildRequestFactory();
+    return new RestTemplate(requestFactory);
+  }
+
+  @NotNull
+  private HttpComponentsClientHttpRequestFactory buildRequestFactory()
+      throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException {
     TrustStrategy acceptingTrustStrategy = (X509Certificate[] chain, String authType) -> true;
 
     SSLContext sslContext = org.apache.http.ssl.SSLContexts.custom()
@@ -127,8 +141,15 @@ public class BotConfiguration {
         new HttpComponentsClientHttpRequestFactory();
 
     requestFactory.setHttpClient(httpClient);
-    RestTemplate restTemplate = new RestTemplate(requestFactory);
-    return restTemplate;
+    return requestFactory;
+  }
+
+  @Bean("instaproviderTemplate")
+  public RestTemplate instaproviderTemplate()
+      throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
+    HttpComponentsClientHttpRequestFactory requestFactory = buildRequestFactory();
+    return new RestTemplateBuilder().requestFactory(requestFactory).rootUri(instaproviderUrl)
+        .build();
   }
 
   private void setProxy(final String host, final String port, final String user,

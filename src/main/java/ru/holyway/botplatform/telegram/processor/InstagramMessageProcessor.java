@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.annotation.Order;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.scheduling.TaskScheduler;
@@ -35,7 +36,8 @@ public class InstagramMessageProcessor implements MessageProcessor, MessagePostL
   private Map<String, ScheduledFuture> futureMap = new HashMap<>();
 
   public InstagramMessageProcessor(DataHelper dataHelper,
-      TaskScheduler taskScheduler, RestTemplate restTemplate,
+      TaskScheduler taskScheduler,
+      @Qualifier("instaproviderTemplate") RestTemplate restTemplate,
       RetryTemplate retryTemplate) {
     this.dataHelper = dataHelper;
     this.taskScheduler = taskScheduler;
@@ -153,8 +155,7 @@ public class InstagramMessageProcessor implements MessageProcessor, MessagePostL
       last = instaFollow.getLastPostIdId();
     }
     return restTemplate
-        .getForObject(
-            URI.create("https://instaprovider.now.sh/api/instagram/posts/" + userId + "/" + last),
+        .getForObject("/api/instagram/posts/" + userId + "/" + last,
             InstaUser.class);
   }
 
@@ -201,8 +202,7 @@ public class InstagramMessageProcessor implements MessageProcessor, MessagePostL
       last = instaFollow.getLastStoryId();
     }
     return restTemplate
-        .getForObject(
-            URI.create("https://instaprovider.now.sh/api/instagram/stories/" + userId + "/" + last),
+        .getForObject("/api/instagram/stories/" + userId + "/" + last,
             InstaUser.class);
   }
 

@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
@@ -33,7 +34,8 @@ public class YoutubeMessageProcessor implements MessageProcessor, MessagePostLoa
   private Map<String, ScheduledFuture> futureMap = new HashMap<>();
 
   public YoutubeMessageProcessor(DataHelper dataHelper,
-      TaskScheduler taskScheduler, RestTemplate restTemplate) {
+      TaskScheduler taskScheduler,
+      @Qualifier("instaproviderTemplate") RestTemplate restTemplate) {
     this.dataHelper = dataHelper;
     this.taskScheduler = taskScheduler;
     this.restTemplate = restTemplate;
@@ -144,7 +146,7 @@ public class YoutubeMessageProcessor implements MessageProcessor, MessagePostLoa
       last = youtubeFollow.getLastId();
     }
     ResponseEntity<List<YoutubeVideo>> response = restTemplate.exchange(
-        "https://instaprovider.now.sh/api/youtube/" + userId,
+        "/api/youtube/" + userId,
         HttpMethod.GET,
         null,
         new ParameterizedTypeReference<List<YoutubeVideo>>() {
