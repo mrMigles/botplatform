@@ -23,6 +23,7 @@ import ru.holyway.botplatform.scripting.entity.ChatTelegramEntity;
 import ru.holyway.botplatform.scripting.entity.ForwardScriptEntity;
 import ru.holyway.botplatform.scripting.entity.MessageScriptEntity;
 import ru.holyway.botplatform.scripting.entity.ReplyScriptEntity;
+import ru.holyway.botplatform.scripting.entity.StickerEntity;
 import ru.holyway.botplatform.scripting.entity.TextScriptEntity;
 import ru.holyway.botplatform.scripting.entity.UserScriptEntity;
 import ru.holyway.botplatform.scripting.util.ContextChatStorage;
@@ -50,6 +51,7 @@ public class GroovyConfiguration {
     mapping.put("map", new ContextChatStorage());
     mapping.put("text", new TextScriptEntity());
     mapping.put("user", new UserScriptEntity());
+    mapping.put("sticker", new StickerEntity());
     mapping.put("request", new Request());
     mapping.put("chat", new ChatTelegramEntity(null));
 

@@ -12,6 +12,7 @@ import org.codehaus.groovy.ast.stmt.WhileStatement;
 import org.codehaus.groovy.classgen.BytecodeSequence;
 import ru.holyway.botplatform.scripting.entity.ChatTelegramEntity;
 import ru.holyway.botplatform.scripting.entity.MessageScriptEntity;
+import ru.holyway.botplatform.scripting.entity.StickerEntity;
 import ru.holyway.botplatform.scripting.entity.TextScriptEntity;
 import ru.holyway.botplatform.scripting.entity.UserScriptEntity;
 import ru.holyway.botplatform.scripting.util.ContextChatStorage;
@@ -45,6 +46,7 @@ public final class DefaultShellRules {
       ContextChatStorage.class.getName(),
       TextScriptEntity.class.getName(),
       UserScriptEntity.class.getName(),
+      StickerEntity.class.getName(),
       TextJoiner.class.getName(),
       Time.class.getName(),
       Request.class.getName(),

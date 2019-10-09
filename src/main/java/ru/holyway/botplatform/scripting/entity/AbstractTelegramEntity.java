@@ -1,6 +1,8 @@
 package ru.holyway.botplatform.scripting.entity;
 
 import java.util.Collections;
+import java.util.List;
+import java.util.Random;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -10,9 +12,11 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.methods.send.SendSticker;
 import org.telegram.telegrambots.meta.api.methods.send.SendVideo;
+import org.telegram.telegrambots.meta.api.methods.stickers.GetStickerSet;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.media.InputMediaPhoto;
+import org.telegram.telegrambots.meta.api.objects.stickers.Sticker;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.holyway.botplatform.scripting.ScriptContext;
 
@@ -60,6 +64,44 @@ public abstract class AbstractTelegramEntity {
         e.printStackTrace();
       }
     };
+  }
+
+  public Consumer<ScriptContext> sendStickerByEmoji(String stickerSet, String emoji) {
+    return s -> {
+      try {
+        List<Sticker> stickers = s.message.messageEntity.getSender()
+            .execute(new GetStickerSet().setName(stickerSet)).getStickers();
+        Sticker foundSticker = stickers.stream()
+            .filter(sticker -> sticker.getEmoji().equalsIgnoreCase(emoji)).findFirst()
+            .orElseThrow(TelegramApiException::new);
+        s.setContextValue("lastMessage", s.message.messageEntity.getSender()
+            .execute(
+                new SendSticker().setSticker(foundSticker.getFileId())
+                    .setChatId(entity().apply(s).getChatId())).getMessageId().toString());
+      } catch (TelegramApiException e) {
+        e.printStackTrace();
+      }
+    };
+  }
+
+  public Consumer<ScriptContext> sendStickerFromSet(String stickerSet) {
+    return s -> {
+      try {
+        List<Sticker> stickers = s.message.messageEntity.getSender()
+            .execute(new GetStickerSet().setName(stickerSet)).getStickers();
+        s.setContextValue("lastMessage", s.message.messageEntity.getSender()
+            .execute(
+                new SendSticker()
+                    .setSticker(stickers.get(new Random().nextInt(stickers.size())).getFileId())
+                    .setChatId(entity().apply(s).getChatId())).getMessageId().toString());
+      } catch (TelegramApiException e) {
+        e.printStackTrace();
+      }
+    };
+  }
+
+  public Consumer<ScriptContext> sendStickerFromSet(Function<ScriptContext, String> supplierText) {
+    return s -> sendStickerFromSet(supplierText.apply(s)).accept(s);
   }
 
   public Consumer<ScriptContext> sendMedia(String url) {
