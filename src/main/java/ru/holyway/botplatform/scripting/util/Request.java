@@ -183,11 +183,11 @@ public class Request {
       }
 
       Pattern pattern = Pattern
-          .compile("^(.|\\s)*(" + startTag + ")(.*)(" + endTag + ")(.|\\s)*$", Pattern.MULTILINE);
+          .compile("^(.)*(" + startTag + ")(.*)(" + endTag + ")(.)*$", Pattern.MULTILINE);
 
-      Matcher m = pattern.matcher(response);
+      Matcher m = pattern.matcher(response.replaceAll(" ","_"));
       if (m.find()) {
-        return m.group(3);
+        return m.group(3).replaceAll("_", " ");
       } else {
         return "Not found";
       }
