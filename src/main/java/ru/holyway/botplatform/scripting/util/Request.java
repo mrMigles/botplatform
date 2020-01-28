@@ -50,6 +50,7 @@ public class Request {
         return URLEncoder.encode(url, "UTF-8");
       } catch (UnsupportedEncodingException e) {
         System.out.println(e);
+        e.printStackTrace();
         return url;
       }
     };
@@ -67,6 +68,7 @@ public class Request {
         return URLDecoder.decode(text, "UTF-8");
       } catch (UnsupportedEncodingException e) {
         System.out.println(e);
+        e.printStackTrace();
         return text;
       }
     };
@@ -240,6 +242,10 @@ public class Request {
 
   public Request get(Object url) {
     return setMethod(HttpMethod.GET).url(url);
+  }
+
+  public static Request request() {
+    return new Request();
   }
 
   public Request last() {

@@ -45,6 +45,7 @@ public class ScriptMessageProcessor implements MessageProcessor {
           scripts.add(chatScripts.getKey(), script);
         } catch (Exception e) {
           System.out.println(e.getMessage());
+          e.printStackTrace();
         }
       }
     }
@@ -101,6 +102,7 @@ public class ScriptMessageProcessor implements MessageProcessor {
         }
       } catch (Exception e) {
         System.out.println(e);
+        e.printStackTrace();
       }
     }
   }
