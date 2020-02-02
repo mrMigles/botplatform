@@ -10,11 +10,7 @@ import org.codehaus.groovy.ast.stmt.ForStatement;
 import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.ast.stmt.WhileStatement;
 import org.codehaus.groovy.classgen.BytecodeSequence;
-import ru.holyway.botplatform.scripting.entity.ChatTelegramEntity;
-import ru.holyway.botplatform.scripting.entity.MessageScriptEntity;
-import ru.holyway.botplatform.scripting.entity.StickerEntity;
-import ru.holyway.botplatform.scripting.entity.TextScriptEntity;
-import ru.holyway.botplatform.scripting.entity.UserScriptEntity;
+import ru.holyway.botplatform.scripting.entity.*;
 import ru.holyway.botplatform.scripting.util.ContextChatStorage;
 import ru.holyway.botplatform.scripting.util.NumberOperations;
 import ru.holyway.botplatform.scripting.util.Request;
@@ -51,6 +47,9 @@ public final class DefaultShellRules {
       Time.class.getName(),
       Request.class.getName(),
       ChatTelegramEntity.class.getName(),
+      TimePredicate.class.getName(),
+      InTimePredicate.class.getName(),
+      HistoryMessageEntity.class.getName(),
       NumberOperations.class.getName());
 
   public static final List<String> receiversBlackList =

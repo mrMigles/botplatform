@@ -114,6 +114,11 @@ public class BotConfiguration {
     return new ConcurrentTaskScheduler();
   }
 
+  @Bean(name = "scriptScheduler")
+  public TaskScheduler scriptScheduler() {
+    return new ConcurrentTaskScheduler();
+  }
+
   @Bean
   @Primary
   public RestTemplate restTemplate()

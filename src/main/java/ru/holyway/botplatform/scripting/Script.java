@@ -2,21 +2,46 @@ package ru.holyway.botplatform.scripting;
 
 import java.util.Objects;
 import java.util.Random;
+import java.util.concurrent.ScheduledFuture;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
 public class Script {
 
+  private final String name;
   private Predicate<ScriptContext> predicates;
   private Consumer<ScriptContext> function;
   private boolean isStopable = true;
   private boolean isEnabled = true;
   private String stringScript;
-  private final String name;
+  private ScheduledFuture trigger;
 
   public Script(String name) {
     this.name = name;
+  }
+
+  public static Script script() {
+    return new Script(String.valueOf(new Random().nextInt(99999999)));
+  }
+
+  public static Script script(final String name) {
+    return new Script(name);
+  }
+
+  public static Predicate<ScriptContext> any() {
+    return scriptContext -> true;
+  }
+
+  public static Consumer<ScriptContext> sout(Object obj) {
+    return scriptContext -> {
+      if (obj instanceof Function) {
+        System.out
+            .println(((Function<ScriptContext, String>) obj).apply(scriptContext));
+      } else {
+        System.out.println(String.valueOf(obj));
+      }
+    };
   }
 
   public String getName() {
@@ -84,26 +109,17 @@ public class Script {
     return Objects.hash(stringScript);
   }
 
-  public static Script script() {
-    return new Script(String.valueOf(new Random().nextInt(99999999)));
+  public Predicate<ScriptContext> getPredicates() {
+    return predicates;
   }
 
-  public static Script script(final String name) {
-    return new Script(name);
+  public void setTrigger(ScheduledFuture trigger) {
+    this.trigger = trigger;
   }
 
-  public static Predicate<ScriptContext> any() {
-    return scriptContext -> true;
-  }
-
-  public static Consumer<ScriptContext> sout(Object obj) {
-    return scriptContext -> {
-      if (obj instanceof Function) {
-        System.out
-            .println(((Function<ScriptContext, String>) obj).apply(scriptContext));
-      } else {
-        System.out.println(String.valueOf(obj));
-      }
-    };
+  public void cancel() {
+    if (trigger != null) {
+      trigger.cancel(true);
+    }
   }
 }

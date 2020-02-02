@@ -6,12 +6,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.apache.commons.collections.CollectionUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.annotation.Order;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.bots.AbsSender;
@@ -22,19 +25,24 @@ import ru.holyway.botplatform.scripting.ScriptCompiler;
 import ru.holyway.botplatform.scripting.ScriptContext;
 import ru.holyway.botplatform.scripting.TelegramScriptEntity;
 import ru.holyway.botplatform.scripting.entity.MessageScriptEntity;
+import ru.holyway.botplatform.scripting.entity.StaticMessage;
+import ru.holyway.botplatform.scripting.entity.TimePredicate;
 import ru.holyway.botplatform.telegram.TelegramMessageEntity;
 
 @Component
 @Order(99)
-public class ScriptMessageProcessor implements MessageProcessor {
+public class ScriptMessageProcessor implements MessageProcessor, MessagePostLoader {
 
+  private final TaskScheduler taskScheduler;
   private ScriptCompiler scriptCompiler;
   private DataHelper dataHelper;
   private MultiValueMap<String, Script> scripts = new LinkedMultiValueMap<>();
 
-  public ScriptMessageProcessor(ScriptCompiler scriptCompiler, DataHelper dataHelper) {
+  public ScriptMessageProcessor(ScriptCompiler scriptCompiler, DataHelper dataHelper,
+      @Qualifier("scriptScheduler") TaskScheduler taskScheduler) {
     this.scriptCompiler = scriptCompiler;
     this.dataHelper = dataHelper;
+    this.taskScheduler = taskScheduler;
 
     for (Map.Entry<String, List<String>> chatScripts : dataHelper.getSettings().getScripts()
         .entrySet()) {
@@ -74,6 +82,7 @@ public class ScriptMessageProcessor implements MessageProcessor {
                   .setReplyToMessageId(messageEntity.getMessage().getMessageId()));
           return;
         }
+        addTrigger(messageEntity.getSender(), messageEntity.getChatId(), script);
         scripts.add(messageEntity.getChatId(), script);
         dataHelper.getSettings().addScript(messageEntity.getChatId(), scriptString);
         dataHelper.updateSettings();
@@ -90,21 +99,28 @@ public class ScriptMessageProcessor implements MessageProcessor {
     }
 
     for (Script script : scripts.get(messageEntity.getChatId())) {
-      MessageScriptEntity message = new MessageScriptEntity(messageEntity);
-      TelegramScriptEntity telegram = new TelegramScriptEntity();
-      ScriptContext ctx = new ScriptContext(message, telegram);
-      try {
-        if (script.check(ctx)) {
-          script.execute(ctx);
-          if (script.isStopable()) {
-            return;
-          }
-        }
-      } catch (Exception e) {
-        System.out.println(e);
-        e.printStackTrace();
+      if (executeScript(messageEntity, script)) {
+        return;
       }
     }
+  }
+
+  private boolean executeScript(TelegramMessageEntity messageEntity, Script script) {
+    MessageScriptEntity message = new MessageScriptEntity(messageEntity);
+    TelegramScriptEntity telegram = new TelegramScriptEntity();
+    ScriptContext ctx = new ScriptContext(message, telegram);
+    try {
+      if (script.check(ctx)) {
+        script.execute(ctx);
+        if (script.isStopable()) {
+          return true;
+        }
+      }
+    } catch (Exception e) {
+      System.out.println(e);
+      e.printStackTrace();
+    }
+    return false;
   }
 
   protected void sendScriptMenu(TelegramMessageEntity messageEntity, String scriptString,
@@ -151,6 +167,7 @@ public class ScriptMessageProcessor implements MessageProcessor {
   }
 
   public void clearScripts(final String chatId) {
+    scripts.get(chatId).forEach(Script::cancel);
     scripts.remove(chatId);
     dataHelper.getSettings().getScripts().remove(chatId);
     dataHelper.updateSettings();
@@ -161,7 +178,11 @@ public class ScriptMessageProcessor implements MessageProcessor {
   }
 
   public boolean removeScript(final String chatId, final String script) {
-    if (scripts.get(chatId).removeIf(script1 -> script1.getStringScript().equals(script))) {
+    Optional<Script> s = scripts.get(chatId).stream()
+        .filter(script1 -> script1.getStringScript().equals(script)).findFirst();
+    if (s.isPresent()) {
+      s.get().cancel();
+      scripts.get(chatId).remove(s.get());
       dataHelper.getSettings().getScripts().get(chatId).remove(script);
       dataHelper.updateSettings();
       return true;
@@ -173,11 +194,34 @@ public class ScriptMessageProcessor implements MessageProcessor {
     Optional<Script> s = scripts.get(chatId).stream()
         .filter(script -> script.hashCode() == scriptCode).findFirst();
     if (s.isPresent()) {
+      s.get().cancel();
       scripts.get(chatId).remove(s.get());
       dataHelper.getSettings().getScripts().get(chatId).remove(s.get().getStringScript());
       dataHelper.updateSettings();
       return true;
     }
     return false;
+  }
+
+  @Override
+  public void postRun(AbsSender absSender) {
+    scripts.forEach((chat, chatScripts) -> {
+      chatScripts.forEach(script -> {
+        addTrigger(absSender, chat, script);
+      });
+    });
+  }
+
+  private void addTrigger(AbsSender absSender, String chat, Script script) {
+    if (script.getPredicates() != null && script.getPredicates() instanceof TimePredicate) {
+      TimePredicate timePredicate = (TimePredicate) script.getPredicates();
+      script.setTrigger(taskScheduler.schedule(() -> {
+        Message message = new StaticMessage(chat);
+        TelegramMessageEntity telegramMessageEntity = new TelegramMessageEntity(message,
+            absSender);
+        ScriptContext ctx = new ScriptContext(new MessageScriptEntity(telegramMessageEntity), new TelegramScriptEntity());
+        script.execute(ctx);
+      }, timePredicate.getTrigger()));
+    }
   }
 }

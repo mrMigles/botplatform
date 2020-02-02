@@ -50,5 +50,19 @@ public abstract class AbstractText {
     };
   }
 
+  public Function<ScriptContext, String> replace(String from, String to) {
+    return scriptContext -> value().apply(scriptContext).replaceAll(from, to);
+  }
 
+  public Function<ScriptContext, String> replace(Function<ScriptContext, String> from, Function<ScriptContext, String> to) {
+    return scriptContext -> value().apply(scriptContext).replaceAll(from.apply(scriptContext), to.apply(scriptContext));
+  }
+
+  public Function<ScriptContext, String> replace(String from, Function<ScriptContext, String> to) {
+    return scriptContext -> value().apply(scriptContext).replaceAll(from, to.apply(scriptContext));
+  }
+
+  public Function<ScriptContext, String> replace(Function<ScriptContext, String> from, String to) {
+    return scriptContext -> value().apply(scriptContext).replaceAll(from.apply(scriptContext), to);
+  }
 }

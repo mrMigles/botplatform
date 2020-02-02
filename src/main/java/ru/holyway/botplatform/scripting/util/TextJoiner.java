@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.function.Function;
+
+import com.jayway.jsonpath.JsonPath;
 import ru.holyway.botplatform.scripting.ScriptContext;
 import ru.holyway.botplatform.scripting.entity.AbstractText;
 
@@ -24,6 +26,13 @@ public class TextJoiner extends AbstractText {
   public TextJoiner add(final TextJoiner joiner) {
     value.add(joiner.value());
     return this;
+  }
+
+  public Function<ScriptContext, String> path(final String path) {
+    return scriptContext -> {
+      Object res = JsonPath.read(value().apply(scriptContext), path);
+      return String.valueOf(res);
+    };
   }
 
   public Function<ScriptContext, String> value() {
@@ -57,6 +66,6 @@ public class TextJoiner extends AbstractText {
   }
 
   public static Function<ScriptContext, String> random(int start, int end) {
-    return scriptContext -> String.valueOf(new Random().nextInt(end) + start);
+    return scriptContext -> String.valueOf(new Random().nextInt((end - start) + 1) + start);
   }
 }
