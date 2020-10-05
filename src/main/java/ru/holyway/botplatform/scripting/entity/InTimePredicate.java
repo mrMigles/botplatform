@@ -1,8 +1,9 @@
 package ru.holyway.botplatform.scripting.entity;
 
+import ru.holyway.botplatform.scripting.ScriptContext;
+
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
-import ru.holyway.botplatform.scripting.ScriptContext;
 
 public class InTimePredicate implements Predicate<ScriptContext> {
 

@@ -44,6 +44,11 @@ public class Script {
     };
   }
 
+  public static Consumer<ScriptContext> nothing() {
+    return scriptContext -> {
+    };
+  }
+
   public String getName() {
     return name;
   }

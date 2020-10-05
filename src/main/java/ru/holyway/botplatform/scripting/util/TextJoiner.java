@@ -1,13 +1,13 @@
 package ru.holyway.botplatform.scripting.util;
 
+import com.jayway.jsonpath.JsonPath;
+import ru.holyway.botplatform.scripting.ScriptContext;
+import ru.holyway.botplatform.scripting.entity.AbstractText;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.function.Function;
-
-import com.jayway.jsonpath.JsonPath;
-import ru.holyway.botplatform.scripting.ScriptContext;
-import ru.holyway.botplatform.scripting.entity.AbstractText;
 
 public class TextJoiner extends AbstractText {
 
@@ -18,7 +18,7 @@ public class TextJoiner extends AbstractText {
     return this;
   }
 
-  public TextJoiner add(final Function<ScriptContext, String> textSupplier) {
+  public TextJoiner add(final Function<ScriptContext, Object> textSupplier) {
     value.add(textSupplier);
     return this;
   }
@@ -43,7 +43,10 @@ public class TextJoiner extends AbstractText {
           stringBuilder.append((String) val);
         }
         if (val instanceof Function) {
-          stringBuilder.append(((Function<ScriptContext, String>) val).apply(scriptContext));
+          final Object value = ((Function<ScriptContext, Object>) val).apply(scriptContext);
+          if (value != null) {
+            stringBuilder.append(value.toString());
+          }
         }
       }
       return stringBuilder.toString();
@@ -57,7 +60,7 @@ public class TextJoiner extends AbstractText {
     return new TextJoiner().add(text);
   }
 
-  public static TextJoiner text(final Function<ScriptContext, String> textSupplier) {
+  public static TextJoiner text(final Function<ScriptContext, Object> textSupplier) {
     return new TextJoiner().add(textSupplier);
   }
 

@@ -1,9 +1,10 @@
 package ru.holyway.botplatform.scripting.entity;
 
-import java.util.function.Function;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import ru.holyway.botplatform.scripting.ScriptContext;
 import ru.holyway.botplatform.telegram.TelegramMessageEntity;
+
+import java.util.function.Function;
 
 public class MessageScriptEntity extends AbstractTelegramEntity {
 

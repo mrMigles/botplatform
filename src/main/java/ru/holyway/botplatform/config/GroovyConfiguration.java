@@ -2,35 +2,27 @@ package ru.holyway.botplatform.config;
 
 import groovy.lang.Binding;
 import groovy.lang.GroovyShell;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import javax.annotation.Nonnull;
 import org.codehaus.groovy.control.CompilerConfiguration;
 import org.codehaus.groovy.control.customizers.ImportCustomizer;
 import org.codehaus.groovy.control.customizers.SecureASTCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import ru.holyway.botplatform.scripting.DefaultShellRules;
-import ru.holyway.botplatform.scripting.MethodsBlacklistExpressionChecker;
-import ru.holyway.botplatform.scripting.Script;
-import ru.holyway.botplatform.scripting.ScriptCompiler;
-import ru.holyway.botplatform.scripting.ScriptCompilerImpl;
-import ru.holyway.botplatform.scripting.ScriptContext;
-import ru.holyway.botplatform.scripting.TelegramScriptEntity;
+import ru.holyway.botplatform.core.data.DataHelper;
+import ru.holyway.botplatform.scripting.*;
 import ru.holyway.botplatform.scripting.entity.*;
-import ru.holyway.botplatform.scripting.util.ContextChatStorage;
-import ru.holyway.botplatform.scripting.util.NumberOperations;
-import ru.holyway.botplatform.scripting.util.Request;
-import ru.holyway.botplatform.scripting.util.TextJoiner;
-import ru.holyway.botplatform.scripting.util.Time;
+import ru.holyway.botplatform.scripting.util.*;
+
+import javax.annotation.Nonnull;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Configuration
 public class GroovyConfiguration {
 
   @Bean
-  public ScriptCompiler scriptCompiler() {
+  public ScriptCompiler scriptCompiler(final DataHelper dataHelper) {
     List<String> allowedImports = new ArrayList<>(DefaultShellRules.importsWhitelist);
     CompilerConfiguration configuration = new CompilerConfiguration()
         .addCompilationCustomizers(customAst(allowedImports),
@@ -42,7 +34,7 @@ public class GroovyConfiguration {
     mapping.put("reply", new ReplyScriptEntity());
     mapping.put("ctx", new ScriptContext());
     mapping.put("telegram", new TelegramScriptEntity());
-    mapping.put("map", new ContextChatStorage());
+    mapping.put("map", new ContextChatStorage(dataHelper));
     mapping.put("text", new TextScriptEntity());
     mapping.put("user", new UserScriptEntity());
     mapping.put("sticker", new StickerEntity());
@@ -62,10 +54,14 @@ public class GroovyConfiguration {
             Time.class.getName(),
             TextJoiner.class.getName(),
             Request.class.getName(),
+            ArrayEntity.class.getName(),
+            ConditionHandler.class.getName(),
+            TernaryHandler.class.getName(),
             ChatTelegramEntity.class.getName(),
             TimePredicate.class.getName(),
             InTimePredicate.class.getName(),
             HistoryMessageEntity.class.getName(),
+            LoopHandler.class.getName(),
             NumberOperations.class.getName())
         .addImports(allowedImports)
         .addStarImports(DefaultShellRules.starImportsWhiteArray);

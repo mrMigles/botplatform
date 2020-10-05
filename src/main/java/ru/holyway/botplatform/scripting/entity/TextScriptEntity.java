@@ -1,7 +1,8 @@
 package ru.holyway.botplatform.scripting.entity;
 
-import java.util.function.Function;
 import ru.holyway.botplatform.scripting.ScriptContext;
+
+import java.util.function.Function;
 
 public class TextScriptEntity extends AbstractText {
 

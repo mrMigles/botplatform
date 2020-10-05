@@ -1,14 +1,9 @@
 package ru.holyway.botplatform.core.entity;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.data.annotation.Id;
+
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by Sergey on 1/18/2017.
@@ -27,10 +22,11 @@ public class JSettings {
   private Map<String, Set<YouTubeChanel>> youtubeFollows;
   private Map<String, Set<TwitterFollow>> twitterFollows;
   private Map<String, List<String>> scripts;
+  private Map<String, Map<String, Object>> scriptMap;
 
   public JSettings(Set<String> muteChats, Set<String> easyChats,
-      Map<String, Integer> answerProximity, Map<String, Set<String>> syncChats,
-      Map<String, String> tokens) {
+                   Map<String, Integer> answerProximity, Map<String, Set<String>> syncChats,
+                   Map<String, String> tokens) {
     this.muteChats = muteChats;
     this.easyChats = easyChats;
     this.answerProximity = answerProximity;
@@ -48,6 +44,7 @@ public class JSettings {
     youtubeFollows = new ConcurrentHashMap<>();
     twitterFollows = new ConcurrentHashMap<>();
     scripts = new ConcurrentHashMap<>();
+    scriptMap = new HashMap<>();
   }
 
   public void addMuteChat(String chatId) {
@@ -256,4 +253,14 @@ public class JSettings {
     return scripts.get(chatID);
   }
 
+  public void putToScriptMap(Object chatId, Object key, Object value) {
+    if (!scriptMap.containsKey(chatId.toString())) {
+      scriptMap.put(chatId.toString(), new HashMap<>());
+    }
+    scriptMap.get(chatId.toString()).put(key.toString(), value);
+  }
+
+  public Object getFromScriptMap(Object chatId, Object key) {
+    return scriptMap.containsKey(chatId.toString()) ? scriptMap.get(chatId.toString()).get(key.toString()) : null;
+  }
 }

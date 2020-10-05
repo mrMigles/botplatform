@@ -1,17 +1,14 @@
 package ru.holyway.botplatform.core.data;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
 import ru.holyway.botplatform.core.entity.Chat;
 import ru.holyway.botplatform.core.entity.ChatMembers;
 import ru.holyway.botplatform.core.entity.JSettings;
 import ru.holyway.botplatform.core.entity.Record;
+
+import javax.annotation.PostConstruct;
+import java.util.*;
 
 /**
  * Created by seiv0814 on 12-10-17.
@@ -109,4 +106,14 @@ public class MongoDataHelper implements DataHelper {
     chatMemberRepository.save(members);
   }
 
+  @Override
+  public void putToScriptMap(Object chatId, Object key, Object value) {
+    settings.putToScriptMap(chatId, key, value);
+    updateSettings();
+  }
+
+  @Override
+  public Object getFromScriptMap(Object chatId, Object key) {
+    return settings.getFromScriptMap(chatId, key);
+  }
 }

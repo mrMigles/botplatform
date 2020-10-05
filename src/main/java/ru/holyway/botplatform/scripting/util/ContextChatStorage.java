@@ -1,24 +1,39 @@
 package ru.holyway.botplatform.scripting.util;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import ru.holyway.botplatform.core.data.DataHelper;
+import ru.holyway.botplatform.scripting.ScriptContext;
+
 import java.util.function.Consumer;
 import java.util.function.Function;
-import ru.holyway.botplatform.scripting.ScriptContext;
 
 public class ContextChatStorage {
 
-  private Map<String, Map<String, String>> map = new HashMap<>();
 
+  private final DataHelper dataHelper;
 
-  public Consumer<ScriptContext> put(String key, String value) {
-    return ctx -> map
-        .put(ctx.message.messageEntity.getChatId(), Collections.singletonMap(key, value));
+  public ContextChatStorage(final DataHelper dataHelper) {
+    this.dataHelper = dataHelper;
   }
 
-  public Function<ScriptContext, String> get(String key) {
-    return ctx -> map
-        .get(ctx.message.messageEntity.getChatId()).get(key);
+  public Consumer<ScriptContext> put(String key, String value) {
+    return ctx -> dataHelper.putToScriptMap(ctx.message.messageEntity.getChatId(), key, value);
+  }
+
+  public Consumer<ScriptContext> put(String key, Function<ScriptContext, Object> functionValue) {
+    return ctx -> dataHelper.putToScriptMap(ctx.message.messageEntity.getChatId(), key, functionValue.apply(ctx));
+  }
+
+  public Consumer<ScriptContext> put(Function<ScriptContext, Object> key, Function<ScriptContext, Object> functionValue) {
+    return ctx -> dataHelper.putToScriptMap(ctx.message.messageEntity.getChatId(), key.apply(ctx), functionValue.apply(ctx));
+  }
+
+  public TextJoiner get(String key) {
+    return TextJoiner.text(ctx -> dataHelper.getFromScriptMap(ctx.message.messageEntity.getChatId(), key) != null
+        ? dataHelper.getFromScriptMap(ctx.message.messageEntity.getChatId(), key).toString() : null);
+  }
+
+  public TextJoiner get(Function<ScriptContext, Object> key) {
+    return TextJoiner.text(ctx -> dataHelper.getFromScriptMap(ctx.message.messageEntity.getChatId(), key.apply(ctx)) != null ?
+        dataHelper.getFromScriptMap(ctx.message.messageEntity.getChatId(), key.apply(ctx)).toString() : null);
   }
 }

@@ -1,60 +1,69 @@
 package ru.holyway.botplatform.scripting.util;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Random;
-import java.util.function.Function;
 import ru.holyway.botplatform.scripting.ScriptContext;
 import ru.holyway.botplatform.scripting.entity.AbstractNumber;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Function;
+
 public class NumberOperations extends AbstractNumber {
 
-  private Map<Operation, Object> objectMap = new HashMap<>();
+  private List<NumberOperation> objectMap = new ArrayList<>();
 
   private boolean isLong = true;
 
   private enum Operation {
-    ADDITION, SUBTRACT, DIVIDE, MULTIPLY
+    ADDITION, SUBTRACT, DIVIDE, MULTIPLY, MOD
   }
 
   public NumberOperations add(Number number) {
-    objectMap.put(Operation.ADDITION, number);
+    objectMap.add(new NumberOperation(Operation.ADDITION, number));
     return this;
   }
 
-  public NumberOperations add(Function<ScriptContext, String> functionNumber) {
-    objectMap.put(Operation.ADDITION, functionNumber);
+  public NumberOperations add(Function<ScriptContext, ?> functionNumber) {
+    objectMap.add(new NumberOperation(Operation.ADDITION, functionNumber));
     return this;
   }
 
   public NumberOperations divide(Number number) {
-    objectMap.put(Operation.DIVIDE, number);
+    objectMap.add(new NumberOperation(Operation.DIVIDE, number));
     return this;
   }
 
-  public NumberOperations divide(Function<ScriptContext, String> functionNumber) {
-    objectMap.put(Operation.DIVIDE, functionNumber);
+  public NumberOperations divide(Function<ScriptContext, ?> functionNumber) {
+    objectMap.add(new NumberOperation(Operation.DIVIDE, functionNumber));
     return this;
   }
 
   public NumberOperations subtract(Number number) {
-    objectMap.put(Operation.SUBTRACT, number);
+    objectMap.add(new NumberOperation(Operation.SUBTRACT, number));
     return this;
   }
 
-  public NumberOperations subtract(Function<ScriptContext, String> functionNumber) {
-    objectMap.put(Operation.SUBTRACT, functionNumber);
+  public NumberOperations subtract(Function<ScriptContext, ?> functionNumber) {
+    objectMap.add(new NumberOperation(Operation.SUBTRACT, functionNumber));
     return this;
   }
 
   public NumberOperations multiply(Number number) {
-    objectMap.put(Operation.MULTIPLY, number);
+    objectMap.add(new NumberOperation(Operation.MULTIPLY, number));
     return this;
   }
 
-  public NumberOperations multiply(Function<ScriptContext, String> functionNumber) {
-    objectMap.put(Operation.MULTIPLY, functionNumber);
+  public NumberOperations multiply(Function<ScriptContext, ?> functionNumber) {
+    objectMap.add(new NumberOperation(Operation.MULTIPLY, functionNumber));
+    return this;
+  }
+
+  public NumberOperations mod(Number number) {
+    objectMap.add(new NumberOperation(Operation.MOD, number));
+    return this;
+  }
+
+  public NumberOperations mod(Function<ScriptContext, ?> functionNumber) {
+    objectMap.add(new NumberOperation(Operation.MOD, functionNumber));
     return this;
   }
 
@@ -65,19 +74,13 @@ public class NumberOperations extends AbstractNumber {
 
 
   @Override
-  protected Function<ScriptContext, Number> value() {
+  public Function<ScriptContext, Number> value() {
     return scriptContext -> {
 
       Double result = 0D;
-      for (Entry<Operation, Object> opEntry : objectMap.entrySet()) {
-        Double opValue = 0D;
-        if (opEntry.getValue() instanceof Function) {
-          opValue = convert((Function<ScriptContext, String>) opEntry.getValue())
-              .apply(scriptContext);
-        } else if (opEntry.getValue() instanceof Number) {
-          opValue = Double.parseDouble(opEntry.getValue().toString());
-        }
-        switch (opEntry.getKey()) {
+      for (NumberOperation opEntry : objectMap) {
+        Double opValue = opEntry.value(scriptContext);
+        switch (opEntry.getOperation()) {
           case ADDITION:
             result += opValue;
             break;
@@ -90,21 +93,24 @@ public class NumberOperations extends AbstractNumber {
           case MULTIPLY:
             result *= opValue;
             break;
+          case MOD:
+            result %= opValue;
+            break;
         }
       }
       return isLong ? result.longValue() : result;
     };
   }
 
-  private Function<ScriptContext, Double> convert(Function<ScriptContext, String> functionNumber) {
-    return scriptContext -> Double.parseDouble(functionNumber.apply(scriptContext));
+  private Function<ScriptContext, Double> convert(Function<ScriptContext, Object> functionNumber) {
+    return scriptContext -> Double.parseDouble(functionNumber.apply(scriptContext).toString());
   }
 
   public static NumberOperations number(Number number) {
     return new NumberOperations().add(number);
   }
 
-  public static NumberOperations number(Function<ScriptContext, String> stringFunction) {
+  public static NumberOperations number(Function<ScriptContext, Object> stringFunction) {
     return new NumberOperations().add(stringFunction);
   }
 
@@ -116,5 +122,38 @@ public class NumberOperations extends AbstractNumber {
 
   public NumberOperations asLong() {
     return number(scriptContext -> String.valueOf(value().apply(scriptContext).longValue()));
+  }
+
+  public Function<ScriptContext, Long> longValue() {
+    return scriptContext -> asLong().apply(scriptContext).longValue();
+  }
+
+  private static class NumberOperation {
+    private Operation operation;
+    private Number value;
+    private Function<ScriptContext, ?> functionValue;
+
+    public NumberOperation(Operation operation, Number value) {
+      this.operation = operation;
+      this.value = value;
+    }
+
+    public NumberOperation(Operation operation, Function<ScriptContext, ?> functionValue) {
+      this.operation = operation;
+      this.functionValue = functionValue;
+    }
+
+    public Operation getOperation() {
+      return operation;
+    }
+
+    public Double value(ScriptContext scriptContext) {
+      if (value != null) {
+        return Double.parseDouble(value.toString());
+      } else if (functionValue != null) {
+        return Double.parseDouble(functionValue.apply(scriptContext) != null ? functionValue.apply(scriptContext).toString() : "0");
+      }
+      return null;
+    }
   }
 }

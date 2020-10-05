@@ -1,17 +1,8 @@
 package ru.holyway.botplatform.scripting.entity;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
+import org.apache.commons.lang3.StringUtils;
 import org.telegram.telegrambots.meta.api.methods.ForwardMessage;
-import org.telegram.telegrambots.meta.api.methods.send.SendMediaGroup;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
-import org.telegram.telegrambots.meta.api.methods.send.SendSticker;
-import org.telegram.telegrambots.meta.api.methods.send.SendVideo;
+import org.telegram.telegrambots.meta.api.methods.send.*;
 import org.telegram.telegrambots.meta.api.methods.stickers.GetStickerSet;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
@@ -19,6 +10,14 @@ import org.telegram.telegrambots.meta.api.objects.media.InputMediaPhoto;
 import org.telegram.telegrambots.meta.api.objects.stickers.Sticker;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.holyway.botplatform.scripting.ScriptContext;
+import ru.holyway.botplatform.scripting.util.TextJoiner;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 public abstract class AbstractTelegramEntity {
 
@@ -37,7 +36,8 @@ public abstract class AbstractTelegramEntity {
   }
 
   public Predicate<ScriptContext> isForward() {
-    return mes -> entity().apply(mes).getForwardFromMessageId() != null;
+    return mes -> entity().apply(mes).getForwardFrom() != null ||
+        entity().apply(mes).getForwardSenderName() != null;
   }
 
   public Consumer<ScriptContext> send(String text) {
@@ -72,7 +72,7 @@ public abstract class AbstractTelegramEntity {
         List<Sticker> stickers = s.message.messageEntity.getSender()
             .execute(new GetStickerSet().setName(stickerSet)).getStickers();
         Sticker foundSticker = stickers.stream()
-            .filter(sticker -> sticker.getEmoji().equalsIgnoreCase(emoji)).findFirst()
+            .filter(sticker -> StringUtils.startsWithIgnoreCase(sticker.getEmoji(), emoji)).findFirst()
             .orElseThrow(TelegramApiException::new);
         s.setContextValue("lastMessage", s.message.messageEntity.getSender()
             .execute(
@@ -209,20 +209,20 @@ public abstract class AbstractTelegramEntity {
     };
   }
 
-  public Function<ScriptContext, String> getChatId() {
-    return scriptContext -> entity().apply(scriptContext).getChatId().toString();
+  public TextJoiner getChatId() {
+    return TextJoiner.text(scriptContext -> entity().apply(scriptContext).getChatId().toString());
   }
 
-  public Function<ScriptContext, String> getId() {
-    return scriptContext -> entity().apply(scriptContext).getMessageId().toString();
+  public TextJoiner getId() {
+    return TextJoiner.text(scriptContext -> entity().apply(scriptContext).getMessageId().toString());
   }
 
   public ChatTelegramEntity chat() {
     return new ChatTelegramEntity(getChatId());
   }
 
-  public Function<ScriptContext, String> last() {
-    return scriptContext -> scriptContext.getContextValue("lastMessage");
+  public TextJoiner last() {
+    return TextJoiner.text(scriptContext -> scriptContext.getContextValue("lastMessage"));
   }
 
 }

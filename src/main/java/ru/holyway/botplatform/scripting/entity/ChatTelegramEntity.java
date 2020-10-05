@@ -1,11 +1,12 @@
 package ru.holyway.botplatform.scripting.entity;
 
-import java.util.function.Consumer;
-import java.util.function.Function;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.holyway.botplatform.scripting.ScriptContext;
+import ru.holyway.botplatform.scripting.util.TextJoiner;
+
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class ChatTelegramEntity {
 
@@ -42,14 +43,14 @@ public class ChatTelegramEntity {
     return scriptContext -> delete(Integer.parseInt(idFunc.apply(scriptContext))).accept(scriptContext);
   }
 
-  public Function<ScriptContext, String> getId() {
-    if (chatId == null){
-      return scriptContext -> scriptContext.message.messageEntity.getChatId();
+  public TextJoiner getId() {
+    if (chatId == null) {
+      return TextJoiner.text(scriptContext -> scriptContext.message.messageEntity.getChatId());
     }
     if (chatId instanceof Function) {
-      return (Function<ScriptContext, String>) chatId;
+      return TextJoiner.text((Function<ScriptContext, Object>) chatId);
     } else {
-      return scriptContext -> chatId.toString();
+      return TextJoiner.text(scriptContext -> chatId.toString());
     }
   }
 

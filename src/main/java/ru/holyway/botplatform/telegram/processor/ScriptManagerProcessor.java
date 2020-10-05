@@ -42,7 +42,7 @@ public class ScriptManagerProcessor implements MessageProcessor {
       messageEntity.getSender().execute(new SendMessage().setChatId(messageEntity.getChatId())
           .setText("Список скриптов:"));
       for (Script script : scriptMessageProcessor.getScripts(messageEntity.getChatId())) {
-        scriptMessageProcessor.sendScriptMenu(messageEntity, script.getStringScript(), script);
+        scriptMessageProcessor.sendScriptMenu(messageEntity, script.getStringScript().replaceAll("\\\\\\$", "\\$"), script);
       }
     } else if (messageEntity.getMessage().getText()
         .startsWith("/remove") || messageEntity.getMessage().getText()

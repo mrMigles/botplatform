@@ -1,8 +1,10 @@
 package ru.holyway.botplatform.scripting.entity;
 
+import ru.holyway.botplatform.scripting.ScriptContext;
+import ru.holyway.botplatform.scripting.util.TextJoiner;
+
 import java.util.function.Function;
 import java.util.function.Predicate;
-import ru.holyway.botplatform.scripting.ScriptContext;
 
 public class StickerEntity extends AbstractText {
 
@@ -11,8 +13,8 @@ public class StickerEntity extends AbstractText {
     return ctx -> ctx.message.messageEntity.getMessage().getSticker().getFileId();
   }
 
-  public Function<ScriptContext, String> getSet() {
-    return ctx -> ctx.message.messageEntity.getMessage().getSticker().getSetName();
+  public TextJoiner getSet() {
+    return TextJoiner.text(ctx -> ctx.message.messageEntity.getMessage().getSticker().getSetName());
   }
 
   public Predicate<ScriptContext> emoji(String text) {

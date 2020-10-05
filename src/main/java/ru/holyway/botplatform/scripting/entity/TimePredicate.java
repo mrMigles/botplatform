@@ -1,9 +1,11 @@
 package ru.holyway.botplatform.scripting.entity;
 
-import java.util.function.Predicate;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.scheduling.support.CronTrigger;
 import ru.holyway.botplatform.scripting.ScriptContext;
+
+import java.util.Arrays;
+import java.util.function.Predicate;
 
 public class TimePredicate implements Predicate<ScriptContext> {
 
@@ -14,9 +16,11 @@ public class TimePredicate implements Predicate<ScriptContext> {
   }
 
   public static TimePredicate cron(String cron) {
-    int numbers = StringUtils.split(cron, " ").length;
-    if (numbers == 5) {
+    String[] numbers = StringUtils.split(cron, " ");
+    if (numbers.length == 5) {
       cron = "0 " + cron;
+    } else if (numbers.length == 6) {
+      cron = "0 " + String.join(" ", Arrays.copyOfRange(numbers, 1, 6));
     }
     return new TimePredicate(new CronTrigger(cron));
   }
@@ -26,9 +30,6 @@ public class TimePredicate implements Predicate<ScriptContext> {
     Integer number = Integer.valueOf(everyType.substring(0, everyType.length() - 1));
     String cron;
     switch (letter) {
-      case "s":
-        cron = String.format("*/%d * * * * *", number);
-        break;
       case "m":
         cron = String.format("0 */%d * * * *", number);
         break;

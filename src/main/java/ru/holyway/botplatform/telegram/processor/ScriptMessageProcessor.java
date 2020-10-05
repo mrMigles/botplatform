@@ -87,7 +87,7 @@ public class ScriptMessageProcessor implements MessageProcessor, MessagePostLoad
         dataHelper.getSettings().addScript(messageEntity.getChatId(), scriptString);
         dataHelper.updateSettings();
 
-        sendScriptMenu(messageEntity, scriptString, script);
+        sendScriptMenu(messageEntity, messageEntity.getText(), script);
         return;
       } catch (Exception e) {
         final String message = e.getMessage().substring(0, Math.min(e.getMessage().length(), 1000));
@@ -174,7 +174,7 @@ public class ScriptMessageProcessor implements MessageProcessor, MessagePostLoad
   }
 
   public List<Script> getScripts(final String chatId) {
-    return scripts.get(chatId);
+    return scripts.getOrDefault(chatId, new ArrayList<>());
   }
 
   public boolean removeScript(final String chatId, final String script) {

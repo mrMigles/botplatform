@@ -1,8 +1,5 @@
 package ru.holyway.botplatform.core;
 
-/**
- * Created by seiv0814 on 01-11-17.
- */
 public class Context {
 
   private int count = 0;

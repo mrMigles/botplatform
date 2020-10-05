@@ -198,27 +198,29 @@ public class Request {
 
   public TextJoiner asString() {
     return TextJoiner.text(scriptContext -> {
-      RestTemplate restTemplate = new RestTemplate();
       final String url = this.url instanceof Function ? ((Function<ScriptContext, String>) this.url)
           .apply(scriptContext) : String.valueOf(this.url);
       final String body =
           this.body instanceof Function ? ((Function<ScriptContext, String>) this.body)
               .apply(scriptContext) : String.valueOf(this.body);
 
-      Map<String, String> params = new HashMap<>();
+      MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
       for (Map.Entry<String, Object> param : this.params.entrySet()) {
         if (param.getValue() instanceof Function) {
-          params.put(param.getKey(), ((Function<ScriptContext, String>) param.getValue())
+          params.add(param.getKey(), ((Function<ScriptContext, String>) param.getValue())
               .apply(scriptContext));
         } else {
-          params.put(param.getKey(), String.valueOf(param.getValue()));
+          params.add(param.getKey(), String.valueOf(param.getValue()));
         }
       }
 
       HttpEntity httpEntity;
 
+      if (!this.params.isEmpty()) {
+        headers.add("Content-Type", "application/x-www-form-urlencoded");
+      }
       if (StringUtils.isEmpty(body)) {
-        httpEntity = new HttpEntity(headers);
+        httpEntity = new HttpEntity(params, headers);
       } else {
         httpEntity = new HttpEntity<>(body, headers);
       }
@@ -226,10 +228,10 @@ public class Request {
       final String response;
 
       if (isLast && scriptContext.getContextValue("request") != null) {
-        response = scriptContext.getContextValue(url);
+        response = scriptContext.getContextValue("request");
       } else {
         response = restTemplate
-            .exchange(url, method, httpEntity, String.class, params).getBody();
+            .exchange(url, method, httpEntity, String.class).getBody();
         scriptContext.setContextValue("request", response);
       }
       return response;

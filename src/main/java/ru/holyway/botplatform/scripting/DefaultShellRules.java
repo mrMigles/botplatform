@@ -1,8 +1,5 @@
 package ru.holyway.botplatform.scripting;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.codehaus.groovy.ast.stmt.DoWhileStatement;
@@ -11,11 +8,11 @@ import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.ast.stmt.WhileStatement;
 import org.codehaus.groovy.classgen.BytecodeSequence;
 import ru.holyway.botplatform.scripting.entity.*;
-import ru.holyway.botplatform.scripting.util.ContextChatStorage;
-import ru.holyway.botplatform.scripting.util.NumberOperations;
-import ru.holyway.botplatform.scripting.util.Request;
-import ru.holyway.botplatform.scripting.util.TextJoiner;
-import ru.holyway.botplatform.scripting.util.Time;
+import ru.holyway.botplatform.scripting.util.*;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -46,10 +43,14 @@ public final class DefaultShellRules {
       TextJoiner.class.getName(),
       Time.class.getName(),
       Request.class.getName(),
+      ArrayEntity.class.getName(),
+      ConditionHandler.class.getName(),
+      TernaryHandler.class.getName(),
       ChatTelegramEntity.class.getName(),
       TimePredicate.class.getName(),
       InTimePredicate.class.getName(),
       HistoryMessageEntity.class.getName(),
+      LoopHandler.class.getName(),
       NumberOperations.class.getName());
 
   public static final List<String> receiversBlackList =

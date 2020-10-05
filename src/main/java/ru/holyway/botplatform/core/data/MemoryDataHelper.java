@@ -1,11 +1,13 @@
 package ru.holyway.botplatform.core.data;
 
+import org.apache.commons.collections.map.MultiKeyMap;
+import ru.holyway.botplatform.core.entity.JSettings;
+import ru.holyway.botplatform.core.entity.Record;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import ru.holyway.botplatform.core.entity.JSettings;
-import ru.holyway.botplatform.core.entity.Record;
 
 /**
  * Created by seiv0814 on 12-10-17.
@@ -17,6 +19,7 @@ public class MemoryDataHelper implements DataHelper {
   private JSettings jSettings = new JSettings();
   private List<Record> records = new ArrayList<>();
   private Map<String, List<String>> chatMembersMap = new HashMap<>();
+  private MultiKeyMap scriptMap = new MultiKeyMap();
 
 
   @Override
@@ -62,5 +65,15 @@ public class MemoryDataHelper implements DataHelper {
   @Override
   public void updateChatMembers(String chatId, List<String> chatMembers) {
     chatMembersMap.put(chatId, chatMembers);
+  }
+
+  @Override
+  public void putToScriptMap(Object chatId, Object key, Object value) {
+    scriptMap.put(chatId, key, value);
+  }
+
+  @Override
+  public Object getFromScriptMap(Object chatId, Object key) {
+    return scriptMap.get(chatId, key);
   }
 }
