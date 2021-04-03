@@ -24,7 +24,6 @@ import ru.holyway.botplatform.telegram.TelegramMessageEntity;
 @Order(50)
 public class RandomMemeProcessor implements MessageProcessor {
 
-  private Map<Long, Message> lastMessageMap = new ConcurrentHashMap<>();
   private BufferedImage dynoTemplate;
   private BufferedImage catTemplate;
 
@@ -39,27 +38,18 @@ public class RandomMemeProcessor implements MessageProcessor {
 
   @Override
   public boolean isNeedToHandle(TelegramMessageEntity messageEntity) {
-    if (messageEntity.getMessage().hasText()) {
-      Message lastMessage = lastMessageMap.get(messageEntity.getMessage().getChatId());
-      if (lastMessage != null) {
-        if (lastMessage.getFrom().getId().equals(messageEntity.getMessage().getFrom().getId())) {
-          if (messageEntity.getMessage().getDate() - lastMessage.getDate() < TimeUnit.SECONDS
-              .toMillis(30)) {
-            if (isOnlyCapital(messageEntity.getText()) && messageEntity.getText().length() >= 3
-                && lastMessage.getText().length() >= 3) {
-              return true;
-            }
-          }
-        }
+    if (messageEntity.getMessage().hasText() && messageEntity.getMessage().isReply() && messageEntity.getMessage().getReplyToMessage().hasText()) {
+      if (isOnlyCapital(messageEntity.getText()) && messageEntity.getText().length() >= 3
+          && messageEntity.getMessage().getReplyToMessage().getText().length() >= 3) {
+        return true;
       }
-      lastMessageMap.put(messageEntity.getMessage().getChatId(), messageEntity.getMessage());
     }
     return false;
   }
 
   @Override
   public void process(TelegramMessageEntity messageEntity) throws TelegramApiException {
-    Message lastMessage = lastMessageMap.get(messageEntity.getMessage().getChatId());
+    Message lastMessage = messageEntity.getMessage().getReplyToMessage();
     String curText = messageEntity.getText();
     if (isOnlyCapital(curText)) {
       try {
@@ -81,9 +71,6 @@ public class RandomMemeProcessor implements MessageProcessor {
       } catch (IOException | InterruptedException e) {
         e.printStackTrace();
       }
-      lastMessageMap.remove(messageEntity.getMessage().getChatId());
-    } else {
-      lastMessageMap.put(messageEntity.getMessage().getChatId(), messageEntity.getMessage());
     }
   }
 

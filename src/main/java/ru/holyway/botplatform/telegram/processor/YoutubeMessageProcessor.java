@@ -25,6 +25,8 @@ import ru.holyway.botplatform.core.entity.YouTubeChanel;
 import ru.holyway.botplatform.core.entity.YoutubeVideo;
 import ru.holyway.botplatform.telegram.TelegramMessageEntity;
 
+//@Component
+//@Order(13)
 public class YoutubeMessageProcessor implements MessageProcessor, MessagePostLoader {
 
   private final DataHelper dataHelper;

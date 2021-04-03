@@ -151,7 +151,7 @@ public class NumberOperations extends AbstractNumber {
       if (value != null) {
         return Double.parseDouble(value.toString());
       } else if (functionValue != null) {
-        return Double.parseDouble(functionValue.apply(scriptContext) != null ? functionValue.apply(scriptContext).toString() : "0");
+        return Double.parseDouble(functionValue.apply(scriptContext) != null && !functionValue.apply(scriptContext).toString().equals("") ? functionValue.apply(scriptContext).toString() : "0");
       }
       return null;
     }

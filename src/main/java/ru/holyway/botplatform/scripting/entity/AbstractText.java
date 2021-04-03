@@ -1,5 +1,6 @@
 package ru.holyway.botplatform.scripting.entity;
 
+import com.jayway.jsonpath.JsonPath;
 import org.apache.commons.lang3.StringUtils;
 import ru.holyway.botplatform.scripting.ScriptContext;
 import ru.holyway.botplatform.scripting.util.NumberOperations;
@@ -100,6 +101,13 @@ public abstract class AbstractText implements Function<ScriptContext, String> {
 
   public AbstractText replace(String from, String to) {
     return new Text(scriptContext -> value().apply(scriptContext).replace(from, to));
+  }
+
+  public AbstractText path(final String path) {
+    return new Text(scriptContext -> {
+      Object res = JsonPath.read(value().apply(scriptContext), path);
+      return String.valueOf(res);
+    });
   }
 
   public AbstractText trim() {

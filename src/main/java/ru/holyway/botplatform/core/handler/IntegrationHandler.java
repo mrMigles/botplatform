@@ -11,8 +11,8 @@ import ru.holyway.botplatform.core.education.EducationCache;
 
 /**
  * Created by seiv0814 on 10-10-17.
- */
-@Component
+// */
+//@Component
 public class IntegrationHandler implements MessageHandler {
 
   @Autowired

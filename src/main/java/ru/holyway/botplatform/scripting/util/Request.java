@@ -1,14 +1,8 @@
 package ru.holyway.botplatform.scripting.util;
 
 import com.jayway.jsonpath.JsonPath;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.util.LinkedMultiValueMap;
@@ -18,12 +12,27 @@ import org.springframework.web.client.RestTemplate;
 import ru.holyway.botplatform.config.RequestFactory.HttpComponentsClientHttpRequestWithBodyFactory;
 import ru.holyway.botplatform.scripting.ScriptContext;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class Request {
 
   private static RestTemplate restTemplate = new RestTemplate();
 
   static {
-    restTemplate.setRequestFactory(new HttpComponentsClientHttpRequestWithBodyFactory());
+    HttpClient httpClient = HttpClientBuilder.create()
+        .disableCookieManagement()
+        .useSystemProperties()
+        .build();
+    HttpComponentsClientHttpRequestWithBodyFactory factory = new HttpComponentsClientHttpRequestWithBodyFactory();
+    factory.setHttpClient(httpClient);
+    restTemplate.setRequestFactory(factory);
   }
 
   private Map<String, Object> params = new HashMap<>();
@@ -169,7 +178,11 @@ public class Request {
         headers.add("Content-Type", "application/x-www-form-urlencoded");
       }
       if (StringUtils.isEmpty(body)) {
-        httpEntity = new HttpEntity(params, headers);
+        if (params == null || params.isEmpty()) {
+          httpEntity = new HttpEntity(headers);
+        } else {
+          httpEntity = new HttpEntity(params, headers);
+        }
       } else {
         httpEntity = new HttpEntity<>(body, headers);
       }
@@ -187,7 +200,7 @@ public class Request {
       Pattern pattern = Pattern
           .compile("^(.)*(" + startTag + ")(.*)(" + endTag + ")(.)*$", Pattern.MULTILINE);
 
-      Matcher m = pattern.matcher(response.replaceAll(" ","_"));
+      Matcher m = pattern.matcher(response.replaceAll(" ", "_"));
       if (m.find()) {
         return m.group(3).replaceAll("_", " ");
       } else {

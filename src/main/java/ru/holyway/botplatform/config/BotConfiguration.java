@@ -100,11 +100,11 @@ public class BotConfiguration {
       final Map<String, MessageHandler> messageHandlers) {
     final List<MessageHandler> orderedMessageHandlers = new ArrayList<>();
     orderedMessageHandlers.add(messageHandlers.get("settingsHandler"));
-    orderedMessageHandlers.add(messageHandlers.get("authenticationHandler"));
+    //orderedMessageHandlers.add(messageHandlers.get("authenticationHandler"));
     orderedMessageHandlers.add(messageHandlers.get("skiperHandler"));
     orderedMessageHandlers.add(messageHandlers.get("messageAnalyzerHandler"));
-    orderedMessageHandlers.add(messageHandlers.get("recordsHandler"));
-    orderedMessageHandlers.add(messageHandlers.get("wikiHandler"));
+    //orderedMessageHandlers.add(messageHandlers.get("recordsHandler"));
+    //orderedMessageHandlers.add(messageHandlers.get("wikiHandler"));
     orderedMessageHandlers.add(messageHandlers.get("simpleQuestionHandler"));
     return orderedMessageHandlers;
   }

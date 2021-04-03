@@ -13,6 +13,7 @@ import ru.holyway.botplatform.scripting.util.*;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -25,13 +26,25 @@ public final class DefaultShellRules {
           BytecodeSequence.class);
 
   public static final String[] starImportsWhiteArray =
-      new String[]{"java.util", "java.lang", "ru.holyway"};
+      new String[]{"ru.holyway"};
 
   public static final List<String> starImportsWhitelist = Arrays.asList(starImportsWhiteArray);
 
   public static final List<String> importsWhitelist = Arrays.asList(
       java.math.BigDecimal.class.getName(),
       java.math.BigInteger.class.getName(),
+      String.class.getName(),
+      Long.class.getName(),
+      Double.class.getName(),
+      Number.class.getName(),
+      Object.class.getName(),
+      Boolean.class.getName(),
+      Byte.class.getName(),
+      Enum.class.getName(),
+      Float.class.getName(),
+      Integer.class.getName(),
+      Math.class.getName(),
+      UUID.class.getName(),
       Script.class.getName(),
       MessageScriptEntity.class.getName(),
       ScriptContext.class.getName(),
@@ -51,6 +64,8 @@ public final class DefaultShellRules {
       InTimePredicate.class.getName(),
       HistoryMessageEntity.class.getName(),
       LoopHandler.class.getName(),
+      VariableEntity.class.getName(),
+      MessageBuilder.class.getName(),
       NumberOperations.class.getName());
 
   public static final List<String> receiversBlackList =

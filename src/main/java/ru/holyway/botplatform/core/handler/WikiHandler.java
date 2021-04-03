@@ -13,7 +13,7 @@ import ru.holyway.botplatform.core.MessageEntity;
 /**
  * Created by seiv0814 on 10-10-17.
  */
-@Component
+//@Component
 public class WikiHandler implements MessageHandler {
 
   private AIConfiguration configuration;

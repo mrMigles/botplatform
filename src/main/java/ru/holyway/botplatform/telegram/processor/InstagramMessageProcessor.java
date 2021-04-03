@@ -24,8 +24,8 @@ import ru.holyway.botplatform.core.entity.InstaStory;
 import ru.holyway.botplatform.core.entity.InstaUser;
 import ru.holyway.botplatform.telegram.TelegramMessageEntity;
 
-@Component
-@Order(11)
+//@Component
+//@Order(11)
 public class InstagramMessageProcessor implements MessageProcessor, MessagePostLoader {
 
   private final DataHelper dataHelper;

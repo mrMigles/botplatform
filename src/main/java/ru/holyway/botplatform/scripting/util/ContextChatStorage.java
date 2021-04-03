@@ -27,6 +27,10 @@ public class ContextChatStorage {
     return ctx -> dataHelper.putToScriptMap(ctx.message.messageEntity.getChatId(), key.apply(ctx), functionValue.apply(ctx));
   }
 
+  public Consumer<ScriptContext> put(Function<ScriptContext, Object> key, String value) {
+    return ctx -> dataHelper.putToScriptMap(ctx.message.messageEntity.getChatId(), key.apply(ctx), value);
+  }
+
   public TextJoiner get(String key) {
     return TextJoiner.text(ctx -> dataHelper.getFromScriptMap(ctx.message.messageEntity.getChatId(), key) != null
         ? dataHelper.getFromScriptMap(ctx.message.messageEntity.getChatId(), key).toString() : null);

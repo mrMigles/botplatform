@@ -62,6 +62,8 @@ public class GroovyConfiguration {
             InTimePredicate.class.getName(),
             HistoryMessageEntity.class.getName(),
             LoopHandler.class.getName(),
+            MessageBuilder.class.getName(),
+            VariableEntity.class.getName(),
             NumberOperations.class.getName())
         .addImports(allowedImports)
         .addStarImports(DefaultShellRules.starImportsWhiteArray);

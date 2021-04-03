@@ -1,6 +1,7 @@
 package ru.holyway.botplatform.telegram;
 
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -13,10 +14,13 @@ public class TelegramMessageEntity implements MessageEntity {
 
   private final Message message;
 
+  private final CallbackQuery callbackQuery;
+
   private final AbsSender sender;
 
-  public TelegramMessageEntity(Message message, AbsSender sender) {
+  public TelegramMessageEntity(Message message, CallbackQuery callbackQuery, AbsSender sender) {
     this.message = message;
+    this.callbackQuery = callbackQuery;
     this.sender = sender;
   }
 
@@ -58,6 +62,10 @@ public class TelegramMessageEntity implements MessageEntity {
 
   public Message getMessage() {
     return message;
+  }
+
+  public CallbackQuery getCallbackQuery() {
+    return callbackQuery;
   }
 
   public AbsSender getSender() {

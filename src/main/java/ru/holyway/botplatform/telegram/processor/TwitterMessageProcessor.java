@@ -27,8 +27,8 @@ import ru.holyway.botplatform.core.entity.TwitterResponse;
 import ru.holyway.botplatform.core.entity.TwitterResponse.Tweet;
 import ru.holyway.botplatform.telegram.TelegramMessageEntity;
 
-@Component
-@Order(13)
+//@Component
+//@Order(13)
 public class TwitterMessageProcessor implements MessageProcessor, MessagePostLoader {
 
   private final DataHelper dataHelper;

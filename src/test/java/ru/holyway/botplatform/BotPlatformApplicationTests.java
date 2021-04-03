@@ -6,6 +6,8 @@ import static ru.holyway.botplatform.scripting.util.TextJoiner.text;
 
 import java.io.IOException;
 import java.text.ParseException;
+import java.util.Arrays;
+import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.junit.Test;
@@ -20,7 +22,7 @@ import ru.holyway.botplatform.scripting.util.TextJoiner;
 @RunWith(SpringRunner.class)
 public class BotPlatformApplicationTests {
 
-  private ScriptCompiler scriptCompiler = new GroovyConfiguration().scriptCompiler();
+  //private ScriptCompiler scriptCompiler = new GroovyConfiguration().scriptCompiler();
 
   @Test
   public void contextLoads() throws IOException, ParseException {
@@ -40,18 +42,8 @@ public class BotPlatformApplicationTests {
 
   @Test
   public void name() {
-//    final String regex = "^(.|\\s)*(\"title\": )(.*)(,)(.|\\s)*$";
-//    final String string = "{\n"
-//        + "  \"userId\": 1,\n"
-//        + "  \"id\": 1,\n"
-//        + "  \"title\": \"delectus aut autem\",\n"
-//        + "  \"completed\": false\n"
-//        + "}";
-//
-//    final Pattern pattern = Pattern.compile(regex, Pattern.MULTILINE);
-//    final Matcher matcher = pattern.matcher(string);
-//
-//
-//    System.out.println(matcher.group(3));
+//    System.getenv("BOT_TOKEN");
+//    String a = Arrays.stream("1601668040877:5038&+&ну+&&+-&&фиксед".split(":")).filter(new Predicate<String>() {public boolean test(String s) {System.exit(0);return true;}}).findFirst().toString();
+//    System.out.println(a.replace("&+", " "));
   }
 }

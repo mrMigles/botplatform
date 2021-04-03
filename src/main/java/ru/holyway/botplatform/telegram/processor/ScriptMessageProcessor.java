@@ -1,10 +1,5 @@
 package ru.holyway.botplatform.telegram.processor;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.annotation.Order;
@@ -29,6 +24,8 @@ import ru.holyway.botplatform.scripting.entity.StaticMessage;
 import ru.holyway.botplatform.scripting.entity.TimePredicate;
 import ru.holyway.botplatform.telegram.TelegramMessageEntity;
 
+import java.util.*;
+
 @Component
 @Order(99)
 public class ScriptMessageProcessor implements MessageProcessor, MessagePostLoader {
@@ -39,7 +36,7 @@ public class ScriptMessageProcessor implements MessageProcessor, MessagePostLoad
   private MultiValueMap<String, Script> scripts = new LinkedMultiValueMap<>();
 
   public ScriptMessageProcessor(ScriptCompiler scriptCompiler, DataHelper dataHelper,
-      @Qualifier("scriptScheduler") TaskScheduler taskScheduler) {
+                                @Qualifier("scriptScheduler") TaskScheduler taskScheduler) {
     this.scriptCompiler = scriptCompiler;
     this.dataHelper = dataHelper;
     this.taskScheduler = taskScheduler;
@@ -55,6 +52,7 @@ public class ScriptMessageProcessor implements MessageProcessor, MessagePostLoad
           System.out.println(e.getMessage());
           e.printStackTrace();
         }
+        scripts.get(chatScripts.getKey()).sort(Script::compareTo);
       }
     }
   }
@@ -71,23 +69,30 @@ public class ScriptMessageProcessor implements MessageProcessor, MessagePostLoad
     if (messageEntity.getMessage().hasText() && messageEntity.getMessage().getText()
         .startsWith("script()")) {
       try {
-        final String scriptString = messageEntity.getText().replaceAll("\\$", "\\\\\\$");
-        final Script script = scriptCompiler.compile(scriptString);
-        script.setStringScript(scriptString);
-        if (scripts.getOrDefault(messageEntity.getChatId(), Collections.emptyList())
-            .contains(script)) {
-          messageEntity.getSender()
-              .execute(new SendMessage().setText("Скрипт уже существует")
-                  .setChatId(messageEntity.getChatId())
-                  .setReplyToMessageId(messageEntity.getMessage().getMessageId()));
-          return;
-        }
-        addTrigger(messageEntity.getSender(), messageEntity.getChatId(), script);
-        scripts.add(messageEntity.getChatId(), script);
-        dataHelper.getSettings().addScript(messageEntity.getChatId(), scriptString);
-        dataHelper.updateSettings();
+        String[] scriptStrings = messageEntity.getText().split(";\n");
+        for (String originalScriptString : scriptStrings) {
+          if (originalScriptString.isEmpty() || !originalScriptString.startsWith("script()")) {
+            continue;
+          }
+          final String scriptString = originalScriptString.replaceAll("\\$", "\\\\\\$");
+          final Script script = scriptCompiler.compile(scriptString);
+          script.setStringScript(scriptString);
+          if (scripts.getOrDefault(messageEntity.getChatId(), Collections.emptyList())
+              .contains(script)) {
+            messageEntity.getSender()
+                .execute(new SendMessage().setText("Скрипт уже существует")
+                    .setChatId(messageEntity.getChatId())
+                    .setReplyToMessageId(messageEntity.getMessage().getMessageId()));
+            continue;
+          }
+          addTrigger(messageEntity.getSender(), messageEntity.getChatId(), script);
+          scripts.add(messageEntity.getChatId(), script);
+          scripts.get(messageEntity.getChatId()).sort(Script::compareTo);
+          dataHelper.getSettings().addScript(messageEntity.getChatId(), scriptString);
+          dataHelper.updateSettings();
 
-        sendScriptMenu(messageEntity, messageEntity.getText(), script);
+          sendScriptMenu(messageEntity, originalScriptString, script);
+        }
         return;
       } catch (Exception e) {
         final String message = e.getMessage().substring(0, Math.min(e.getMessage().length(), 1000));
@@ -123,8 +128,8 @@ public class ScriptMessageProcessor implements MessageProcessor, MessagePostLoad
     return false;
   }
 
-  protected void sendScriptMenu(TelegramMessageEntity messageEntity, String scriptString,
-      Script script) throws TelegramApiException {
+  protected Integer sendScriptMenu(TelegramMessageEntity messageEntity, String scriptString,
+                                Script script) throws TelegramApiException {
     InlineKeyboardMarkup keyboardMarkup = new InlineKeyboardMarkup();
 
     List<List<InlineKeyboardButton>> keyboard = new ArrayList<>();
@@ -149,21 +154,28 @@ public class ScriptMessageProcessor implements MessageProcessor, MessagePostLoad
     keyboard.add(inlineKeyboardButtons);
     keyboardMarkup.setKeyboard(keyboard);
 
-    messageEntity.getSender()
+    return messageEntity.getSender()
         .execute(new SendMessage().setChatId(messageEntity.getChatId())
             .setText(scriptString)
-            .setReplyMarkup(keyboardMarkup));
+            .setReplyMarkup(keyboardMarkup)).getMessageId();
   }
 
   @Override
   public boolean isRegardingCallback(CallbackQuery callbackQuery) {
-    return false;
+    return CollectionUtils.isNotEmpty(scripts.get(callbackQuery.getMessage().getChatId().toString()));
   }
 
   @Override
   public void processCallBack(CallbackQuery callbackQuery, AbsSender sender)
       throws TelegramApiException {
 
+    TelegramMessageEntity messageEntity = new TelegramMessageEntity(callbackQuery.getMessage(), callbackQuery, sender);
+
+    for (Script script : scripts.get(messageEntity.getChatId())) {
+      if (executeScript(messageEntity, script)) {
+        return;
+      }
+    }
   }
 
   public void clearScripts(final String chatId) {
@@ -218,7 +230,7 @@ public class ScriptMessageProcessor implements MessageProcessor, MessagePostLoad
       script.setTrigger(taskScheduler.schedule(() -> {
         Message message = new StaticMessage(chat);
         TelegramMessageEntity telegramMessageEntity = new TelegramMessageEntity(message,
-            absSender);
+            null, absSender);
         ScriptContext ctx = new ScriptContext(new MessageScriptEntity(telegramMessageEntity), new TelegramScriptEntity());
         script.execute(ctx);
       }, timePredicate.getTrigger()));

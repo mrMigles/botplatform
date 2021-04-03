@@ -1,5 +1,7 @@
 package ru.holyway.botplatform.scripting;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.ScheduledFuture;
@@ -7,7 +9,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-public class Script {
+public class Script implements Comparable<Script> {
 
   private final String name;
   private Predicate<ScriptContext> predicates;
@@ -16,6 +18,7 @@ public class Script {
   private boolean isEnabled = true;
   private String stringScript;
   private ScheduledFuture trigger;
+  private int order = 100;
 
   public Script(String name) {
     this.name = name;
@@ -68,6 +71,11 @@ public class Script {
     return this;
   }
 
+  public Script order(int order) {
+    this.order = order;
+    return this;
+  }
+
   public Script enabled(boolean isEnabled) {
     this.isEnabled = isEnabled;
     return this;
@@ -83,6 +91,10 @@ public class Script {
 
   public boolean isStopable() {
     return isStopable;
+  }
+
+  public int getOrder() {
+    return order;
   }
 
   public boolean isEnabled() {
@@ -126,5 +138,10 @@ public class Script {
     if (trigger != null) {
       trigger.cancel(true);
     }
+  }
+
+  @Override
+  public int compareTo(@NotNull Script script) {
+    return Integer.compare(this.order, script.order);
   }
 }

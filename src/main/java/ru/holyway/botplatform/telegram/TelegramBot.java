@@ -60,7 +60,7 @@ public class TelegramBot extends TelegramLongPollingBot implements Bot {
   public void onUpdateReceived(Update update) {
     Message message = update.hasChannelPost() ? update.getChannelPost() : update.getMessage();
     if (message != null) {
-      TelegramMessageEntity telegramMessageEntity = new TelegramMessageEntity(message, this);
+      TelegramMessageEntity telegramMessageEntity = new TelegramMessageEntity(message, update.getCallbackQuery(), this);
       for (MessageProcessor messageProcessor : messageProcessors) {
         try {
           if (messageProcessor.isNeedToHandle(telegramMessageEntity)) {

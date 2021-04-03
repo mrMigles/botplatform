@@ -33,8 +33,8 @@ public class ConditionHandler implements Consumer<ScriptContext> {
     return this;
   }
 
-  public ConditionHandler otherwise(Consumer<ScriptContext> thenConsumer) {
-    this.thenConsumer = thenConsumer;
+  public ConditionHandler otherwise(Consumer<ScriptContext> elseConsumer) {
+    this.elseConsumer = elseConsumer;
     return this;
   }
 }

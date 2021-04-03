@@ -28,13 +28,6 @@ public class TextJoiner extends AbstractText {
     return this;
   }
 
-  public Function<ScriptContext, String> path(final String path) {
-    return scriptContext -> {
-      Object res = JsonPath.read(value().apply(scriptContext), path);
-      return String.valueOf(res);
-    };
-  }
-
   public Function<ScriptContext, String> value() {
     return scriptContext -> {
       final StringBuilder stringBuilder = new StringBuilder();

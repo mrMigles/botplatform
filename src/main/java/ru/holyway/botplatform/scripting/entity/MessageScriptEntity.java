@@ -5,6 +5,7 @@ import ru.holyway.botplatform.scripting.ScriptContext;
 import ru.holyway.botplatform.telegram.TelegramMessageEntity;
 
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 public class MessageScriptEntity extends AbstractTelegramEntity {
 
@@ -23,6 +24,12 @@ public class MessageScriptEntity extends AbstractTelegramEntity {
       return ctx -> ctx.message.messageEntity.getMessage().getFrom().getUserName();
     }
   };
+
+  public CallbackScriptEntity callback = new CallbackScriptEntity();
+
+  public Predicate<ScriptContext> hasCallback() {
+    return scriptContext -> scriptContext.message.messageEntity.getCallbackQuery() != null;
+  }
 
   public MessageScriptEntity() {
   }

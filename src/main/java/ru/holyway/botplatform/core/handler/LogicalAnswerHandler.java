@@ -18,8 +18,8 @@ import java.util.Random;
 
 /**
  * Created by seiv0814 on 10-10-17.
- */
-@Component
+// */
+//@Component
 public class LogicalAnswerHandler implements MessageHandler {
 
     @Autowired

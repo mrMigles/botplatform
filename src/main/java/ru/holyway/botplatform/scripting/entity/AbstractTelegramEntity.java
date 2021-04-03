@@ -1,12 +1,17 @@
 package ru.holyway.botplatform.scripting.entity;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.telegram.telegrambots.meta.api.methods.ForwardMessage;
 import org.telegram.telegrambots.meta.api.methods.send.*;
 import org.telegram.telegrambots.meta.api.methods.stickers.GetStickerSet;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageReplyMarkup;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.media.InputMediaPhoto;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.stickers.Sticker;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.holyway.botplatform.scripting.ScriptContext;
@@ -22,6 +27,8 @@ import java.util.function.Predicate;
 public abstract class AbstractTelegramEntity {
 
   public abstract Function<ScriptContext, Message> entity();
+
+  private ObjectMapper mapper = new ObjectMapper();
 
   public Predicate<ScriptContext> hasSticker(String text) {
     return mes -> entity().apply(mes).getSticker().getFileId().equals(text);
@@ -46,6 +53,18 @@ public abstract class AbstractTelegramEntity {
         s.setContextValue("lastMessage", s.message.messageEntity.getSender()
             .execute(
                 new SendMessage().setText(text).setChatId(entity().apply(s).getChatId()))
+            .getMessageId().toString());
+      } catch (TelegramApiException e) {
+        e.printStackTrace();
+      }
+    };
+  }
+
+  public Consumer<ScriptContext> sendMessage(Function<ScriptContext, SendMessage> messageFunction) {
+    return s -> {
+      try {
+        s.setContextValue("lastMessage", s.message.messageEntity.getSender()
+            .execute(messageFunction.apply(s))
             .getMessageId().toString());
       } catch (TelegramApiException e) {
         e.printStackTrace();
@@ -166,25 +185,51 @@ public abstract class AbstractTelegramEntity {
     };
   }
 
-  public Consumer<ScriptContext> forward(String chatId) {
+  public Consumer<ScriptContext> edit(Function<ScriptContext, SendMessage> message) {
     return s -> {
       try {
-        s.setContextValue("lastMessage", s.message.messageEntity.getSender()
-            .execute(new ForwardMessage().setMessageId(entity().apply(s).getMessageId())
-                .setChatId(chatId).setFromChatId(entity().apply(s).getChatId())).getMessageId()
-            .toString());
+        SendMessage sendMessage = message.apply(s);
+
+        if (StringUtils.isNotEmpty(sendMessage.getText())) {
+          s.message.messageEntity.getSender()
+              .execute(
+                  new EditMessageText()
+                      .setMessageId(entity().apply(s).getMessageId())
+                      .setChatId(entity().apply(s).getChatId())
+                      .setText(sendMessage.getText())
+                      .setReplyMarkup(entity().apply(s).getReplyMarkup())
+              );
+        }
+
+        if (entity().apply(s).getReplyMarkup() != null && sendMessage.getReplyMarkup() != null && !sendMessage.getReplyMarkup().equals(entity().apply(s).getReplyMarkup())) {
+          s.message.messageEntity.getSender()
+              .execute(
+                  new EditMessageReplyMarkup()
+                      .setMessageId(entity().apply(s).getMessageId())
+                      .setChatId(entity().apply(s).getChatId())
+                      .setReplyMarkup((InlineKeyboardMarkup) sendMessage.getReplyMarkup())
+              );
+        }
       } catch (TelegramApiException e) {
         e.printStackTrace();
       }
     };
   }
 
+  public Consumer<ScriptContext> forward(String chatId) {
+    return forward();
+  }
+
   public Consumer<ScriptContext> forward(Long chatId) {
+    return forward();
+  }
+
+  public Consumer<ScriptContext> forward() {
     return s -> {
       try {
         s.setContextValue("lastMessage", s.message.messageEntity.getSender()
             .execute(new ForwardMessage().setMessageId(entity().apply(s).getMessageId())
-                .setChatId(chatId).setFromChatId(entity().apply(s).getChatId())).getMessageId()
+                .setChatId(s.message.messageEntity.getChatId()).setFromChatId(entity().apply(s).getChatId())).getMessageId()
             .toString());
       } catch (TelegramApiException e) {
         e.printStackTrace();
@@ -216,6 +261,14 @@ public abstract class AbstractTelegramEntity {
   public TextJoiner getId() {
     return TextJoiner.text(scriptContext -> entity().apply(scriptContext).getMessageId().toString());
   }
+
+  public TextJoiner json = TextJoiner.text(scriptContext -> {
+    try {
+      return mapper.writeValueAsString(entity().apply(scriptContext));
+    } catch (JsonProcessingException e) {
+      throw new RuntimeException(e);
+    }
+  });
 
   public ChatTelegramEntity chat() {
     return new ChatTelegramEntity(getChatId());

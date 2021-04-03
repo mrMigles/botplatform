@@ -21,7 +21,7 @@ import ru.holyway.botplatform.core.entity.Record;
 /**
  * Created by seiv0814 on 10-10-17.
  */
-@Component
+//@Component
 public class RecordsHandler implements MessageHandler {
 
   private List<Record> recordsList = new ArrayList<>();

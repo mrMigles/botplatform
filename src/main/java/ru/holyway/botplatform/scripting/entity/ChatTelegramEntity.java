@@ -1,5 +1,6 @@
 package ru.holyway.botplatform.scripting.entity;
 
+import org.telegram.telegrambots.meta.api.methods.groupadministration.SetChatTitle;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.holyway.botplatform.scripting.ScriptContext;
@@ -41,6 +42,26 @@ public class ChatTelegramEntity {
 
   public Consumer<ScriptContext> delete(Function<ScriptContext, String> idFunc) {
     return scriptContext -> delete(Integer.parseInt(idFunc.apply(scriptContext))).accept(scriptContext);
+  }
+
+  public Consumer<ScriptContext> editTitle(Function<ScriptContext, String> title) {
+    return scriptContext -> {
+      try {
+        scriptContext.message.messageEntity.getSender().execute(new SetChatTitle().setChatId(getId().apply(scriptContext)).setTitle(title.apply(scriptContext)));
+      } catch (TelegramApiException e) {
+        e.printStackTrace();
+      }
+    };
+  }
+
+  public Consumer<ScriptContext> editTitle(String title) {
+    return scriptContext -> {
+      try {
+        scriptContext.message.messageEntity.getSender().execute(new SetChatTitle().setChatId(getId().apply(scriptContext)).setTitle(title));
+      } catch (TelegramApiException e) {
+        e.printStackTrace();
+      }
+    };
   }
 
   public TextJoiner getId() {

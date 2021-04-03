@@ -11,7 +11,7 @@ public class TelegramScriptEntity {
 
   }
 
-  public Consumer<ScriptContext> send(String chatId, String text) {
+  private Consumer<ScriptContext> send(String chatId, String text) {
     return s -> {
       try {
         s.message.messageEntity.getSender()
@@ -22,7 +22,7 @@ public class TelegramScriptEntity {
     };
   }
 
-  public Consumer<ScriptContext> send(Long chatId, String text) {
+  private Consumer<ScriptContext> send(Long chatId, String text) {
     return s -> {
       try {
         s.message.messageEntity.getSender()
@@ -33,11 +33,11 @@ public class TelegramScriptEntity {
     };
   }
 
-  public Consumer<ScriptContext> send(Long chatId, Function<ScriptContext, String> supplierText) {
+  private Consumer<ScriptContext> send(Long chatId, Function<ScriptContext, String> supplierText) {
     return s -> send(chatId, supplierText.apply(s)).accept(s);
   }
 
-  public Consumer<ScriptContext> send(String chatId, Function<ScriptContext, String> supplierText) {
+  private Consumer<ScriptContext> send(String chatId, Function<ScriptContext, String> supplierText) {
     return s -> send(chatId, supplierText.apply(s)).accept(s);
   }
 }
