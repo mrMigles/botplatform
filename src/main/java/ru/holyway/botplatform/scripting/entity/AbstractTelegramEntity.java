@@ -9,6 +9,7 @@ import org.telegram.telegrambots.meta.api.methods.stickers.GetStickerSet;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageReplyMarkup;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
+import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.media.InputMediaPhoto;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -52,7 +53,7 @@ public abstract class AbstractTelegramEntity {
       try {
         s.setContextValue("lastMessage", s.message.messageEntity.getSender()
             .execute(
-                new SendMessage().setText(text).setChatId(entity().apply(s).getChatId()))
+                SendMessage.builder().text(text).chatId(String.valueOf(entity().apply(s).getChatId())).build())
             .getMessageId().toString());
       } catch (TelegramApiException e) {
         e.printStackTrace();
@@ -77,8 +78,8 @@ public abstract class AbstractTelegramEntity {
       try {
         s.setContextValue("lastMessage", s.message.messageEntity.getSender()
             .execute(
-                new SendSticker().setSticker(fileId)
-                    .setChatId(entity().apply(s).getChatId())).getMessageId().toString());
+                SendSticker.builder().sticker(new InputFile(fileId))
+                    .chatId(String.valueOf(entity().apply(s).getChatId())).build()).getMessageId().toString());
       } catch (TelegramApiException e) {
         e.printStackTrace();
       }
@@ -89,14 +90,14 @@ public abstract class AbstractTelegramEntity {
     return s -> {
       try {
         List<Sticker> stickers = s.message.messageEntity.getSender()
-            .execute(new GetStickerSet().setName(stickerSet)).getStickers();
+            .execute(GetStickerSet.builder().name(stickerSet).build()).getStickers();
         Sticker foundSticker = stickers.stream()
             .filter(sticker -> StringUtils.startsWithIgnoreCase(sticker.getEmoji(), emoji)).findFirst()
             .orElseThrow(TelegramApiException::new);
         s.setContextValue("lastMessage", s.message.messageEntity.getSender()
             .execute(
-                new SendSticker().setSticker(foundSticker.getFileId())
-                    .setChatId(entity().apply(s).getChatId())).getMessageId().toString());
+                SendSticker.builder().sticker(new InputFile(foundSticker.getFileId()))
+                    .chatId(String.valueOf(entity().apply(s).getChatId())).build()).getMessageId().toString());
       } catch (TelegramApiException e) {
         e.printStackTrace();
       }
@@ -107,12 +108,12 @@ public abstract class AbstractTelegramEntity {
     return s -> {
       try {
         List<Sticker> stickers = s.message.messageEntity.getSender()
-            .execute(new GetStickerSet().setName(stickerSet)).getStickers();
+            .execute(GetStickerSet.builder().name(stickerSet).build()).getStickers();
         s.setContextValue("lastMessage", s.message.messageEntity.getSender()
             .execute(
-                new SendSticker()
-                    .setSticker(stickers.get(new Random().nextInt(stickers.size())).getFileId())
-                    .setChatId(entity().apply(s).getChatId())).getMessageId().toString());
+                SendSticker.builder()
+                    .sticker(new InputFile(stickers.get(new Random().nextInt(stickers.size())).getFileId()))
+                    .chatId(String.valueOf(entity().apply(s).getChatId())).build()).getMessageId().toString());
       } catch (TelegramApiException e) {
         e.printStackTrace();
       }
@@ -126,10 +127,10 @@ public abstract class AbstractTelegramEntity {
   public Consumer<ScriptContext> sendMedia(String url) {
     return s -> {
       try {
-        SendMediaGroup sendMediaGroup = new SendMediaGroup()
-            .setChatId(entity().apply(s).getChatId());
-        sendMediaGroup.setMedia(
-            Collections.singletonList(new InputMediaPhoto(url, "")));
+        SendMediaGroup sendMediaGroup = new SendMediaGroup();
+        sendMediaGroup.setChatId(String.valueOf(entity().apply(s).getChatId()));
+        sendMediaGroup.setMedias(
+            Collections.singletonList(new InputMediaPhoto(url)));
         s.message.messageEntity.getSender()
             .execute(sendMediaGroup);
       } catch (TelegramApiException e) {
@@ -141,11 +142,11 @@ public abstract class AbstractTelegramEntity {
   public Consumer<ScriptContext> sendPhoto(String url) {
     return s -> {
       try {
-        SendPhoto sendMediaGroup = new SendPhoto()
-            .setChatId(entity().apply(s).getChatId());
-        sendMediaGroup.setPhoto(url);
+        SendPhoto.SendPhotoBuilder sendMediaGroup = SendPhoto.builder()
+            .chatId(String.valueOf(entity().apply(s).getChatId()));
+        sendMediaGroup.photo(new InputFile(url));
         s.setContextValue("lastMessage", s.message.messageEntity.getSender()
-            .execute(sendMediaGroup).getMessageId().toString());
+            .execute(sendMediaGroup.build()).getMessageId().toString());
       } catch (TelegramApiException e) {
         e.printStackTrace();
       }
@@ -155,9 +156,9 @@ public abstract class AbstractTelegramEntity {
   public Consumer<ScriptContext> sendVideo(String url) {
     return s -> {
       try {
-        SendVideo sendMediaGroup = new SendVideo()
-            .setChatId(entity().apply(s).getChatId());
-        sendMediaGroup.setVideo(url);
+        SendVideo sendMediaGroup = SendVideo.builder()
+            .chatId(String.valueOf(entity().apply(s).getChatId())).build();
+        sendMediaGroup.setVideo(new InputFile(url));
         s.setContextValue("lastMessage", s.message.messageEntity.getSender()
             .execute(sendMediaGroup).getMessageId().toString());
       } catch (TelegramApiException e) {
@@ -175,9 +176,9 @@ public abstract class AbstractTelegramEntity {
       try {
         s.setContextValue("lastMessage", s.message.messageEntity.getSender()
             .execute(
-                new SendMessage()
-                    .setReplyToMessageId(entity().apply(s).getMessageId())
-                    .setText(text).setChatId(entity().apply(s).getChatId())).getMessageId()
+                SendMessage.builder()
+                    .replyToMessageId(entity().apply(s).getMessageId())
+                    .text(text).chatId(String.valueOf(entity().apply(s).getChatId())).build()).getMessageId()
             .toString());
       } catch (TelegramApiException e) {
         e.printStackTrace();
@@ -193,21 +194,21 @@ public abstract class AbstractTelegramEntity {
         if (StringUtils.isNotEmpty(sendMessage.getText())) {
           s.message.messageEntity.getSender()
               .execute(
-                  new EditMessageText()
-                      .setMessageId(entity().apply(s).getMessageId())
-                      .setChatId(entity().apply(s).getChatId())
-                      .setText(sendMessage.getText())
-                      .setReplyMarkup(entity().apply(s).getReplyMarkup())
+                  EditMessageText.builder()
+                      .messageId(entity().apply(s).getMessageId())
+                      .chatId(String.valueOf(entity().apply(s).getChatId()))
+                      .text(sendMessage.getText())
+                      .replyMarkup(entity().apply(s).getReplyMarkup()).build()
               );
         }
 
         if (entity().apply(s).getReplyMarkup() != null && sendMessage.getReplyMarkup() != null && !sendMessage.getReplyMarkup().equals(entity().apply(s).getReplyMarkup())) {
           s.message.messageEntity.getSender()
               .execute(
-                  new EditMessageReplyMarkup()
-                      .setMessageId(entity().apply(s).getMessageId())
-                      .setChatId(entity().apply(s).getChatId())
-                      .setReplyMarkup((InlineKeyboardMarkup) sendMessage.getReplyMarkup())
+                  EditMessageReplyMarkup.builder()
+                      .messageId(entity().apply(s).getMessageId())
+                      .chatId(String.valueOf(entity().apply(s).getChatId()))
+                      .replyMarkup((InlineKeyboardMarkup) sendMessage.getReplyMarkup()).build()
               );
         }
       } catch (TelegramApiException e) {
@@ -228,8 +229,8 @@ public abstract class AbstractTelegramEntity {
     return s -> {
       try {
         s.setContextValue("lastMessage", s.message.messageEntity.getSender()
-            .execute(new ForwardMessage().setMessageId(entity().apply(s).getMessageId())
-                .setChatId(s.message.messageEntity.getChatId()).setFromChatId(entity().apply(s).getChatId())).getMessageId()
+            .execute(ForwardMessage.builder().messageId(entity().apply(s).getMessageId())
+                .chatId(s.message.messageEntity.getChatId()).fromChatId(String.valueOf(entity().apply(s).getChatId())).build()).getMessageId()
             .toString());
       } catch (TelegramApiException e) {
         e.printStackTrace();
@@ -245,9 +246,9 @@ public abstract class AbstractTelegramEntity {
     return s -> {
       try {
         s.message.messageEntity.getSender()
-            .execute(new DeleteMessage()
-                .setMessageId(entity().apply(s).getMessageId())
-                .setChatId(entity().apply(s).getChatId()));
+            .execute(DeleteMessage.builder()
+                .messageId(entity().apply(s).getMessageId())
+                .chatId(String.valueOf(entity().apply(s).getChatId())).build());
       } catch (TelegramApiException e) {
         e.printStackTrace();
       }

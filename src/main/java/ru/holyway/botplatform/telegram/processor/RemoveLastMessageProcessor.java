@@ -8,8 +8,8 @@ import org.telegram.telegrambots.meta.api.methods.groupadministration.GetChatAdm
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
-import org.telegram.telegrambots.meta.api.objects.ChatMember;
 import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.chatmember.ChatMember;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.holyway.botplatform.telegram.TelegramMessageEntity;
@@ -38,7 +38,7 @@ public class RemoveLastMessageProcessor implements MessageProcessor {
             i++) {
           try {
             messageEntity.getSender()
-                .execute(new DeleteMessage().setChatId(messageEntity.getChatId()).setMessageId(i));
+                .execute(DeleteMessage.builder().chatId(messageEntity.getChatId()).messageId(i).build());
           } catch (Exception e) {
             e.printStackTrace();
           }
@@ -47,17 +47,17 @@ public class RemoveLastMessageProcessor implements MessageProcessor {
 
     } catch (Exception e) {
       messageEntity.getSender()
-          .execute(new SendMessage().setChatId(messageEntity.getChatId()).setText("Нимагу"));
+          .execute(SendMessage.builder().chatId(messageEntity.getChatId()).text("Нимагу").build());
       e.printStackTrace();
     }
   }
 
   private boolean hasGrants(TelegramMessageEntity messageEntity) throws TelegramApiException {
     List<ChatMember> chatMembers = messageEntity.getSender()
-        .execute(new GetChatAdministrators().setChatId(messageEntity.getChatId()));
+        .execute(GetChatAdministrators.builder().chatId(messageEntity.getChatId()).build());
     for (ChatMember chatMember : chatMembers) {
       if (chatMember.getUser().getId().equals(messageEntity.getMessage().getFrom().getId())) {
-        if (chatMember.getStatus().equals("creator") || chatMember.getCanDeleteMessages()) {
+        if (chatMember.getStatus().equals("creator") || chatMember.getUser().getCanReadAllGroupMessages()) {
           return true;
         }
       }

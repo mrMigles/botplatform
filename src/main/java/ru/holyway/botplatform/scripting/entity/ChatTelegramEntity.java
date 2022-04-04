@@ -33,7 +33,7 @@ public class ChatTelegramEntity {
     return scriptContext -> {
       try {
         scriptContext.message.messageEntity.getSender()
-            .execute(new DeleteMessage().setChatId(getId().apply(scriptContext)).setMessageId(id));
+            .execute(DeleteMessage.builder().chatId(getId().apply(scriptContext)).messageId(id).build());
       } catch (TelegramApiException e) {
         e.printStackTrace();
       }
@@ -47,7 +47,7 @@ public class ChatTelegramEntity {
   public Consumer<ScriptContext> editTitle(Function<ScriptContext, String> title) {
     return scriptContext -> {
       try {
-        scriptContext.message.messageEntity.getSender().execute(new SetChatTitle().setChatId(getId().apply(scriptContext)).setTitle(title.apply(scriptContext)));
+        scriptContext.message.messageEntity.getSender().execute(SetChatTitle.builder().chatId(getId().apply(scriptContext)).title(title.apply(scriptContext)).build());
       } catch (TelegramApiException e) {
         e.printStackTrace();
       }
@@ -57,7 +57,7 @@ public class ChatTelegramEntity {
   public Consumer<ScriptContext> editTitle(String title) {
     return scriptContext -> {
       try {
-        scriptContext.message.messageEntity.getSender().execute(new SetChatTitle().setChatId(getId().apply(scriptContext)).setTitle(title));
+        scriptContext.message.messageEntity.getSender().execute(SetChatTitle.builder().chatId(getId().apply(scriptContext)).title(title).build());
       } catch (TelegramApiException e) {
         e.printStackTrace();
       }

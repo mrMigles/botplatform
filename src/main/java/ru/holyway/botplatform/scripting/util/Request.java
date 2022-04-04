@@ -2,7 +2,10 @@ package ru.holyway.botplatform.scripting.util;
 
 import com.jayway.jsonpath.JsonPath;
 import org.apache.http.client.HttpClient;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.ssl.SSLContexts;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.util.LinkedMultiValueMap;
@@ -12,6 +15,7 @@ import org.springframework.web.client.RestTemplate;
 import ru.holyway.botplatform.config.RequestFactory.HttpComponentsClientHttpRequestWithBodyFactory;
 import ru.holyway.botplatform.scripting.ScriptContext;
 
+import javax.net.ssl.SSLContext;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -26,9 +30,17 @@ public class Request {
   private static RestTemplate restTemplate = new RestTemplate();
 
   static {
+    SSLContext sslContext = SSLContexts.createDefault();
+
+    SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslContext,
+        new String[]{"TLSv1", "TLSv1.1", "TLSv1.2"},
+        null,
+        new NoopHostnameVerifier());
+
     HttpClient httpClient = HttpClientBuilder.create()
         .disableCookieManagement()
         .useSystemProperties()
+        .setSSLSocketFactory(sslsf)
         .build();
     HttpComponentsClientHttpRequestWithBodyFactory factory = new HttpComponentsClientHttpRequestWithBodyFactory();
     factory.setHttpClient(httpClient);
@@ -137,13 +149,17 @@ public class Request {
         httpEntity = new HttpEntity<>(body, headers);
       }
 
-      final String response;
+      String response = "";
 
       if (isLast && scriptContext.getContextValue("request") != null) {
         response = scriptContext.getContextValue("request");
       } else {
-        response = restTemplate
-            .exchange(url, method, httpEntity, String.class).getBody();
+        try {
+          response = restTemplate
+              .exchange(url, method, httpEntity, String.class).getBody();
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
         scriptContext.setContextValue("request", response);
       }
 

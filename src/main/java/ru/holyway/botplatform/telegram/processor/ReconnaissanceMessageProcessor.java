@@ -58,7 +58,7 @@ public class ReconnaissanceMessageProcessor implements MessageProcessor {
   @Override
   public boolean isNeedToHandle(TelegramMessageEntity messageEntity) {
     final String mes = messageEntity.getText();
-    if (!messageEntity.getMessage().getFrom().getBot()) {
+    if (!messageEntity.getMessage().getFrom().getIsBot()) {
       reconUser(messageEntity);
     }
     return StringUtils.equals(mes, "/who") || StringUtils.equalsIgnoreCase(mes, "Пахом, кто тут");
@@ -115,7 +115,7 @@ public class ReconnaissanceMessageProcessor implements MessageProcessor {
 
     final Message mes = messageEntity.getSender().execute(message);
     messageEntity.getSender()
-        .execute(new PinChatMessage().setChatId(mes.getChatId()).setMessageId(mes.getMessageId()));
+        .execute(PinChatMessage.builder().chatId(String.valueOf(mes.getChatId())).messageId(mes.getMessageId()).build());
 
     ex.setRemoveOnCancelPolicy(true);
 
@@ -161,7 +161,7 @@ public class ReconnaissanceMessageProcessor implements MessageProcessor {
         showResult(String.valueOf(callbackQuery.getMessage().getChatId()),
             callbackQuery.getMessage().getMessageId(), sender);
       } else {
-        Integer userCount = sender.execute(new GetChatMemberCount().setChatId(chatID));
+        Integer userCount = sender.execute(GetChatMemberCount.builder().chatId(chatID).build());
         if (userCount - 1 == currentChatMembers.size()) {
           showResult(String.valueOf(callbackQuery.getMessage().getChatId()),
               callbackQuery.getMessage().getMessageId(), sender);
@@ -184,18 +184,18 @@ public class ReconnaissanceMessageProcessor implements MessageProcessor {
     editMessageReplyMarkup.setChatId(chatId);
     editMessageReplyMarkup.setMessageId(messageId);
     sender.execute(editMessageReplyMarkup);
-    sender.execute(new DeleteMessage().setChatId(chatId).setMessageId(messageId));
+    sender.execute(DeleteMessage.builder().chatId(chatId).messageId(messageId).build());
     List<String> users = new ArrayList<>();
     for (String user : currentReconChatMembers.get(chatId)) {
       users.add(
-          sender.execute(new GetChatMember().setChatId(chatId).setUserId(Integer.valueOf(user)))
+          sender.execute(GetChatMember.builder().chatId(chatId).userId(Long.valueOf(user)).build())
               .getUser().getUserName());
     }
-    sender.execute(new SendMessage().setChatId(chatId)
-        .setText("Спасибо за отклик, братишки:\n" + StringUtils.join(users, "\n")));
+    sender.execute(SendMessage.builder().chatId(chatId)
+        .text("Спасибо за отклик, братишки:\n" + StringUtils.join(users, "\n")).build());
 
     try {
-      sender.execute(new UnpinChatMessage().setChatId(chatId));
+      sender.execute(UnpinChatMessage.builder().chatId(chatId).build());
     } catch (Exception e) {
       e.printStackTrace();
     }

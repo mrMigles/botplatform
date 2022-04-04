@@ -10,7 +10,6 @@ import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAuto
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.telegram.telegrambots.ApiContextInitializer;
 import ru.holyway.botplatform.core.Bot;
 
 @EnableWebSecurity
@@ -28,7 +27,6 @@ public class BotPlatformApplication {
   }
 
   public static void main(String[] args) {
-    ApiContextInitializer.init();
     SpringApplication.run(BotPlatformApplication.class, args);
   }
 

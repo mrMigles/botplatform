@@ -7,7 +7,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 
 public class ProcessorsContext {
 
-  private Map<String, Set<Integer>> bannedAdmins = new ConcurrentHashMap<>();
+  private Map<String, Set<Long>> bannedAdmins = new ConcurrentHashMap<>();
 
   private final static ProcessorsContext PROCESSORS_CONTEXT = new ProcessorsContext();
 
@@ -15,12 +15,12 @@ public class ProcessorsContext {
     return PROCESSORS_CONTEXT;
   }
 
-  public Set<Integer> getBannedAdmins(final String chatID) {
+  public Set<Long> getBannedAdmins(final String chatID) {
     return bannedAdmins.get(chatID);
   }
 
-  public void addBannedAdmin(final String chatID, final Integer userID) {
-    Set<Integer> userIDs = getBannedAdmins(chatID);
+  public void addBannedAdmin(final String chatID, final Long userID) {
+    Set<Long> userIDs = getBannedAdmins(chatID);
     if (userIDs == null) {
       userIDs = new CopyOnWriteArraySet<>();
     }
@@ -28,8 +28,8 @@ public class ProcessorsContext {
     bannedAdmins.put(chatID, userIDs);
   }
 
-  public void removeBannedAdmin(final String chatID, final Integer userID) {
-    Set<Integer> userIDs = getBannedAdmins(chatID);
+  public void removeBannedAdmin(final String chatID, final Long userID) {
+    Set<Long> userIDs = getBannedAdmins(chatID);
     if (userIDs != null) {
       userIDs.remove(userID);
       bannedAdmins.put(chatID, userIDs);

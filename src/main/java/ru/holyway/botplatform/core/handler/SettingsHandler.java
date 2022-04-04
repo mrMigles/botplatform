@@ -41,7 +41,7 @@ public class SettingsHandler implements MessageHandler {
       removeFromMute(chatId);
       return "О, братишка, я вернулся!";
     }
-    if (StringUtils.containsIgnoreCase(mes, "/help")) {
+    if (StringUtils.equalsIgnoreCase(mes, "/help@pakhom_bot") || StringUtils.equalsIgnoreCase(mes, "/help")) {
       return "Петь я больше не умею, в прочем, как и говорить...\n"
           + "Пахом Bot - 2 серия.\n\n" +
           "`Пахом, что такое [слово]?` - попытаюсь объяснить, если знаю\n" +

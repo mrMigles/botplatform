@@ -14,6 +14,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 import ru.holyway.botplatform.core.Bot;
 import ru.holyway.botplatform.core.CommonHandler;
 import ru.holyway.botplatform.telegram.processor.MessagePostLoader;
@@ -101,8 +102,8 @@ public class TelegramBot extends TelegramLongPollingBot implements Bot {
   @Override
   public void init() {
     if (StringUtils.isNotEmpty(botName) && StringUtils.isNotEmpty(botToken)) {
-      TelegramBotsApi telegramBotsApi = new TelegramBotsApi();
       try {
+        TelegramBotsApi telegramBotsApi = new TelegramBotsApi(DefaultBotSession.class);
         telegramBotsApi.registerBot(this);
       } catch (Exception e) {
         e.printStackTrace();

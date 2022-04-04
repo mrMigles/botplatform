@@ -15,6 +15,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
+import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -66,7 +67,7 @@ public class RandomMemeProcessor implements MessageProcessor {
           ImageIO.write(result, "jpg", os);
           InputStream is = new ByteArrayInputStream(os.toByteArray());
           messageEntity.getSender().execute(
-              new SendPhoto().setPhoto("new", is).setChatId(messageEntity.getChatId()));
+              SendPhoto.builder().photo(new InputFile(is, "new")).chatId(messageEntity.getChatId()).build());
         }
       } catch (IOException | InterruptedException e) {
         e.printStackTrace();

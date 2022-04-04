@@ -15,7 +15,7 @@ public class TelegramScriptEntity {
     return s -> {
       try {
         s.message.messageEntity.getSender()
-            .execute(new SendMessage().setText(text).setChatId(chatId));
+            .execute(SendMessage.builder().text(text).chatId(chatId).build());
       } catch (TelegramApiException e) {
         e.printStackTrace();
       }
@@ -26,7 +26,7 @@ public class TelegramScriptEntity {
     return s -> {
       try {
         s.message.messageEntity.getSender()
-            .execute(new SendMessage().setText(text).setChatId(chatId));
+            .execute(SendMessage.builder().text(text).chatId(String.valueOf(chatId)).build());
       } catch (TelegramApiException e) {
         e.printStackTrace();
       }

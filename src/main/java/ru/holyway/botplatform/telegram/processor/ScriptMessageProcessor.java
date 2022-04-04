@@ -80,9 +80,9 @@ public class ScriptMessageProcessor implements MessageProcessor, MessagePostLoad
           if (scripts.getOrDefault(messageEntity.getChatId(), Collections.emptyList())
               .contains(script)) {
             messageEntity.getSender()
-                .execute(new SendMessage().setText("Скрипт уже существует")
-                    .setChatId(messageEntity.getChatId())
-                    .setReplyToMessageId(messageEntity.getMessage().getMessageId()));
+                .execute(SendMessage.builder().text("Скрипт уже существует")
+                    .chatId(messageEntity.getChatId())
+                    .replyToMessageId(messageEntity.getMessage().getMessageId()).build());
             continue;
           }
           addTrigger(messageEntity.getSender(), messageEntity.getChatId(), script);
@@ -97,8 +97,8 @@ public class ScriptMessageProcessor implements MessageProcessor, MessagePostLoad
       } catch (Exception e) {
         final String message = e.getMessage().substring(0, Math.min(e.getMessage().length(), 1000));
         messageEntity.getSender()
-            .execute(new SendMessage().setText("Ошибка компиляции: \n" + message)
-                .setChatId(messageEntity.getChatId()));
+            .execute(SendMessage.builder().text("Ошибка компиляции: \n" + message)
+                .chatId(messageEntity.getChatId()).build());
         throw e;
       }
     }
@@ -155,9 +155,9 @@ public class ScriptMessageProcessor implements MessageProcessor, MessagePostLoad
     keyboardMarkup.setKeyboard(keyboard);
 
     return messageEntity.getSender()
-        .execute(new SendMessage().setChatId(messageEntity.getChatId())
-            .setText(scriptString)
-            .setReplyMarkup(keyboardMarkup)).getMessageId();
+        .execute(SendMessage.builder().chatId(messageEntity.getChatId())
+            .text(scriptString)
+            .replyMarkup(keyboardMarkup).build()).getMessageId();
   }
 
   @Override

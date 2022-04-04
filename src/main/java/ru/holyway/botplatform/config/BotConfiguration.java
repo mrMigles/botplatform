@@ -30,7 +30,6 @@ import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 import org.springframework.web.client.RestTemplate;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
-import org.telegram.telegrambots.meta.ApiContext;
 import ru.holyway.botplatform.core.Bot;
 import ru.holyway.botplatform.core.CommonHandler;
 import ru.holyway.botplatform.core.CommonMessageHandler;
@@ -74,7 +73,7 @@ public class BotConfiguration {
 
   @Bean
   public Bot telegramBot() {
-    return new TelegramBot(botOptions());
+    return new TelegramBot();
   }
 
   @Bean
@@ -183,27 +182,27 @@ public class BotConfiguration {
     }
   }
 
-  @Bean
-  public DefaultBotOptions botOptions() {
-    if (!org.apache.commons.lang3.StringUtils
-        .isEmpty(proxyUser) && !org.apache.commons.lang3.StringUtils.isEmpty(proxyPass)) {
-      Authenticator.setDefault(new Authenticator() {
-        @Override
-        protected PasswordAuthentication getPasswordAuthentication() {
-          return new PasswordAuthentication(proxyUser, proxyPass.toCharArray());
-        }
-      });
-    }
-
-    DefaultBotOptions botOptions = ApiContext.getInstance(DefaultBotOptions.class);
-
-    if (!StringUtils.isEmpty(proxyHost) && !StringUtils.isEmpty(proxyPort)) {
-      botOptions.setProxyHost(proxyHost);
-      botOptions.setProxyPort(Integer.valueOf(proxyPort));
-      botOptions.setProxyType(DefaultBotOptions.ProxyType.SOCKS5);
-    }
-    return botOptions;
-  }
+//  @Bean
+//  public DefaultBotOptions botOptions() {
+//    if (!org.apache.commons.lang3.StringUtils
+//        .isEmpty(proxyUser) && !org.apache.commons.lang3.StringUtils.isEmpty(proxyPass)) {
+//      Authenticator.setDefault(new Authenticator() {
+//        @Override
+//        protected PasswordAuthentication getPasswordAuthentication() {
+//          return new PasswordAuthentication(proxyUser, proxyPass.toCharArray());
+//        }
+//      });
+//    }
+//
+//    DefaultBotOptions botOptions = ApiContext.getInstance(DefaultBotOptions.class);
+//
+//    if (!StringUtils.isEmpty(proxyHost) && !StringUtils.isEmpty(proxyPort)) {
+//      botOptions.setProxyHost(proxyHost);
+//      botOptions.setProxyPort(Integer.valueOf(proxyPort));
+//      botOptions.setProxyType(DefaultBotOptions.ProxyType.SOCKS5);
+//    }
+//    return botOptions;
+//  }
 
   @Bean
   public RetryTemplate retryTemplate() {

@@ -41,8 +41,8 @@ public class AllNotifyMessageProseccor implements MessageProcessor {
     final List<String> users = new ArrayList<>();
     dataHelper.getChatMembers(messageEntity.getChatId()).forEach(userId -> {
       try {
-        User user = messageEntity.getSender().execute(new GetChatMember().setUserId(
-            Integer.valueOf(userId)).setChatId(messageEntity.getChatId())).getUser();
+        User user = messageEntity.getSender().execute(GetChatMember.builder().userId(
+            Long.valueOf(userId)).chatId(messageEntity.getChatId()).build()).getUser();
         String nameOfUser = user.getUserName();
         if (StringUtils.isEmpty(nameOfUser)) {
           nameOfUser = user.getFirstName() + " " + user.getLastName();
@@ -54,8 +54,8 @@ public class AllNotifyMessageProseccor implements MessageProcessor {
     });
     if (!users.isEmpty()) {
       messageEntity.getSender().execute(
-          new SendMessage().setReplyToMessageId(messageEntity.getMessage().getMessageId())
-              .setText(String.join(", ", users)).setChatId(messageEntity.getChatId()));
+          SendMessage.builder().replyToMessageId(messageEntity.getMessage().getMessageId())
+              .text(String.join(", ", users)).chatId(messageEntity.getChatId()).build());
     }
   }
 

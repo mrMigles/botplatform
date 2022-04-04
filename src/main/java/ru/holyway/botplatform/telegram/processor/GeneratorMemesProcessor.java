@@ -17,6 +17,7 @@ import org.telegram.telegrambots.meta.api.methods.GetFile;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
+import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.holyway.botplatform.telegram.TelegramMessageEntity;
@@ -57,30 +58,30 @@ public class GeneratorMemesProcessor implements MessageProcessor {
         askImage.remove(messageEntity.getSenderLogin());
         askWord.remove(messageEntity.getSenderLogin());
         messageEntity.getSender().execute(
-            new SendMessage().setText(messageEntity.getSenderName() + ", хорошо, забыли.")
-                .setChatId(messageEntity.getChatId()));
+            SendMessage.builder().text(messageEntity.getSenderName() + ", хорошо, забыли.")
+                .chatId(messageEntity.getChatId()).build());
         return;
       }
     }
     if (StringUtils.isNotEmpty(mes) && (mes.contains("/meme") || StringUtils
         .containsIgnoreCase(mes, "сделай мем"))) {
       messageEntity.getSender().execute(
-          new SendMessage().setText("Пришлите фото для мема").setChatId(messageEntity.getChatId()));
+          SendMessage.builder().text("Пришлите фото для мема").chatId(messageEntity.getChatId()).build());
       askImage.put(messageEntity.getSenderLogin(), true);
       return;
     }
     if (askImage.get(messageEntity.getSenderLogin()) != null && messageEntity.getMessage()
         .hasPhoto()) {
-      final String url = messageEntity.getSender().execute(new GetFile().setFileId(
+      final String url = messageEntity.getSender().execute(GetFile.builder().fileId(
           messageEntity.getMessage().getPhoto()
-              .get(messageEntity.getMessage().getPhoto().size() - 1).getFileId()))
+              .get(messageEntity.getMessage().getPhoto().size() - 1).getFileId()).build())
           .getFileUrl(token);
       try {
         BufferedImage bufferedImage = ImageIO.read(new URL(url));
         inageToChat.put(messageEntity.getChatId(), bufferedImage);
         messageEntity.getSender().execute(
-            new SendMessage().setText("Напишите фразу для мема")
-                .setChatId(messageEntity.getChatId()));
+             SendMessage.builder().text("Напишите фразу для мема")
+                .chatId(messageEntity.getChatId()).build());
         askWord.put(messageEntity.getSenderLogin(), true);
         askImage.remove(messageEntity.getSenderLogin());
         return;
@@ -114,8 +115,8 @@ public class GeneratorMemesProcessor implements MessageProcessor {
       ImageIO.write(result, "jpg", os);
       InputStream is = new ByteArrayInputStream(os.toByteArray());
       telegramMessageEntity.getSender().execute(
-          new SendPhoto().setPhoto("new", is).setChatId(telegramMessageEntity.getChatId())
-              .setCaption(text));
+          SendPhoto.builder().photo(new InputFile(is, "new")).chatId(telegramMessageEntity.getChatId())
+              .caption(text).build());
     } catch (IOException | InterruptedException e) {
       e.printStackTrace();
     }

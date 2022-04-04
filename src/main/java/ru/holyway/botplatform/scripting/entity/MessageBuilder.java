@@ -22,8 +22,8 @@ public class MessageBuilder implements Function<ScriptContext, SendMessage> {
 
   @Override
   public SendMessage apply(ScriptContext scriptContext) {
-    SendMessage sendMessage = new SendMessage().setChatId(scriptContext.message.messageEntity.getChatId())
-        .setText(text.apply(scriptContext));
+    SendMessage sendMessage = SendMessage.builder().chatId(scriptContext.message.messageEntity.getChatId())
+        .text(text.apply(scriptContext)).build();
 
     if (!buttons.isEmpty()) {
       InlineKeyboardMarkup keyboardMarkup = new InlineKeyboardMarkup();

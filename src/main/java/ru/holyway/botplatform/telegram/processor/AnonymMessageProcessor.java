@@ -10,6 +10,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.methods.send.SendSticker;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
+import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.holyway.botplatform.telegram.TelegramMessageEntity;
@@ -39,30 +40,30 @@ public class AnonymMessageProcessor implements MessageProcessor {
       if (anonymChat.contains(messageEntity.getChatId())) {
         anonymChat.remove(messageEntity.getChatId());
         messageEntity.getSender()
-            .execute(new SendMessage().setText("Ok").setChatId(messageEntity.getChatId()));
+            .execute(SendMessage.builder().text("Ok").chatId(messageEntity.getChatId()).build());
       } else {
         anonymChat.add(messageEntity.getChatId());
         messageEntity.getSender()
-            .execute(new SendMessage().setText("Ok").setChatId(messageEntity.getChatId()));
+            .execute(SendMessage.builder().text("Ok").chatId(messageEntity.getChatId()).build());
       }
     } else {
-      messageEntity.getSender().execute(new DeleteMessage().setChatId(messageEntity.getChatId())
-          .setMessageId(messageEntity.getMessage().getMessageId()));
+      messageEntity.getSender().execute(DeleteMessage.builder().chatId(messageEntity.getChatId())
+          .messageId(messageEntity.getMessage().getMessageId()).build());
       if (messageEntity.getMessage().getSticker() != null) {
         messageEntity.getSender().execute(
-            new SendMessage().setChatId(messageEntity.getChatId()).setText("Кто-то прислал: \n"));
+            SendMessage.builder().chatId(messageEntity.getChatId()).text("Кто-то прислал: \n").build());
         messageEntity.getSender().execute(
-            new SendSticker().setSticker(messageEntity.getMessage().getSticker().getFileId())
-                .setChatId(messageEntity.getChatId()));
+            SendSticker.builder().sticker(new InputFile(messageEntity.getMessage().getSticker().getFileId()))
+                .chatId(messageEntity.getChatId()).build());
       } else if (messageEntity.getMessage().getCaption() != null) {
         messageEntity.getSender().execute(
-            new SendMessage().setChatId(messageEntity.getChatId()).setText("Кто-то прислал: \n"));
+            SendMessage.builder().chatId(messageEntity.getChatId()).text("Кто-то прислал: \n").build());
         messageEntity.getSender().execute(
-            new SendPhoto().setCaption(messageEntity.getMessage().getCaption())
-                .setChatId(messageEntity.getChatId()));
+            SendPhoto.builder().caption(messageEntity.getMessage().getCaption())
+                .chatId(messageEntity.getChatId()).build());
       } else if (StringUtils.isNotEmpty(mes)) {
-        messageEntity.getSender().execute(new SendMessage().setChatId(messageEntity.getChatId())
-            .setText("Кто-то сказал: \n" + mes));
+        messageEntity.getSender().execute(SendMessage.builder().chatId(messageEntity.getChatId())
+            .text("Кто-то сказал: \n" + mes).build());
       }
     }
   }

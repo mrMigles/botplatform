@@ -16,7 +16,7 @@ public class RemoveBannedAdminMessagesProcessor implements MessageProcessor {
 
   @Override
   public boolean isNeedToHandle(TelegramMessageEntity messageEntity) {
-    Set<Integer> bannedForChat = ProcessorsContext.getInstance()
+    Set<Long> bannedForChat = ProcessorsContext.getInstance()
         .getBannedAdmins(messageEntity.getChatId());
     return bannedForChat != null && bannedForChat
         .contains(messageEntity.getMessage().getFrom().getId());
@@ -25,8 +25,8 @@ public class RemoveBannedAdminMessagesProcessor implements MessageProcessor {
   @Override
   public void process(TelegramMessageEntity messageEntity) throws TelegramApiException {
     messageEntity.getSender().execute(
-        new DeleteMessage().setMessageId(messageEntity.getMessage().getMessageId())
-            .setChatId(messageEntity.getChatId()));
+        DeleteMessage.builder().messageId(messageEntity.getMessage().getMessageId())
+            .chatId(messageEntity.getChatId()).build());
   }
 
   @Override
