@@ -6,6 +6,9 @@ import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.ssl.SSLContexts;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.util.LinkedMultiValueMap;
@@ -14,12 +17,14 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import ru.holyway.botplatform.config.RequestFactory.HttpComponentsClientHttpRequestWithBodyFactory;
 import ru.holyway.botplatform.scripting.ScriptContext;
+import us.codecraft.xsoup.Xsoup;
 
 import javax.net.ssl.SSLContext;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.regex.Matcher;
@@ -222,6 +227,62 @@ public class Request {
       } else {
         return "Not found";
       }
+    });
+  }
+
+  public TextJoiner asXpath(String xpath) {
+    return asXPath(xpath);
+  }
+
+  public TextJoiner asXPath(String xpath) {
+    return TextJoiner.text(scriptContext -> {
+      final String url = this.url instanceof Function ? ((Function<ScriptContext, String>) this.url)
+          .apply(scriptContext) : String.valueOf(this.url);
+      final String body =
+          this.body instanceof Function ? ((Function<ScriptContext, String>) this.body)
+              .apply(scriptContext) : String.valueOf(this.body);
+
+      MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+      for (Map.Entry<String, Object> param : this.params.entrySet()) {
+        if (param.getValue() instanceof Function) {
+          params.add(param.getKey(), ((Function<ScriptContext, String>) param.getValue())
+              .apply(scriptContext));
+        } else {
+          params.add(param.getKey(), String.valueOf(param.getValue()));
+        }
+      }
+
+      HttpEntity httpEntity;
+
+      if (!this.params.isEmpty()) {
+        headers.add("Content-Type", "application/x-www-form-urlencoded");
+      }
+      if (StringUtils.isEmpty(body)) {
+        if (params == null || params.isEmpty()) {
+          httpEntity = new HttpEntity(headers);
+        } else {
+          httpEntity = new HttpEntity(params, headers);
+        }
+      } else {
+        httpEntity = new HttpEntity<>(body, headers);
+      }
+
+      final String response;
+
+      if (isLast && scriptContext.getContextValue("request") != null) {
+        response = scriptContext.getContextValue("request");
+      } else {
+        response = restTemplate
+            .exchange(url, method, httpEntity, String.class).getBody();
+        scriptContext.setContextValue("request", response);
+      }
+
+      Document document = Jsoup.parse(response);
+      List<Element> nodes = Xsoup.compile(xpath).evaluate(document).getElements();
+      if (nodes != null && !nodes.isEmpty()){
+        return nodes.get(0).text();
+      }
+      return null;
     });
   }
 
