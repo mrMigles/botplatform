@@ -3,6 +3,8 @@ package ru.holyway.botplatform.scripting.entity;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.telegram.telegrambots.meta.api.methods.ForwardMessage;
 import org.telegram.telegrambots.meta.api.methods.send.*;
 import org.telegram.telegrambots.meta.api.methods.stickers.GetStickerSet;
@@ -28,6 +30,9 @@ import java.util.function.Predicate;
 public abstract class AbstractTelegramEntity {
 
   public abstract Function<ScriptContext, Message> entity();
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(AbstractTelegramEntity.class);
+
 
   private ObjectMapper mapper = new ObjectMapper();
 
@@ -56,7 +61,20 @@ public abstract class AbstractTelegramEntity {
                 SendMessage.builder().text(text).chatId(String.valueOf(entity().apply(s).getChatId())).build())
             .getMessageId().toString());
       } catch (TelegramApiException e) {
-        e.printStackTrace();
+        LOGGER.error("Error occurred during execution: ", e);
+      }
+    };
+  }
+
+  public Consumer<ScriptContext> send(String text, String parseMode) {
+    return s -> {
+      try {
+        s.setContextValue("lastMessage", s.message.messageEntity.getSender()
+            .execute(
+                SendMessage.builder().text(text).parseMode(parseMode).chatId(String.valueOf(entity().apply(s).getChatId())).build())
+            .getMessageId().toString());
+      } catch (TelegramApiException e) {
+        LOGGER.error("Error occurred during execution: ", e);
       }
     };
   }
@@ -68,7 +86,7 @@ public abstract class AbstractTelegramEntity {
             .execute(messageFunction.apply(s))
             .getMessageId().toString());
       } catch (TelegramApiException e) {
-        e.printStackTrace();
+        LOGGER.error("Error occurred during execution: ", e);
       }
     };
   }
@@ -81,7 +99,7 @@ public abstract class AbstractTelegramEntity {
                 SendSticker.builder().sticker(new InputFile(fileId))
                     .chatId(String.valueOf(entity().apply(s).getChatId())).build()).getMessageId().toString());
       } catch (TelegramApiException e) {
-        e.printStackTrace();
+        LOGGER.error("Error occurred during execution: ", e);
       }
     };
   }
@@ -99,7 +117,7 @@ public abstract class AbstractTelegramEntity {
                 SendSticker.builder().sticker(new InputFile(foundSticker.getFileId()))
                     .chatId(String.valueOf(entity().apply(s).getChatId())).build()).getMessageId().toString());
       } catch (TelegramApiException e) {
-        e.printStackTrace();
+        LOGGER.error("Error occurred during execution: ", e);
       }
     };
   }
@@ -115,7 +133,7 @@ public abstract class AbstractTelegramEntity {
                     .sticker(new InputFile(stickers.get(new Random().nextInt(stickers.size())).getFileId()))
                     .chatId(String.valueOf(entity().apply(s).getChatId())).build()).getMessageId().toString());
       } catch (TelegramApiException e) {
-        e.printStackTrace();
+        LOGGER.error("Error occurred during execution: ", e);
       }
     };
   }
@@ -134,7 +152,7 @@ public abstract class AbstractTelegramEntity {
         s.message.messageEntity.getSender()
             .execute(sendMediaGroup);
       } catch (TelegramApiException e) {
-        e.printStackTrace();
+        LOGGER.error("Error occurred during execution: ", e);
       }
     };
   }
@@ -148,7 +166,7 @@ public abstract class AbstractTelegramEntity {
         s.setContextValue("lastMessage", s.message.messageEntity.getSender()
             .execute(sendMediaGroup.build()).getMessageId().toString());
       } catch (TelegramApiException e) {
-        e.printStackTrace();
+        LOGGER.error("Error occurred during execution: ", e);
       }
     };
   }
@@ -162,13 +180,17 @@ public abstract class AbstractTelegramEntity {
         s.setContextValue("lastMessage", s.message.messageEntity.getSender()
             .execute(sendMediaGroup).getMessageId().toString());
       } catch (TelegramApiException e) {
-        e.printStackTrace();
+        LOGGER.error("Error occurred during execution: ", e);
       }
     };
   }
 
   public Consumer<ScriptContext> send(Function<ScriptContext, String> supplierText) {
     return s -> send(supplierText.apply(s)).accept(s);
+  }
+
+  public Consumer<ScriptContext> send(Function<ScriptContext, String> supplierText, String parseMode) {
+    return s -> send(supplierText.apply(s), parseMode).accept(s);
   }
 
   public Consumer<ScriptContext> reply(String text) {
@@ -181,7 +203,23 @@ public abstract class AbstractTelegramEntity {
                     .text(text).chatId(String.valueOf(entity().apply(s).getChatId())).build()).getMessageId()
             .toString());
       } catch (TelegramApiException e) {
-        e.printStackTrace();
+        LOGGER.error("Error occurred during execution: ", e);
+      }
+    };
+  }
+
+  public Consumer<ScriptContext> reply(String text, String parseMode) {
+    return s -> {
+      try {
+        s.setContextValue("lastMessage", s.message.messageEntity.getSender()
+            .execute(
+                SendMessage.builder()
+                    .replyToMessageId(entity().apply(s).getMessageId())
+                    .parseMode(parseMode)
+                    .text(text).chatId(String.valueOf(entity().apply(s).getChatId())).build()).getMessageId()
+            .toString());
+      } catch (TelegramApiException e) {
+        LOGGER.error("Error occurred during execution: ", e);
       }
     };
   }
@@ -212,7 +250,7 @@ public abstract class AbstractTelegramEntity {
               );
         }
       } catch (TelegramApiException e) {
-        e.printStackTrace();
+        LOGGER.error("Error occurred during execution: ", e);
       }
     };
   }
@@ -233,13 +271,17 @@ public abstract class AbstractTelegramEntity {
                 .chatId(s.message.messageEntity.getChatId()).fromChatId(String.valueOf(entity().apply(s).getChatId())).build()).getMessageId()
             .toString());
       } catch (TelegramApiException e) {
-        e.printStackTrace();
+        LOGGER.error("Error occurred during execution: ", e);
       }
     };
   }
 
   public Consumer<ScriptContext> reply(Function<ScriptContext, String> supplierText) {
     return s -> reply(supplierText.apply(s)).accept(s);
+  }
+
+  public Consumer<ScriptContext> reply(Function<ScriptContext, String> supplierText, String parseMode) {
+    return s -> reply(supplierText.apply(s), parseMode).accept(s);
   }
 
   public Consumer<ScriptContext> delete() {
@@ -250,7 +292,7 @@ public abstract class AbstractTelegramEntity {
                 .messageId(entity().apply(s).getMessageId())
                 .chatId(String.valueOf(entity().apply(s).getChatId())).build());
       } catch (TelegramApiException e) {
-        e.printStackTrace();
+        LOGGER.error("Error occurred during execution: ", e);
       }
     };
   }

@@ -7,6 +7,7 @@ import org.codehaus.groovy.ast.stmt.ForStatement;
 import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.ast.stmt.WhileStatement;
 import org.codehaus.groovy.classgen.BytecodeSequence;
+import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import ru.holyway.botplatform.scripting.entity.*;
 import ru.holyway.botplatform.scripting.util.*;
 
@@ -66,7 +67,8 @@ public final class DefaultShellRules {
       LoopHandler.class.getName(),
       VariableEntity.class.getName(),
       MessageBuilder.class.getName(),
-      NumberOperations.class.getName());
+      NumberOperations.class.getName(),
+      ParseMode.class.getName());
 
   public static final List<String> receiversBlackList =
       Collections.singletonList(Thread.class.getName());

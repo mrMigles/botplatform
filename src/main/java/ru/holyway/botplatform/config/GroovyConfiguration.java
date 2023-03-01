@@ -7,6 +7,7 @@ import org.codehaus.groovy.control.customizers.ImportCustomizer;
 import org.codehaus.groovy.control.customizers.SecureASTCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import ru.holyway.botplatform.core.data.DataHelper;
 import ru.holyway.botplatform.scripting.*;
 import ru.holyway.botplatform.scripting.entity.*;
@@ -64,7 +65,8 @@ public class GroovyConfiguration {
             LoopHandler.class.getName(),
             MessageBuilder.class.getName(),
             VariableEntity.class.getName(),
-            NumberOperations.class.getName())
+            NumberOperations.class.getName(),
+            ParseMode.class.getName())
         .addImports(allowedImports)
         .addStarImports(DefaultShellRules.starImportsWhiteArray);
   }

@@ -1,15 +1,5 @@
 package ru.holyway.botplatform.telegram.processor;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
@@ -32,6 +22,11 @@ import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.holyway.botplatform.core.data.DataHelper;
 import ru.holyway.botplatform.telegram.TelegramMessageEntity;
+
+import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 @Component
 @Order(2)
@@ -58,7 +53,7 @@ public class ReconnaissanceMessageProcessor implements MessageProcessor {
   @Override
   public boolean isNeedToHandle(TelegramMessageEntity messageEntity) {
     final String mes = messageEntity.getText();
-    if (!messageEntity.getMessage().getFrom().getIsBot()) {
+    if (messageEntity.getMessage().getFrom() != null && !messageEntity.getMessage().getFrom().getIsBot()) {
       reconUser(messageEntity);
     }
     return StringUtils.equals(mes, "/who") || StringUtils.equalsIgnoreCase(mes, "Пахом, кто тут");
@@ -212,7 +207,7 @@ public class ReconnaissanceMessageProcessor implements MessageProcessor {
     final Set<String> userIds = new HashSet<>(
         chatMembers.get(chatID) != null ? chatMembers.get(chatID)
             : dataHelper.getChatMembers(chatID) != null ? dataHelper.getChatMembers(chatID)
-                : new HashSet<>());
+            : new HashSet<>());
     userIds.add(userId);
     dataHelper.updateChatMembers(chatID, new ArrayList<>(userIds));
     chatMembers.put(chatID, new ArrayList<>(userIds));
@@ -222,7 +217,7 @@ public class ReconnaissanceMessageProcessor implements MessageProcessor {
     final Set<String> userIds = new HashSet<>(
         chatMembers.get(chatID) != null ? chatMembers.get(chatID)
             : dataHelper.getChatMembers(chatID) != null ? dataHelper.getChatMembers(chatID)
-                : new HashSet<>());
+            : new HashSet<>());
     userIds.addAll(newUserIds);
     dataHelper.updateChatMembers(chatID, new ArrayList<>(userIds));
     chatMembers.put(chatID, new ArrayList<>(userIds));

@@ -1,14 +1,14 @@
 package ru.holyway.botplatform.core.handler;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import javax.annotation.PostConstruct;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.holyway.botplatform.core.MessageEntity;
 import ru.holyway.botplatform.core.data.DataHelper;
 import ru.holyway.botplatform.core.entity.JSettings;
+import ru.holyway.botplatform.telegram.TelegramMessageEntity;
+
+import javax.annotation.PostConstruct;
 
 /**
  * Created by seiv0814 on 10-10-17.
@@ -44,18 +44,13 @@ public class SettingsHandler implements MessageHandler {
     if (StringUtils.equalsIgnoreCase(mes, "/help@pakhom_bot") || StringUtils.equalsIgnoreCase(mes, "/help")) {
       return "Петь я больше не умею, в прочем, как и говорить...\n"
           + "Пахом Bot - 2 серия.\n\n" +
-          "`Пахом, что такое [слово]?` - попытаюсь объяснить, если знаю\n" +
           "`Пахом, сделай мем` иди /meme - могу сделать мем по картинке\n" +
           "/secret - секретный контекст. Стираю все сообщения между первым и вторым вызовом данной команды.\n" +
           "/anon - анонимный контекст. Делаю анонимными все сообщения, начиная с ввода данной команды.\n" +
           "`@all` - вызвать всех в чате\n" +
           "`Пахом, кик` + reply сообщения - Создаёт голосование на временный бан отправителя пересланного сообщения\n" +
           "/script - help для скриптинга\n" +
-          "`/follow INSTAGRAM_USER` - Подписаться чатом на instagram аккаунт\n" +
-          "`/followy YOUTUBE_CHANEL` - Подписаться чатом на youtube канал (ФУНКЦИЯ ВРЕМЕННО НЕДОСТУПНА)\n" +
-          "`/followt TWITTER_USER` - Подписаться чатом на twitter аккаунт\n" +
-          "`/unfollow[t,y] NAME` - Отписаться\n" +
-          "`Пахом, ид` - показать ID данного чата\n";
+          "/id - показать ID данного чата или сообщения в реплай\n";
     }
 
     if (StringUtils.containsIgnoreCase(mes, "/script")) {
@@ -86,7 +81,7 @@ public class SettingsHandler implements MessageHandler {
           + "- `number(some text or function value).[add|divide|multiply|subtract|(number value)].value()` - используется для конкатенкции. \n"
           + "- `number(some text or function value).[eq|gt|gtoe(number value)].value()` - возвращает предикат, примененный к функции или значению. \n"
           + "- `random(0, 50)` - рандомное значение от 0 до 50. Для конверации в число можно использовать `.asNumber()`\n"
-          + "- `request.post|get(http://url).header(name, value).param(name, value).param(name, value).body(text).[asJson(\"$.param\")|.asHtml(startTag, endTag)|.asString()].value()` - возвращает результат выполнения http запроса с возможностью выборки.\n\n"
+          + "- `request.post|get(http://url).header(name, value).param(name, value).param(name, value).body(text).asJson(\"$.param\")[|.asHtml(startTag, endTag)|.asString()|.asXpath(xpath)]` - возвращает результат выполнения http запроса с возможностью выборки.\n\n"
           + "Команды:\n"
           + "/list - выводит список скриптов для чата\n"
           + "/clear - очищает все скрипты для чата\n"
@@ -102,6 +97,9 @@ public class SettingsHandler implements MessageHandler {
       return percent + "%";
     }
     if (StringUtils.equals(mes, "Пахом, ид") || mes.equals("/id")) {
+      if (messageEntity instanceof TelegramMessageEntity && ((TelegramMessageEntity) messageEntity).getMessage().isReply()) {
+        return String.valueOf(((TelegramMessageEntity) messageEntity).getMessage().getReplyToMessage().getMessageId());
+      }
       return chatId;
     }
     return null;

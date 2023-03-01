@@ -68,12 +68,12 @@
         <dependency>
             <groupId>org.telegram</groupId>
             <artifactId>telegrambots</artifactId>
-            <version>5.7.1</version>
+            <version>6.5.0</version>
         </dependency>
         <dependency>
             <groupId>org.telegram</groupId>
             <artifactId>telegrambotsextensions</artifactId>
-            <version>5.7.1</version>
+            <version>6.5.0</version>
         </dependency>
         <dependency>
             <groupId>com.sun.jersey</groupId>

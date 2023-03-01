@@ -9,11 +9,15 @@ import org.apache.http.ssl.SSLContexts;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import ru.holyway.botplatform.config.RequestFactory.HttpComponentsClientHttpRequestWithBodyFactory;
 import ru.holyway.botplatform.scripting.ScriptContext;
@@ -23,6 +27,7 @@ import javax.net.ssl.SSLContext;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +38,8 @@ import java.util.regex.Pattern;
 public class Request {
 
   private static RestTemplate restTemplate = new RestTemplate();
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(RestTemplate.class);
 
   static {
     SSLContext sslContext = SSLContexts.createDefault();
@@ -50,6 +57,9 @@ public class Request {
     HttpComponentsClientHttpRequestWithBodyFactory factory = new HttpComponentsClientHttpRequestWithBodyFactory();
     factory.setHttpClient(httpClient);
     restTemplate.setRequestFactory(factory);
+
+    restTemplate.getMessageConverters().add(0, new StringHttpMessageConverter(StandardCharsets.UTF_8));
+
   }
 
   private Map<String, Object> params = new HashMap<>();
@@ -75,8 +85,7 @@ public class Request {
       try {
         return URLEncoder.encode(url, "UTF-8");
       } catch (UnsupportedEncodingException e) {
-        System.out.println(e);
-        e.printStackTrace();
+        LOGGER.error("Unsupported encoding", e);
         return url;
       }
     };
@@ -93,8 +102,7 @@ public class Request {
       try {
         return URLDecoder.decode(text, "UTF-8");
       } catch (UnsupportedEncodingException e) {
-        System.out.println(e);
-        e.printStackTrace();
+        LOGGER.error("Unsupported encoding", e);
         return text;
       }
     };
@@ -162,8 +170,11 @@ public class Request {
         try {
           response = restTemplate
               .exchange(url, method, httpEntity, String.class).getBody();
-        } catch (Exception e) {
-          e.printStackTrace();
+        } catch (RestClientException e) {
+          LOGGER.error("failed response to {} with {} code", url, e.getMessage(), e);
+        }
+        catch (Exception e) {
+          LOGGER.error("failed response to {} with:", url, e);
         }
         scriptContext.setContextValue("request", response);
       }
@@ -279,7 +290,7 @@ public class Request {
 
       Document document = Jsoup.parse(response);
       List<Element> nodes = Xsoup.compile(xpath).evaluate(document).getElements();
-      if (nodes != null && !nodes.isEmpty()){
+      if (nodes != null && !nodes.isEmpty()) {
         return nodes.get(0).text();
       }
       return null;

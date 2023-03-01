@@ -1,6 +1,8 @@
 package ru.holyway.botplatform.telegram.processor;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.annotation.Order;
 import org.springframework.scheduling.TaskScheduler;
@@ -22,6 +24,7 @@ import ru.holyway.botplatform.scripting.TelegramScriptEntity;
 import ru.holyway.botplatform.scripting.entity.MessageScriptEntity;
 import ru.holyway.botplatform.scripting.entity.StaticMessage;
 import ru.holyway.botplatform.scripting.entity.TimePredicate;
+import ru.holyway.botplatform.telegram.TelegramBot;
 import ru.holyway.botplatform.telegram.TelegramMessageEntity;
 
 import java.util.*;
@@ -34,6 +37,8 @@ public class ScriptMessageProcessor implements MessageProcessor, MessagePostLoad
   private ScriptCompiler scriptCompiler;
   private DataHelper dataHelper;
   private MultiValueMap<String, Script> scripts = new LinkedMultiValueMap<>();
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(ScriptMessageProcessor.class);
 
   public ScriptMessageProcessor(ScriptCompiler scriptCompiler, DataHelper dataHelper,
                                 @Qualifier("scriptScheduler") TaskScheduler taskScheduler) {
@@ -49,8 +54,7 @@ public class ScriptMessageProcessor implements MessageProcessor, MessagePostLoad
           script.setStringScript(storedScript);
           scripts.add(chatScripts.getKey(), script);
         } catch (Exception e) {
-          System.out.println(e.getMessage());
-          e.printStackTrace();
+          LOGGER.error("Error during loading script:", e);
         }
         scripts.get(chatScripts.getKey()).sort(Script::compareTo);
       }
@@ -122,8 +126,7 @@ public class ScriptMessageProcessor implements MessageProcessor, MessagePostLoad
         }
       }
     } catch (Exception e) {
-      System.out.println(e);
-      e.printStackTrace();
+      LOGGER.error("Error during execution script:", e);
     }
     return false;
   }

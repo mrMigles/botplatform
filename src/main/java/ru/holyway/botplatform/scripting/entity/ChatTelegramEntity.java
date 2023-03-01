@@ -1,5 +1,7 @@
 package ru.holyway.botplatform.scripting.entity;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.telegram.telegrambots.meta.api.methods.groupadministration.SetChatTitle;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -11,6 +13,8 @@ import java.util.function.Function;
 
 public class ChatTelegramEntity {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(AbstractTelegramEntity.class);
+  
   private final Object chatId;
 
   public ChatTelegramEntity(Object chatId) {
@@ -35,7 +39,7 @@ public class ChatTelegramEntity {
         scriptContext.message.messageEntity.getSender()
             .execute(DeleteMessage.builder().chatId(getId().apply(scriptContext)).messageId(id).build());
       } catch (TelegramApiException e) {
-        e.printStackTrace();
+        LOGGER.error("Error occurred during execution: ", e);
       }
     };
   }
@@ -49,7 +53,7 @@ public class ChatTelegramEntity {
       try {
         scriptContext.message.messageEntity.getSender().execute(SetChatTitle.builder().chatId(getId().apply(scriptContext)).title(title.apply(scriptContext)).build());
       } catch (TelegramApiException e) {
-        e.printStackTrace();
+        LOGGER.error("Error occurred during execution: ", e);
       }
     };
   }
@@ -59,7 +63,7 @@ public class ChatTelegramEntity {
       try {
         scriptContext.message.messageEntity.getSender().execute(SetChatTitle.builder().chatId(getId().apply(scriptContext)).title(title).build());
       } catch (TelegramApiException e) {
-        e.printStackTrace();
+        LOGGER.error("Error occurred during execution: ", e);
       }
     };
   }

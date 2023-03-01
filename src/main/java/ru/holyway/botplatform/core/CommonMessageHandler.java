@@ -80,10 +80,6 @@ public class CommonMessageHandler implements CommonHandler {
   private void sendMessage(MessageEntity messageEntity, String text) {
     long currentTime = System.currentTimeMillis();
     if (currentTime - this.srartTime > silentPeriod) {
-      if (StringUtils.containsIgnoreCase(text, "Денис") || StringUtils
-          .containsIgnoreCase(messageEntity.getText(), "Денис")) {
-        context.incrementDenisCount();
-      }
       sendMessageInternal(messageEntity, text);
       context.setLastStamp(System.currentTimeMillis());
       context.incrementCount();

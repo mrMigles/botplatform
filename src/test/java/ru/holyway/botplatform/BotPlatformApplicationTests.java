@@ -12,7 +12,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.http.HttpMethod;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.web.client.RestTemplate;
 import ru.holyway.botplatform.config.GroovyConfiguration;
 import ru.holyway.botplatform.scripting.Script;
 import ru.holyway.botplatform.scripting.ScriptCompiler;
@@ -45,5 +47,8 @@ public class BotPlatformApplicationTests {
 //    System.getenv("BOT_TOKEN");
 //    String a = Arrays.stream("1601668040877:5038&+&ну+&&+-&&фиксед".split(":")).filter(new Predicate<String>() {public boolean test(String s) {System.exit(0);return true;}}).findFirst().toString();
 //    System.out.println(a.replace("&+", " "));
+//
+//    System.out.println(new RestTemplate().exchange("https://ssyoutube.com/api/ig/story?url=https://instagram.com/stories/avtoinstruktorsaratov/3027039242002599367?utm_source=ig_story_item_share&igshid=MDJmNzVkMjY=", HttpMethod.GET, null, String.class).getBody());
+
   }
 }

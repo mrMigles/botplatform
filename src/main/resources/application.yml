@@ -25,6 +25,8 @@ bot:
   config:
     datatype: ${DATATYPE:mongo}
     silentPeriod: ${SILENTPERIOD:10}
+    threadCount: ${THREAD_COUNT:10}
+    queueSize: ${QUEUE_SIZE:100}
 proxy:
   config:
     host: ${PROXY_HOST:}

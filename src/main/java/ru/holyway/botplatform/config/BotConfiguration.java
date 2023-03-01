@@ -65,6 +65,11 @@ public class BotConfiguration {
   @Value("${instaprovider.url}")
   private String instaproviderUrl;
 
+  @Value("${bot.config.threadCount}")
+  private Integer threadCount;
+
+  @Value("${bot.config.queueSize}")
+  private Integer queueSize;
 
   @Bean
   public CommonHandler messageHandler() {
@@ -73,7 +78,7 @@ public class BotConfiguration {
 
   @Bean
   public Bot telegramBot() {
-    return new TelegramBot();
+    return new TelegramBot(threadCount, queueSize);
   }
 
   @Bean
@@ -100,11 +105,11 @@ public class BotConfiguration {
     final List<MessageHandler> orderedMessageHandlers = new ArrayList<>();
     orderedMessageHandlers.add(messageHandlers.get("settingsHandler"));
     //orderedMessageHandlers.add(messageHandlers.get("authenticationHandler"));
-    orderedMessageHandlers.add(messageHandlers.get("skiperHandler"));
-    orderedMessageHandlers.add(messageHandlers.get("messageAnalyzerHandler"));
+    //orderedMessageHandlers.add(messageHandlers.get("skiperHandler"));
+    //orderedMessageHandlers.add(messageHandlers.get("messageAnalyzerHandler"));
     //orderedMessageHandlers.add(messageHandlers.get("recordsHandler"));
     //orderedMessageHandlers.add(messageHandlers.get("wikiHandler"));
-    orderedMessageHandlers.add(messageHandlers.get("simpleQuestionHandler"));
+    //orderedMessageHandlers.add(messageHandlers.get("simpleQuestionHandler"));
     return orderedMessageHandlers;
   }
 
