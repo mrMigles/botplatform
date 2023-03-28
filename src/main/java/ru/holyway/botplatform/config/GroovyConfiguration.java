@@ -36,6 +36,7 @@ public class GroovyConfiguration {
     mapping.put("ctx", new ScriptContext());
     mapping.put("telegram", new TelegramScriptEntity());
     mapping.put("map", new ContextChatStorage(dataHelper));
+    mapping.put("secret", new SecretChatStorage(dataHelper));
     mapping.put("text", new TextScriptEntity());
     mapping.put("user", new UserScriptEntity());
     mapping.put("sticker", new StickerEntity());

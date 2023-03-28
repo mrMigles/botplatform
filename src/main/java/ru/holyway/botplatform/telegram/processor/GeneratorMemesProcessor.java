@@ -1,14 +1,5 @@
 package ru.holyway.botplatform.telegram.processor;
 
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import javax.imageio.ImageIO;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.annotation.Order;
@@ -21,6 +12,16 @@ import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.holyway.botplatform.telegram.TelegramMessageEntity;
+
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 @Order(10)
@@ -80,7 +81,7 @@ public class GeneratorMemesProcessor implements MessageProcessor {
         BufferedImage bufferedImage = ImageIO.read(new URL(url));
         inageToChat.put(messageEntity.getChatId(), bufferedImage);
         messageEntity.getSender().execute(
-             SendMessage.builder().text("Напишите фразу для мема")
+            SendMessage.builder().text("Напишите фразу для мема")
                 .chatId(messageEntity.getChatId()).build());
         askWord.put(messageEntity.getSenderLogin(), true);
         askImage.remove(messageEntity.getSenderLogin());
@@ -108,7 +109,7 @@ public class GeneratorMemesProcessor implements MessageProcessor {
   }
 
   private void sendMeme(final String chatID, final String text,
-      TelegramMessageEntity telegramMessageEntity) throws TelegramApiException {
+                        TelegramMessageEntity telegramMessageEntity) throws TelegramApiException {
     try {
       BufferedImage result = MemeImageOverlay.overlay(inageToChat.get(chatID), "", text);
       ByteArrayOutputStream os = new ByteArrayOutputStream();

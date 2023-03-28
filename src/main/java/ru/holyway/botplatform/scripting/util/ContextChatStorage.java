@@ -8,7 +8,6 @@ import java.util.function.Function;
 
 public class ContextChatStorage {
 
-
   private final DataHelper dataHelper;
 
   public ContextChatStorage(final DataHelper dataHelper) {

@@ -1,6 +1,7 @@
 package ru.holyway.botplatform.core.entity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.List;
 
 public class InstaUser {
@@ -23,7 +24,7 @@ public class InstaUser {
   }
 
   public InstaUser(String userName,
-      List<InstaPost> posts) {
+                   List<InstaPost> posts) {
     this.userName = userName;
     this.posts = posts;
   }

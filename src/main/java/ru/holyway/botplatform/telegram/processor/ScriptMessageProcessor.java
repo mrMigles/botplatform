@@ -17,14 +17,10 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.holyway.botplatform.core.data.DataHelper;
-import ru.holyway.botplatform.scripting.Script;
-import ru.holyway.botplatform.scripting.ScriptCompiler;
-import ru.holyway.botplatform.scripting.ScriptContext;
-import ru.holyway.botplatform.scripting.TelegramScriptEntity;
+import ru.holyway.botplatform.scripting.*;
 import ru.holyway.botplatform.scripting.entity.MessageScriptEntity;
 import ru.holyway.botplatform.scripting.entity.StaticMessage;
 import ru.holyway.botplatform.scripting.entity.TimePredicate;
-import ru.holyway.botplatform.telegram.TelegramBot;
 import ru.holyway.botplatform.telegram.TelegramMessageEntity;
 
 import java.util.*;
@@ -35,7 +31,7 @@ public class ScriptMessageProcessor implements MessageProcessor, MessagePostLoad
 
   private final TaskScheduler taskScheduler;
   private ScriptCompiler scriptCompiler;
-  private DataHelper dataHelper;
+  public DataHelper dataHelper;
   private MultiValueMap<String, Script> scripts = new LinkedMultiValueMap<>();
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ScriptMessageProcessor.class);
@@ -78,7 +74,9 @@ public class ScriptMessageProcessor implements MessageProcessor, MessagePostLoad
           if (originalScriptString.isEmpty() || !originalScriptString.startsWith("script()")) {
             continue;
           }
-          final String scriptString = originalScriptString.replaceAll("\\$", "\\\\\\$");
+          String scriptString = originalScriptString.replaceAll("\\$", "\\\\\\$");
+          scriptString = scriptString.replaceAll("\\.owner\\(\\d*\\)", "");
+          scriptString += ".owner(" + messageEntity.getMessage().getFrom().getId() + ")";
           final Script script = scriptCompiler.compile(scriptString);
           script.setStringScript(scriptString);
           if (scripts.getOrDefault(messageEntity.getChatId(), Collections.emptyList())
@@ -117,7 +115,8 @@ public class ScriptMessageProcessor implements MessageProcessor, MessagePostLoad
   private boolean executeScript(TelegramMessageEntity messageEntity, Script script) {
     MessageScriptEntity message = new MessageScriptEntity(messageEntity);
     TelegramScriptEntity telegram = new TelegramScriptEntity();
-    ScriptContext ctx = new ScriptContext(message, telegram);
+    ScriptContext ctx = new ScriptContext(message, telegram, script);
+    final long start = System.currentTimeMillis();
     try {
       if (script.check(ctx)) {
         script.execute(ctx);
@@ -127,12 +126,15 @@ public class ScriptMessageProcessor implements MessageProcessor, MessagePostLoad
       }
     } catch (Exception e) {
       LOGGER.error("Error during execution script:", e);
+      MetricCollector.getInstance().saveLog(messageEntity.getChatId(), script, e);
+    } finally {
+      MetricCollector.getInstance().trackCall(messageEntity.getChatId(), Math.toIntExact(System.currentTimeMillis() - start));
     }
     return false;
   }
 
   protected Integer sendScriptMenu(TelegramMessageEntity messageEntity, String scriptString,
-                                Script script) throws TelegramApiException {
+                                   Script script) throws TelegramApiException {
     InlineKeyboardMarkup keyboardMarkup = new InlineKeyboardMarkup();
 
     List<List<InlineKeyboardButton>> keyboard = new ArrayList<>();
@@ -142,16 +144,6 @@ public class ScriptMessageProcessor implements MessageProcessor, MessagePostLoad
     InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton();
     inlineKeyboardButton.setText("Удалить");
     inlineKeyboardButton.setCallbackData("script:delete:" + script.hashCode());
-    inlineKeyboardButtons.add(inlineKeyboardButton);
-
-//        inlineKeyboardButton = new InlineKeyboardButton();
-//        inlineKeyboardButton.setText("Остановить");
-//        inlineKeyboardButton.setCallbackData("script:stop:" + script.hashCode());
-//        inlineKeyboardButtons.add(inlineKeyboardButton);
-
-    inlineKeyboardButton = new InlineKeyboardButton();
-    inlineKeyboardButton.setText("Редактировать");
-    inlineKeyboardButton.setCallbackData("script:edit:" + script.hashCode());
     inlineKeyboardButtons.add(inlineKeyboardButton);
 
     keyboard.add(inlineKeyboardButtons);
@@ -234,8 +226,16 @@ public class ScriptMessageProcessor implements MessageProcessor, MessagePostLoad
         Message message = new StaticMessage(chat);
         TelegramMessageEntity telegramMessageEntity = new TelegramMessageEntity(message,
             null, absSender);
-        ScriptContext ctx = new ScriptContext(new MessageScriptEntity(telegramMessageEntity), new TelegramScriptEntity());
-        script.execute(ctx);
+        ScriptContext ctx = new ScriptContext(new MessageScriptEntity(telegramMessageEntity), new TelegramScriptEntity(), script);
+        final long start = System.currentTimeMillis();
+
+        try {
+          script.execute(ctx);
+        } catch (Exception e) {
+          MetricCollector.getInstance().saveLog(chat, script, e);
+        } finally {
+          MetricCollector.getInstance().trackCall(chat, Math.toIntExact(System.currentTimeMillis() - start));
+        }
       }, timePredicate.getTrigger()));
     }
   }

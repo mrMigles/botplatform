@@ -19,6 +19,7 @@ public class Script implements Comparable<Script> {
   private String stringScript;
   private ScheduledFuture trigger;
   private int order = 100;
+  private long owner;
 
   public Script(String name) {
     this.name = name;
@@ -76,6 +77,11 @@ public class Script implements Comparable<Script> {
     return this;
   }
 
+  public Script owner(long owner) {
+    this.owner = owner;
+    return this;
+  }
+
   public Script enabled(boolean isEnabled) {
     this.isEnabled = isEnabled;
     return this;
@@ -95,6 +101,10 @@ public class Script implements Comparable<Script> {
 
   public int getOrder() {
     return order;
+  }
+
+  public long getOwner() {
+    return owner;
   }
 
   public boolean isEnabled() {
@@ -118,12 +128,12 @@ public class Script implements Comparable<Script> {
       return false;
     }
     Script script = (Script) o;
-    return Objects.equals(stringScript, script.stringScript);
+    return Objects.equals(stringScript.replaceAll("\\.owner\\(\\d*\\)",""), script.stringScript.replaceAll("\\.owner\\(\\d*\\)",""));
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(stringScript);
+    return Objects.hash(stringScript.replaceAll("\\.owner\\(\\d*\\)",""));
   }
 
   public Predicate<ScriptContext> getPredicates() {

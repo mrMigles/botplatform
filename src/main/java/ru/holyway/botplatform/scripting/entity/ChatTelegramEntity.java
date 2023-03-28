@@ -14,7 +14,7 @@ import java.util.function.Function;
 public class ChatTelegramEntity {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(AbstractTelegramEntity.class);
-  
+
   private final Object chatId;
 
   public ChatTelegramEntity(Object chatId) {
@@ -40,6 +40,7 @@ public class ChatTelegramEntity {
             .execute(DeleteMessage.builder().chatId(getId().apply(scriptContext)).messageId(id).build());
       } catch (TelegramApiException e) {
         LOGGER.error("Error occurred during execution: ", e);
+        throw new RuntimeException(e);
       }
     };
   }
@@ -54,6 +55,7 @@ public class ChatTelegramEntity {
         scriptContext.message.messageEntity.getSender().execute(SetChatTitle.builder().chatId(getId().apply(scriptContext)).title(title.apply(scriptContext)).build());
       } catch (TelegramApiException e) {
         LOGGER.error("Error occurred during execution: ", e);
+        throw new RuntimeException(e);
       }
     };
   }
@@ -64,6 +66,7 @@ public class ChatTelegramEntity {
         scriptContext.message.messageEntity.getSender().execute(SetChatTitle.builder().chatId(getId().apply(scriptContext)).title(title).build());
       } catch (TelegramApiException e) {
         LOGGER.error("Error occurred during execution: ", e);
+        throw new RuntimeException(e);
       }
     };
   }

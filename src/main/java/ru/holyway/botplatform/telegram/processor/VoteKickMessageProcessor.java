@@ -1,13 +1,5 @@
 package ru.holyway.botplatform.telegram.processor;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.core.annotation.Order;
 import org.springframework.scheduling.TaskScheduler;
@@ -32,6 +24,11 @@ import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.holyway.botplatform.core.data.ProcessorsContext;
 import ru.holyway.botplatform.telegram.TelegramMessageEntity;
+
+import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 @Component
 @Order(2)

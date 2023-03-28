@@ -116,4 +116,15 @@ public class MongoDataHelper implements DataHelper {
   public Object getFromScriptMap(Object chatId, Object key) {
     return settings.getFromScriptMap(chatId, key);
   }
+
+  @Override
+  public void putToSecretStorage(Object chatId, String key, String value) {
+    settings.putToSecretStorage(chatId, key, value);
+    updateSettings();
+  }
+
+  @Override
+  public String getFromSecretStorage(String chatId, String key) {
+    return settings.getFromSecretStorage(chatId, key);
+  }
 }

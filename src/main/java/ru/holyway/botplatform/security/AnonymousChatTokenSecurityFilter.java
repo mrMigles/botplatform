@@ -1,7 +1,5 @@
 package ru.holyway.botplatform.security;
 
-import java.util.Collections;
-import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -9,6 +7,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 import ru.holyway.botplatform.core.data.DataHelper;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.Collections;
 
 public class AnonymousChatTokenSecurityFilter extends AnonymousAuthenticationFilter {
 

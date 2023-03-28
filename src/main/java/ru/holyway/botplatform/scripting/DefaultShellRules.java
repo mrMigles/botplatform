@@ -51,6 +51,7 @@ public final class DefaultShellRules {
       ScriptContext.class.getName(),
       TelegramScriptEntity.class.getName(),
       ContextChatStorage.class.getName(),
+      SecretChatStorage.class.getName(),
       TextScriptEntity.class.getName(),
       UserScriptEntity.class.getName(),
       StickerEntity.class.getName(),

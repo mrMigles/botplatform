@@ -20,6 +20,7 @@ public class MemoryDataHelper implements DataHelper {
   private List<Record> records = new ArrayList<>();
   private Map<String, List<String>> chatMembersMap = new HashMap<>();
   private MultiKeyMap scriptMap = new MultiKeyMap();
+  private MultiKeyMap secretStorage = new MultiKeyMap();
 
 
   @Override
@@ -73,7 +74,17 @@ public class MemoryDataHelper implements DataHelper {
   }
 
   @Override
+  public void putToSecretStorage(Object chatId, String key, String value) {
+    secretStorage.put(chatId, key, value);
+  }
+
+  @Override
   public Object getFromScriptMap(Object chatId, Object key) {
     return scriptMap.get(chatId, key);
+  }
+
+  @Override
+  public String getFromSecretStorage(String chatId, String key) {
+    return (String) secretStorage.get(chatId, key);
   }
 }

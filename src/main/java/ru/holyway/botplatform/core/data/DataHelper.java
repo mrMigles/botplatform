@@ -1,6 +1,5 @@
 package ru.holyway.botplatform.core.data;
 
-import org.apache.commons.collections.map.MultiKeyMap;
 import ru.holyway.botplatform.core.entity.JSettings;
 import ru.holyway.botplatform.core.entity.Record;
 
@@ -32,5 +31,10 @@ public interface DataHelper {
 
   void putToScriptMap(Object chatId, Object key, Object value);
 
+  void putToSecretStorage(Object chatId, String key, String value);
+
   Object getFromScriptMap(Object chatId, Object key);
+
+  String getFromSecretStorage(String chatId, String key);
+
 }

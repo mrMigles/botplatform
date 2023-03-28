@@ -13,16 +13,20 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import ru.holyway.botplatform.scripting.MetricCollector;
 import ru.holyway.botplatform.scripting.Script;
 import ru.holyway.botplatform.telegram.TelegramMessageEntity;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Component
 @Order(98)
 public class ScriptManagerProcessor implements MessageProcessor {
 
+  public static final String SECURITY_VALUE_SET_REGEX = "(\\/put)(\\s)(\\\")(.*)(\\\")(\\s)(\\\")(.*)(\\\")";
   @Autowired
   private ScriptMessageProcessor scriptMessageProcessor;
 
@@ -30,7 +34,9 @@ public class ScriptManagerProcessor implements MessageProcessor {
   public boolean isNeedToHandle(TelegramMessageEntity messageEntity) {
     return messageEntity.getMessage().hasText() && (messageEntity.getMessage().getText()
         .startsWith("/clear") || messageEntity.getMessage().getText()
-        .startsWith("/list") || (messageEntity.getMessage().isReply() && messageEntity
+        .startsWith("/list") || messageEntity.getMessage().getText()
+        .startsWith("/logs") || messageEntity.getMessage().getText().matches(SECURITY_VALUE_SET_REGEX)
+        || (messageEntity.getMessage().isReply() && messageEntity
         .getMessage().getReplyToMessage().getText().startsWith("script()")));
   }
 
@@ -50,7 +56,7 @@ public class ScriptManagerProcessor implements MessageProcessor {
       List<Script> scripts = scriptMessageProcessor.getScripts(messageEntity.getChatId());
       for (int i = 0; i < (Math.min(scripts.size(), 8)); i++) {
         Script script = scripts.get(i);
-        messages.add(scriptMessageProcessor.sendScriptMenu(messageEntity, script.getStringScript().replaceAll("\\\\\\$", "\\$"), script));
+        messages.add(scriptMessageProcessor.sendScriptMenu(messageEntity, script.getStringScript().replaceAll("\\\\\\$", "\\$").replaceAll("\\.owner\\(\\d*\\)", ""), script));
       }
       sendControlButtons(messageEntity, Math.min(scripts.size(), 8), firstId);
     } else if (messageEntity.getMessage().getText()
@@ -66,6 +72,25 @@ public class ScriptManagerProcessor implements MessageProcessor {
             .execute(
                 SendMessage.builder().chatId(messageEntity.getChatId()).text("Скрипт не найден").build());
       }
+    } else if (messageEntity.getMessage().getText().matches(SECURITY_VALUE_SET_REGEX)) {
+      Pattern pattern = Pattern.compile(SECURITY_VALUE_SET_REGEX);
+
+      Matcher m = pattern.matcher(messageEntity.getText());
+      m.find();
+      String key = m.group(4);
+      String value = m.group(8);
+      if (value.isEmpty()) {
+        value = null;
+      }
+      scriptMessageProcessor.dataHelper.putToSecretStorage(messageEntity.getChatId(), key, value);
+      messageEntity.getSender()
+          .execute(
+              SendMessage.builder().chatId(messageEntity.getChatId()).text("Сохранено: secret[" + key + "]=" + value).build());
+    } else if (messageEntity.getMessage().getText()
+        .startsWith("/logs")) {
+      messageEntity.getSender()
+          .execute(
+              SendMessage.builder().chatId(messageEntity.getChatId()).text(MetricCollector.getInstance().getLog(messageEntity.getChatId())).build());
     } else if (messageEntity.getMessage().isReply() && messageEntity.getMessage().getText()
         .startsWith("script(")) {
       if (scriptMessageProcessor
@@ -135,7 +160,7 @@ public class ScriptManagerProcessor implements MessageProcessor {
       for (int i = offset; i < max; i++) {
         Script script = scripts.get(i);
         try {
-          scriptMessageProcessor.sendScriptMenu(messageEntity, script.getStringScript().replaceAll("\\\\\\$", "\\$"), script);
+          scriptMessageProcessor.sendScriptMenu(messageEntity, script.getStringScript().replaceAll("\\\\\\$", "\\$").replaceAll("\\.owner\\(\\d*\\)", ""), script);
         } catch (Exception e) {
           e.printStackTrace();
         }

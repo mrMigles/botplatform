@@ -1,8 +1,9 @@
 package ru.holyway.botplatform.scripting;
 
 import groovy.lang.GroovyShell;
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+
+import javax.annotation.Nonnull;
 
 @RequiredArgsConstructor
 public class ScriptCompilerImpl implements ScriptCompiler {

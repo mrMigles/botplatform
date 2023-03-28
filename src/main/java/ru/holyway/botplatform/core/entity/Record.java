@@ -1,7 +1,8 @@
 package ru.holyway.botplatform.core.entity;
 
-import java.util.UUID;
 import org.springframework.data.annotation.Id;
+
+import java.util.UUID;
 
 /**
  * Created by seiv0814 on 04-09-17.

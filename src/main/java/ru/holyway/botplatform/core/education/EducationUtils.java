@@ -9,13 +9,13 @@ import java.util.StringTokenizer;
  */
 public class EducationUtils {
 
-    public static List<String> getTokenizeMessage(String message) {
+  public static List<String> getTokenizeMessage(String message) {
 
-        StringTokenizer tok = new StringTokenizer(message, " ,;-!.?()…");
-        ArrayList<String> a = new ArrayList<>();
-        while (tok.hasMoreTokens()) {
-            a.add(tok.nextToken());
-        }
-        return a;
+    StringTokenizer tok = new StringTokenizer(message, " ,;-!.?()…");
+    ArrayList<String> a = new ArrayList<>();
+    while (tok.hasMoreTokens()) {
+      a.add(tok.nextToken());
     }
+    return a;
+  }
 }

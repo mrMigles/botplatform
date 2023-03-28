@@ -62,6 +62,7 @@ public abstract class AbstractTelegramEntity {
             .getMessageId().toString());
       } catch (TelegramApiException e) {
         LOGGER.error("Error occurred during execution: ", e);
+        throw new RuntimeException(e);
       }
     };
   }
@@ -75,6 +76,7 @@ public abstract class AbstractTelegramEntity {
             .getMessageId().toString());
       } catch (TelegramApiException e) {
         LOGGER.error("Error occurred during execution: ", e);
+        throw new RuntimeException(e);
       }
     };
   }
@@ -87,6 +89,7 @@ public abstract class AbstractTelegramEntity {
             .getMessageId().toString());
       } catch (TelegramApiException e) {
         LOGGER.error("Error occurred during execution: ", e);
+        throw new RuntimeException(e);
       }
     };
   }
@@ -100,6 +103,7 @@ public abstract class AbstractTelegramEntity {
                     .chatId(String.valueOf(entity().apply(s).getChatId())).build()).getMessageId().toString());
       } catch (TelegramApiException e) {
         LOGGER.error("Error occurred during execution: ", e);
+        throw new RuntimeException(e);
       }
     };
   }
@@ -118,6 +122,7 @@ public abstract class AbstractTelegramEntity {
                     .chatId(String.valueOf(entity().apply(s).getChatId())).build()).getMessageId().toString());
       } catch (TelegramApiException e) {
         LOGGER.error("Error occurred during execution: ", e);
+        throw new RuntimeException(e);
       }
     };
   }
@@ -134,6 +139,7 @@ public abstract class AbstractTelegramEntity {
                     .chatId(String.valueOf(entity().apply(s).getChatId())).build()).getMessageId().toString());
       } catch (TelegramApiException e) {
         LOGGER.error("Error occurred during execution: ", e);
+        throw new RuntimeException(e);
       }
     };
   }
@@ -153,6 +159,7 @@ public abstract class AbstractTelegramEntity {
             .execute(sendMediaGroup);
       } catch (TelegramApiException e) {
         LOGGER.error("Error occurred during execution: ", e);
+        throw new RuntimeException(e);
       }
     };
   }
@@ -167,6 +174,7 @@ public abstract class AbstractTelegramEntity {
             .execute(sendMediaGroup.build()).getMessageId().toString());
       } catch (TelegramApiException e) {
         LOGGER.error("Error occurred during execution: ", e);
+        throw new RuntimeException(e);
       }
     };
   }
@@ -181,6 +189,7 @@ public abstract class AbstractTelegramEntity {
             .execute(sendMediaGroup).getMessageId().toString());
       } catch (TelegramApiException e) {
         LOGGER.error("Error occurred during execution: ", e);
+        throw new RuntimeException(e);
       }
     };
   }
@@ -204,6 +213,7 @@ public abstract class AbstractTelegramEntity {
             .toString());
       } catch (TelegramApiException e) {
         LOGGER.error("Error occurred during execution: ", e);
+        throw new RuntimeException(e);
       }
     };
   }
@@ -220,6 +230,7 @@ public abstract class AbstractTelegramEntity {
             .toString());
       } catch (TelegramApiException e) {
         LOGGER.error("Error occurred during execution: ", e);
+        throw new RuntimeException(e);
       }
     };
   }
@@ -251,6 +262,7 @@ public abstract class AbstractTelegramEntity {
         }
       } catch (TelegramApiException e) {
         LOGGER.error("Error occurred during execution: ", e);
+        throw new RuntimeException(e);
       }
     };
   }
@@ -272,6 +284,7 @@ public abstract class AbstractTelegramEntity {
             .toString());
       } catch (TelegramApiException e) {
         LOGGER.error("Error occurred during execution: ", e);
+        throw new RuntimeException(e);
       }
     };
   }
@@ -293,6 +306,7 @@ public abstract class AbstractTelegramEntity {
                 .chatId(String.valueOf(entity().apply(s).getChatId())).build());
       } catch (TelegramApiException e) {
         LOGGER.error("Error occurred during execution: ", e);
+        throw new RuntimeException(e);
       }
     };
   }

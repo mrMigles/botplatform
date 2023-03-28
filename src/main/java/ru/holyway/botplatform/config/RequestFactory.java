@@ -1,13 +1,14 @@
 package ru.holyway.botplatform.config;
 
-import java.net.URI;
-import javax.annotation.PostConstruct;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+
+import javax.annotation.PostConstruct;
+import java.net.URI;
 
 @Component
 public class RequestFactory {

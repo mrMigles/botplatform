@@ -1,14 +1,15 @@
 package ru.holyway.botplatform.core;
 
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-import javax.annotation.PostConstruct;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import ru.holyway.botplatform.core.data.DataHelper;
 import ru.holyway.botplatform.core.handler.MessageHandler;
+
+import javax.annotation.PostConstruct;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Sergey on 1/17/2017.
@@ -70,7 +71,7 @@ public class CommonMessageHandler implements CommonHandler {
       if (!StringUtils.isEmpty(answer)) {
         sendMessage(messageEntity, answer);
       }
-    } catch (Exception e){
+    } catch (Exception e) {
       e.printStackTrace();
       System.out.println(e);
     }

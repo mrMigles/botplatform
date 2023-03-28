@@ -1,6 +1,5 @@
 package ru.holyway.botplatform.telegram.processor;
 
-import java.util.List;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -13,6 +12,8 @@ import org.telegram.telegrambots.meta.api.objects.chatmember.ChatMember;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.holyway.botplatform.telegram.TelegramMessageEntity;
+
+import java.util.List;
 
 @Component
 @Order(2)
@@ -35,7 +36,7 @@ public class RemoveLastMessageProcessor implements MessageProcessor {
       final Message replyMessage = messageEntity.getMessage().getReplyToMessage();
       if (hasGrants(messageEntity)) {
         for (int i = replyMessage.getMessageId(); i <= messageEntity.getMessage().getMessageId();
-            i++) {
+             i++) {
           try {
             messageEntity.getSender()
                 .execute(DeleteMessage.builder().chatId(messageEntity.getChatId()).messageId(i).build());

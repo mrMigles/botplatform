@@ -23,6 +23,7 @@ public class JSettings {
   private Map<String, Set<TwitterFollow>> twitterFollows;
   private Map<String, List<String>> scripts;
   private Map<String, Map<String, Object>> scriptMap;
+  private Map<String, Map<String, String>> secretStorage;
 
   public JSettings(Set<String> muteChats, Set<String> easyChats,
                    Map<String, Integer> answerProximity, Map<String, Set<String>> syncChats,
@@ -45,6 +46,7 @@ public class JSettings {
     twitterFollows = new ConcurrentHashMap<>();
     scripts = new ConcurrentHashMap<>();
     scriptMap = new HashMap<>();
+    secretStorage = new HashMap<>();
   }
 
   public void addMuteChat(String chatId) {
@@ -260,7 +262,18 @@ public class JSettings {
     scriptMap.get(chatId.toString()).put(key.toString(), value);
   }
 
+  public void putToSecretStorage(Object chatId, String key, String value) {
+    if (!secretStorage.containsKey(chatId.toString())) {
+      secretStorage.put(chatId.toString(), new HashMap<>());
+    }
+    secretStorage.get(chatId.toString()).put(key, value);
+  }
+
   public Object getFromScriptMap(Object chatId, Object key) {
     return scriptMap.containsKey(chatId.toString()) ? scriptMap.get(chatId.toString()).get(key.toString()) : null;
+  }
+
+  public String getFromSecretStorage(String chatId, String key) {
+    return secretStorage.containsKey(chatId) ? secretStorage.get(chatId).get(key) : null;
   }
 }

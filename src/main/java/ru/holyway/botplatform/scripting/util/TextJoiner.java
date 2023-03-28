@@ -1,6 +1,5 @@
 package ru.holyway.botplatform.scripting.util;
 
-import com.jayway.jsonpath.JsonPath;
 import ru.holyway.botplatform.scripting.ScriptContext;
 import ru.holyway.botplatform.scripting.entity.AbstractText;
 

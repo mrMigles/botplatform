@@ -6,13 +6,11 @@ package ru.holyway.botplatform.core;
 public interface CommonHandler {
 
   /**
-   *
    * @param messageEntity
    */
   void handleMessage(MessageEntity messageEntity);
 
   /**
-   *
    * @param messageEntity
    * @return
    */

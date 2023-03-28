@@ -1,15 +1,5 @@
 package ru.holyway.botplatform.config;
 
-import java.net.Authenticator;
-import java.net.PasswordAuthentication;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import javax.net.ssl.SSLContext;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustStrategy;
@@ -29,7 +19,6 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 import org.springframework.web.client.RestTemplate;
-import org.telegram.telegrambots.bots.DefaultBotOptions;
 import ru.holyway.botplatform.core.Bot;
 import ru.holyway.botplatform.core.CommonHandler;
 import ru.holyway.botplatform.core.CommonMessageHandler;
@@ -40,6 +29,17 @@ import ru.holyway.botplatform.core.data.MongoDataHelper;
 import ru.holyway.botplatform.core.handler.MessageHandler;
 import ru.holyway.botplatform.security.AnonymousChatTokenSecurityFilter;
 import ru.holyway.botplatform.telegram.TelegramBot;
+
+import javax.net.ssl.SSLContext;
+import java.net.Authenticator;
+import java.net.PasswordAuthentication;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by Sergey on 1/17/2017.
@@ -162,7 +162,7 @@ public class BotConfiguration {
   }
 
   private void setProxy(final String host, final String port, final String user,
-      final String pass) {
+                        final String pass) {
     System.setProperty("socksProxyHost", host);
     System.setProperty("socksProxyPort", port);
     if (StringUtils.isNotEmpty(user) && StringUtils.isNotEmpty(pass)) {

@@ -52,9 +52,6 @@ public class TelegramMessageEntity implements MessageEntity {
     sendMessage.setText(text);
     try {
       sender.execute(sendMessage);
-      if (false) {
-        throw new TelegramApiException("");
-      }
     } catch (TelegramApiException telegramApiException) {
       telegramApiException.printStackTrace();
     }

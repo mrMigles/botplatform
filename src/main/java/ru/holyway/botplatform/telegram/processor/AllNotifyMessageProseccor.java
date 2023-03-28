@@ -1,7 +1,5 @@
 package ru.holyway.botplatform.telegram.processor;
 
-import java.util.ArrayList;
-import java.util.List;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
@@ -14,6 +12,9 @@ import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.holyway.botplatform.core.data.DataHelper;
 import ru.holyway.botplatform.telegram.TelegramMessageEntity;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Component
 @Order(3)

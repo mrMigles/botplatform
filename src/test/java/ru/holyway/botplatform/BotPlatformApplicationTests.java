@@ -1,25 +1,11 @@
 package ru.holyway.botplatform;
 
-import static ru.holyway.botplatform.scripting.Script.*;
-import static ru.holyway.botplatform.scripting.util.Request.*;
-import static ru.holyway.botplatform.scripting.util.TextJoiner.text;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.Arrays;
-import java.util.function.Predicate;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.http.HttpMethod;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.web.client.RestTemplate;
-import ru.holyway.botplatform.config.GroovyConfiguration;
-import ru.holyway.botplatform.scripting.Script;
-import ru.holyway.botplatform.scripting.ScriptCompiler;
-import ru.holyway.botplatform.scripting.ScriptContext;
-import ru.holyway.botplatform.scripting.util.TextJoiner;
 
 @RunWith(SpringRunner.class)
 public class BotPlatformApplicationTests {

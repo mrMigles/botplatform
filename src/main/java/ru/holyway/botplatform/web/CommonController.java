@@ -1,19 +1,11 @@
 package ru.holyway.botplatform.web;
 
-import java.io.UnsupportedEncodingException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import ru.holyway.botplatform.core.Bot;
 import ru.holyway.botplatform.core.CommonHandler;
@@ -22,6 +14,11 @@ import ru.holyway.botplatform.core.data.DataHelper;
 import ru.holyway.botplatform.core.entity.UserAccessInfo;
 import ru.holyway.botplatform.web.entities.SimpleRequest;
 import ru.holyway.botplatform.web.entities.SimpleResponse;
+
+import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by seiv0814 on 10-04-17.
@@ -89,7 +86,7 @@ public class CommonController {
   @PreAuthorize("hasAuthority('USER')")
   @RequestMapping(value = "/send", method = RequestMethod.GET)
   public ResponseEntity<String> restart(@RequestParam("chatId") String chatId,
-      @RequestParam("entity") String message) throws UnsupportedEncodingException {
+                                        @RequestParam("entity") String message) throws UnsupportedEncodingException {
     for (Bot bot : bots) {
       bot.sendMessage(message, chatId);
     }
@@ -99,7 +96,7 @@ public class CommonController {
   @PreAuthorize("permitAll()")
   @RequestMapping(value = "/mes", method = RequestMethod.GET)
   public ResponseEntity<String> message(@RequestParam("id") String chatId,
-      @RequestParam("entity") String message) throws UnsupportedEncodingException {
+                                        @RequestParam("entity") String message) throws UnsupportedEncodingException {
 
     MessageEntity messageEntity = new WebMessageEntity(chatId, "web", message);
     final String answer = commonHandler.generateAnswer(messageEntity);

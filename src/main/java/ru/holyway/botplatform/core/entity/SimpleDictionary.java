@@ -1,7 +1,8 @@
 package ru.holyway.botplatform.core.entity;
 
-import java.util.List;
 import org.springframework.data.annotation.Id;
+
+import java.util.List;
 
 /**
  * Created by Sergey on 4/24/2017.

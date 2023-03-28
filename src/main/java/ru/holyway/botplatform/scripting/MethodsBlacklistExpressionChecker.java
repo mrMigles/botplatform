@@ -1,13 +1,14 @@
 package ru.holyway.botplatform.scripting;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-import javax.annotation.Nonnull;
 import org.codehaus.groovy.ast.expr.Expression;
 import org.codehaus.groovy.ast.expr.GStringExpression;
 import org.codehaus.groovy.ast.expr.MethodCallExpression;
 import org.codehaus.groovy.control.customizers.SecureASTCustomizer;
+
+import javax.annotation.Nonnull;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 
 public class MethodsBlacklistExpressionChecker implements SecureASTCustomizer.ExpressionChecker {

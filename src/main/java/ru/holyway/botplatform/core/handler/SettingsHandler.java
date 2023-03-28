@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import ru.holyway.botplatform.core.MessageEntity;
 import ru.holyway.botplatform.core.data.DataHelper;
 import ru.holyway.botplatform.core.entity.JSettings;
+import ru.holyway.botplatform.scripting.MetricCollector;
 import ru.holyway.botplatform.telegram.TelegramMessageEntity;
 
 import javax.annotation.PostConstruct;
@@ -42,20 +43,18 @@ public class SettingsHandler implements MessageHandler {
       return "О, братишка, я вернулся!";
     }
     if (StringUtils.equalsIgnoreCase(mes, "/help@pakhom_bot") || StringUtils.equalsIgnoreCase(mes, "/help")) {
-      return "Петь я больше не умею, в прочем, как и говорить...\n"
-          + "Пахом Bot - 2 серия.\n\n" +
+      return "Пахом Bot - 2 серия.\n\nПеть я больше не умею... но умею гораздо больше.\n"
+          + "" +
+          "/script - help для скриптинга, основной и неповторимый функционал бота\n" +
           "`Пахом, сделай мем` иди /meme - могу сделать мем по картинке\n" +
           "/secret - секретный контекст. Стираю все сообщения между первым и вторым вызовом данной команды.\n" +
           "/anon - анонимный контекст. Делаю анонимными все сообщения, начиная с ввода данной команды.\n" +
-          "`@all` - вызвать всех в чате\n" +
+          "/all или `@all` - вызвать всех в чате\n" +
           "`Пахом, кик` + reply сообщения - Создаёт голосование на временный бан отправителя пересланного сообщения\n" +
-          "/script - help для скриптинга\n" +
           "/id - показать ID данного чата или сообщения в реплай\n";
-    }
-
-    if (StringUtils.containsIgnoreCase(mes, "/script")) {
-      return "Скриптинг позволяет создавать, хранить и кастомизировать фичи Пахома в рантайме и без передеплоя.\n"
-          + "Пример скипта: \n`script().when(message.text.eqic(\"Привет\").or(message.text.eqic(\"Хай\"))).then(message.reply(text(\"И тебе привет, \").add(message.user.value()).value()).andThen(message.sendSticker(\"CAADAgADFQADu1dTA7RfTc0IAoxIAg\")))`\n\n"
+    } else if (StringUtils.equalsIgnoreCase(mes, "/script@pakhom_bot") || StringUtils.equalsIgnoreCase(mes, "/script")) {
+      return "Скриптинг позволяет создавать, хранить и кастомизировать фичи Пахома в рантайме.\n"
+          + "Пример скипта: \n`script().when(message.text.eqic(\"Привет\").or(message.text.eqic(\"Хай\"))).then(message.reply(text(\"И тебе привет, \").add(message.user)).andThen(message.sendSticker(\"CAADAgADFQADu1dTA7RfTc0IAoxIAg\")))`\n\n"
           + "- `.where(predicate)` - содержит предикаты, объединенные по условию `.and(predicate)/.or(predicate)`, которые говорят о том, на что должен реагировать скрипт.\n"
           + "- `.then(consumer)` - содержит саму реакцию, действие, которое должно быть выполнено. Может быть объеденено, с использованием `.andThen(consumer)`\n\n"
           + "Частичный список возможных предикатов:\n"
@@ -72,29 +71,30 @@ public class SettingsHandler implements MessageHandler {
           + "- `telegram.send(chatID, text message)` - отправить сообщение в другой чат\n"
           + "- `sout(function)` - не возвращает ничего, просто выполняет функцию\n\n"
           + "Для получения значений необходимо использовать функции:\n"
-          + "- `message.text.value()` - возвращает текст сообщения.\n"
-          + "- `.value() - также можно использовать для получения значения других сущностей (`message.user`, `reply.text` ...).`"
+          + "- `message.text` - возвращает текст сообщения.\n"
           + "- `message.text.regexp(regexp, num of group)` - возвращает группу для регулярки.\n"
-          + "- `now().value()` - возвращает текущее время. Может быть изменено методами `now().hours(num of hours).value()`\n"
-          + "- `text(some text).add(another text).value()` - используется для конкатенкции. \n"
+          + "- `now()` - возвращает текущее время. Может быть изменено методами `now().hours(num of hours)`\n"
+          + "- `text(some text).add(another text)` - используется для конкатенкции. \n"
+          + "- `cron(\"0 * * * *\")` - создаёт boolean predicate, который срабатывает на принимаемый Cron формат.\n"
           + "- `text(function).eq|eqic(text)...` также можно использвовать для применения предикатов для результатов функции\n"
-          + "- `number(some text or function value).[add|divide|multiply|subtract|(number value)].value()` - используется для конкатенкции. \n"
-          + "- `number(some text or function value).[eq|gt|gtoe(number value)].value()` - возвращает предикат, примененный к функции или значению. \n"
+          + "- `number(some text or function value).[add|divide|multiply|subtract|(number value)].` - используется для конкатенкции. \n"
+          + "- `number(some text or function value).[eq|gt|gtoe(number value)]` - возвращает предикат, примененный к функции или значению. \n"
           + "- `random(0, 50)` - рандомное значение от 0 до 50. Для конверации в число можно использовать `.asNumber()`\n"
           + "- `request.post|get(http://url).header(name, value).param(name, value).param(name, value).body(text).asJson(\"$.param\")[|.asHtml(startTag, endTag)|.asString()|.asXpath(xpath)]` - возвращает результат выполнения http запроса с возможностью выборки.\n\n"
           + "Команды:\n"
           + "/list - выводит список скриптов для чата\n"
           + "/clear - очищает все скрипты для чата\n"
           + "/remove - удаляет скприт (применимо только к пересланному сообщению со скриптом)\n\n"
-          + "И да поможет вам DEBUG! Да не забудешь ты использовать `.value()` для получения значения!\n\n"
-          + "P.S. Синтаксис. Да - сложно, но тыж программист \uD83D\uDE0A \nНа самом деле стоит учитывать, что groovy/java скрипты компилируются в рантайме и должны"
-          + " быть достаточно безопасными. Предикатно/функциональный подход с заранее определенным АПИ пока единсвенное видимое решение. "
-          + " Синтаксис ± приближен к Java QueryDSL, надеюсь это поможет.";
-    }
-    if (StringUtils.containsIgnoreCase(mes, "Пахом, процент")) {
-      int percent =
-          settings.getAnswerProximity(chatId) == null ? 15 : settings.getAnswerProximity(chatId);
-      return percent + "%";
+          + "/put \"NAME\" \"VALUE\" - сохраняет в секретном контексте пользователя (или чата) переменную и значение. В дальнейшем можно использовать её в своих скриптах, в том числе в других чатах, используя `secret.get(\"NAME\")`.\n\n"
+          + "\n\n"
+          + "Синтаксис приближен к groovy Shell QueryDSL. Да - сложно. Можешь ознакомиться с примерами: /script_examples";
+    } else if (StringUtils.equalsIgnoreCase(mes, "/script_examples@pakhom_bot") || StringUtils.equalsIgnoreCase(mes, "/script_examples")) {
+      return "Примеры:\n" +
+          "Скрипт, который для любого сообщения, содержащего слово \"Привет\", отвечаетс реплаем \"Привет, {Имя пользователя}!\": \n`script().when(message.text.cic(\"Привет\")).then(message.send(text(\"Привет, \").add(message.user).add(\"!\")))`\n\n" +
+          "Скрипт, который проверяет, если сообщение является реплаем и сообщение содержит только \"/delete\", то удаляет реплай сообщение и пишет в чат \"выполнено\":\n `script().when(message.isReply().and(message.text.eq(\"/delete\"))).then(reply.delete().andThen(message.send(\"выполнено\")))`\n\n" +
+          "Скрипт, который проверяет, если сообщение начинается с \"/what \", то отправляет POST запрос на адрес http://example.com/api/post с content хидером json и телом, содержащим текст сообщения без \"/what \", достаёт из ответа поле $.response.text и отправляет в реплай к сообщению:\n `script().when(message.text.startWith(\"/what \")).then(message.send(request().post(\"http://example.com/api/post\").header(\"Content-Type\",\"application/json\").body(message.text.replace(\"/what \", \"\")).asJson(\"$.response.text\")))`";
+    } else if (StringUtils.equalsIgnoreCase(mes, "/metrics@pakhom_bot") || StringUtils.equalsIgnoreCase(mes, "/metrics")) {
+      return MetricCollector.getInstance().getExecutionInfo();
     }
     if (StringUtils.equals(mes, "Пахом, ид") || mes.equals("/id")) {
       if (messageEntity instanceof TelegramMessageEntity && ((TelegramMessageEntity) messageEntity).getMessage().isReply()) {

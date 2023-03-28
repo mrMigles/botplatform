@@ -1,9 +1,10 @@
 package ru.holyway.botplatform.scripting;
 
-import java.util.function.Consumer;
-import java.util.function.Function;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class TelegramScriptEntity {
 

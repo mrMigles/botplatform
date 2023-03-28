@@ -1,6 +1,5 @@
 package ru.holyway.botplatform.telegram.processor;
 
-import java.util.Set;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
@@ -9,6 +8,8 @@ import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.holyway.botplatform.core.data.ProcessorsContext;
 import ru.holyway.botplatform.telegram.TelegramMessageEntity;
+
+import java.util.Set;
 
 @Component
 @Order(1)

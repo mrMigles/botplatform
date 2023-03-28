@@ -20,7 +20,7 @@ public class InstaPost {
   private Integer likes;
 
   public InstaPost(String description, String photoUrl, String ID, String postUrl,
-      Integer likes) {
+                   Integer likes) {
     this.description = description;
     this.photoUrl = photoUrl;
     this.ID = ID;

@@ -172,9 +172,10 @@ public class Request {
               .exchange(url, method, httpEntity, String.class).getBody();
         } catch (RestClientException e) {
           LOGGER.error("failed response to {} with {} code", url, e.getMessage(), e);
-        }
-        catch (Exception e) {
+          throw new RuntimeException(e);
+        } catch (Exception e) {
           LOGGER.error("failed response to {} with:", url, e);
+          throw new RuntimeException(e);
         }
         scriptContext.setContextValue("request", response);
       }
