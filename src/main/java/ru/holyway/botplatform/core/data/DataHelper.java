@@ -37,4 +37,6 @@ public interface DataHelper {
 
   String getFromSecretStorage(String chatId, String key);
 
+  Map<String, String> listSecretStorage(String chatId);
+
 }

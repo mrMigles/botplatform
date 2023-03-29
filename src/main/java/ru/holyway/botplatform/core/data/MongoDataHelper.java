@@ -127,4 +127,9 @@ public class MongoDataHelper implements DataHelper {
   public String getFromSecretStorage(String chatId, String key) {
     return settings.getFromSecretStorage(chatId, key);
   }
+
+  @Override
+  public Map<String, String> listSecretStorage(String chatId) {
+    return settings.listSecretStorage(chatId);
+  }
 }

@@ -63,12 +63,12 @@ public class Request {
   }
 
   private Map<String, Object> params = new HashMap<>();
+  private Map<String, Object> headers = new HashMap<>();
 
   private boolean isLast = false;
 
   private Object body = "";
 
-  private MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
 
   private Object url = "";
 
@@ -118,8 +118,8 @@ public class Request {
     return this;
   }
 
-  public Request header(String key, String value) {
-    this.headers.add(key, value);
+  public Request header(String key, Object value) {
+    this.headers.put(key, value);
     return this;
   }
 
@@ -133,8 +133,8 @@ public class Request {
     return this;
   }
 
-  public TextJoiner asJson(Object jsonPath) {
-    return TextJoiner.text(scriptContext -> {
+  private Function<ScriptContext, String> performRequest() {
+    return scriptContext -> {
       final String url = this.url instanceof Function ? ((Function<ScriptContext, String>) this.url)
           .apply(scriptContext) : String.valueOf(this.url);
       final String body =
@@ -151,13 +151,27 @@ public class Request {
         }
       }
 
+      MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+      for (Map.Entry<String, Object> header : this.headers.entrySet()) {
+        if (header.getValue() instanceof Function) {
+          headers.add(header.getKey(), ((Function<ScriptContext, String>) header.getValue())
+              .apply(scriptContext));
+        } else {
+          headers.add(header.getKey(), String.valueOf(header.getValue()));
+        }
+      }
+
       HttpEntity httpEntity;
 
       if (!this.params.isEmpty()) {
         headers.add("Content-Type", "application/x-www-form-urlencoded");
       }
       if (StringUtils.isEmpty(body)) {
-        httpEntity = new HttpEntity(params, headers);
+        if (params == null || params.isEmpty()) {
+          httpEntity = new HttpEntity(headers);
+        } else {
+          httpEntity = new HttpEntity(params, headers);
+        }
       } else {
         httpEntity = new HttpEntity<>(body, headers);
       }
@@ -179,7 +193,13 @@ public class Request {
         }
         scriptContext.setContextValue("request", response);
       }
+      return response;
+    };
+  }
 
+  public TextJoiner asJson(Object jsonPath) {
+    return TextJoiner.text(scriptContext -> {
+      final String response = performRequest().apply(scriptContext);
       String stringPath = jsonPath instanceof String ? String.valueOf(jsonPath)
           : ((Function<ScriptContext, String>) jsonPath).apply(scriptContext);
       Object res = JsonPath.read(response, stringPath);
@@ -189,46 +209,8 @@ public class Request {
 
   public TextJoiner asHtml(String startTag, String endTag) {
     return TextJoiner.text(scriptContext -> {
-      final String url = this.url instanceof Function ? ((Function<ScriptContext, String>) this.url)
-          .apply(scriptContext) : String.valueOf(this.url);
-      final String body =
-          this.body instanceof Function ? ((Function<ScriptContext, String>) this.body)
-              .apply(scriptContext) : String.valueOf(this.body);
 
-      MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-      for (Map.Entry<String, Object> param : this.params.entrySet()) {
-        if (param.getValue() instanceof Function) {
-          params.add(param.getKey(), ((Function<ScriptContext, String>) param.getValue())
-              .apply(scriptContext));
-        } else {
-          params.add(param.getKey(), String.valueOf(param.getValue()));
-        }
-      }
-
-      HttpEntity httpEntity;
-
-      if (!this.params.isEmpty()) {
-        headers.add("Content-Type", "application/x-www-form-urlencoded");
-      }
-      if (StringUtils.isEmpty(body)) {
-        if (params == null || params.isEmpty()) {
-          httpEntity = new HttpEntity(headers);
-        } else {
-          httpEntity = new HttpEntity(params, headers);
-        }
-      } else {
-        httpEntity = new HttpEntity<>(body, headers);
-      }
-
-      final String response;
-
-      if (isLast && scriptContext.getContextValue("request") != null) {
-        response = scriptContext.getContextValue("request");
-      } else {
-        response = restTemplate
-            .exchange(url, method, httpEntity, String.class).getBody();
-        scriptContext.setContextValue("request", response);
-      }
+      final String response = performRequest().apply(scriptContext);
 
       Pattern pattern = Pattern
           .compile("^(.)*(" + startTag + ")(.*)(" + endTag + ")(.)*$", Pattern.MULTILINE);
@@ -248,46 +230,8 @@ public class Request {
 
   public TextJoiner asXPath(String xpath) {
     return TextJoiner.text(scriptContext -> {
-      final String url = this.url instanceof Function ? ((Function<ScriptContext, String>) this.url)
-          .apply(scriptContext) : String.valueOf(this.url);
-      final String body =
-          this.body instanceof Function ? ((Function<ScriptContext, String>) this.body)
-              .apply(scriptContext) : String.valueOf(this.body);
 
-      MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-      for (Map.Entry<String, Object> param : this.params.entrySet()) {
-        if (param.getValue() instanceof Function) {
-          params.add(param.getKey(), ((Function<ScriptContext, String>) param.getValue())
-              .apply(scriptContext));
-        } else {
-          params.add(param.getKey(), String.valueOf(param.getValue()));
-        }
-      }
-
-      HttpEntity httpEntity;
-
-      if (!this.params.isEmpty()) {
-        headers.add("Content-Type", "application/x-www-form-urlencoded");
-      }
-      if (StringUtils.isEmpty(body)) {
-        if (params == null || params.isEmpty()) {
-          httpEntity = new HttpEntity(headers);
-        } else {
-          httpEntity = new HttpEntity(params, headers);
-        }
-      } else {
-        httpEntity = new HttpEntity<>(body, headers);
-      }
-
-      final String response;
-
-      if (isLast && scriptContext.getContextValue("request") != null) {
-        response = scriptContext.getContextValue("request");
-      } else {
-        response = restTemplate
-            .exchange(url, method, httpEntity, String.class).getBody();
-        scriptContext.setContextValue("request", response);
-      }
+      final String response = performRequest().apply(scriptContext);
 
       Document document = Jsoup.parse(response);
       List<Element> nodes = Xsoup.compile(xpath).evaluate(document).getElements();
@@ -299,45 +243,7 @@ public class Request {
   }
 
   public TextJoiner asString() {
-    return TextJoiner.text(scriptContext -> {
-      final String url = this.url instanceof Function ? ((Function<ScriptContext, String>) this.url)
-          .apply(scriptContext) : String.valueOf(this.url);
-      final String body =
-          this.body instanceof Function ? ((Function<ScriptContext, String>) this.body)
-              .apply(scriptContext) : String.valueOf(this.body);
-
-      MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-      for (Map.Entry<String, Object> param : this.params.entrySet()) {
-        if (param.getValue() instanceof Function) {
-          params.add(param.getKey(), ((Function<ScriptContext, String>) param.getValue())
-              .apply(scriptContext));
-        } else {
-          params.add(param.getKey(), String.valueOf(param.getValue()));
-        }
-      }
-
-      HttpEntity httpEntity;
-
-      if (!this.params.isEmpty()) {
-        headers.add("Content-Type", "application/x-www-form-urlencoded");
-      }
-      if (StringUtils.isEmpty(body)) {
-        httpEntity = new HttpEntity(params, headers);
-      } else {
-        httpEntity = new HttpEntity<>(body, headers);
-      }
-
-      final String response;
-
-      if (isLast && scriptContext.getContextValue("request") != null) {
-        response = scriptContext.getContextValue("request");
-      } else {
-        response = restTemplate
-            .exchange(url, method, httpEntity, String.class).getBody();
-        scriptContext.setContextValue("request", response);
-      }
-      return response;
-    });
+    return TextJoiner.text(scriptContext -> performRequest().apply(scriptContext));
   }
 
   public Request post(Object url) {

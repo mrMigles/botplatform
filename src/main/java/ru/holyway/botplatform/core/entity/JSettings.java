@@ -266,7 +266,11 @@ public class JSettings {
     if (!secretStorage.containsKey(chatId.toString())) {
       secretStorage.put(chatId.toString(), new HashMap<>());
     }
-    secretStorage.get(chatId.toString()).put(key, value);
+    if (value == null) {
+      secretStorage.get(chatId.toString()).remove(key);
+    } else {
+      secretStorage.get(chatId.toString()).put(key, value);
+    }
   }
 
   public Object getFromScriptMap(Object chatId, Object key) {
@@ -275,5 +279,9 @@ public class JSettings {
 
   public String getFromSecretStorage(String chatId, String key) {
     return secretStorage.containsKey(chatId) ? secretStorage.get(chatId).get(key) : null;
+  }
+
+  public Map<String, String> listSecretStorage(String chatId) {
+    return secretStorage.getOrDefault(chatId, Collections.emptyMap());
   }
 }

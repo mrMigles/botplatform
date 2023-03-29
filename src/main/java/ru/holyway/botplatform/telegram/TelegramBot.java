@@ -92,8 +92,13 @@ public class TelegramBot extends TelegramLongPollingBot implements Bot {
     }
     int partition = partition(message.getChatId().toString(), threadCount);
     try {
+      if (queues.get(partition).remainingCapacity() < 10) {
+        LOGGER.error("Critical remaining capacity: " + message.getChatId());
+      }
       queues.get(partition).put(update);
     } catch (InterruptedException e) {
+      LOGGER.error("Error occurred during execution: ", e);
+    } catch (Exception e) {
       LOGGER.error("Error occurred during execution: ", e);
     }
   }
@@ -159,7 +164,9 @@ public class TelegramBot extends TelegramLongPollingBot implements Bot {
           Update update = queue.take();
           onUpdateReceivedInternal(update);
         } catch (InterruptedException e) {
-          // Handle the exception
+          LOGGER.error("Interrupt Error occurred during execution main: ", e);
+        } catch (Exception e) {
+          LOGGER.error("Error occurred during execution main: ", e);
         }
       }
     }

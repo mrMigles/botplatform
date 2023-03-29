@@ -87,7 +87,9 @@ public class MetricCollector {
   public String getExecutionInfo() {
     StringBuilder message = new StringBuilder("Last hour metrics: \n\n");
     for (final String chatId : executions.keySet()) {
-      message.append(chatId).append(": count: ").append(getExecutionCount(chatId)).append(", full: ").append(getExecutionTime(chatId)).append(" ms, max: ").append(getExecutionMaxTime(chatId)).append(" ms, avg: ").append(getExecutionAverageTime(chatId)).append(" ms\n");
+      if (!getExecutions(chatId).isEmpty()) {
+        message.append(chatId).append(": count: ").append(getExecutionCount(chatId)).append(", full: ").append(getExecutionTime(chatId)).append(" ms, max: ").append(getExecutionMaxTime(chatId)).append(" ms, avg: ").append(getExecutionAverageTime(chatId)).append(" ms\n");
+      }
     }
     return message.toString();
   }

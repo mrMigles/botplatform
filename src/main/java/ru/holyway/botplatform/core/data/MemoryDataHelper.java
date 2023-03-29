@@ -87,4 +87,9 @@ public class MemoryDataHelper implements DataHelper {
   public String getFromSecretStorage(String chatId, String key) {
     return (String) secretStorage.get(chatId, key);
   }
+
+  @Override
+  public Map<String, String> listSecretStorage(String chatId) {
+    return (Map<String, String>) secretStorage.get(chatId);
+  }
 }

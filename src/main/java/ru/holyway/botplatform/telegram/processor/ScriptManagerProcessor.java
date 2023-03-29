@@ -35,7 +35,8 @@ public class ScriptManagerProcessor implements MessageProcessor {
     return messageEntity.getMessage().hasText() && (messageEntity.getMessage().getText()
         .startsWith("/clear") || messageEntity.getMessage().getText()
         .startsWith("/list") || messageEntity.getMessage().getText()
-        .startsWith("/logs") || messageEntity.getMessage().getText().matches(SECURITY_VALUE_SET_REGEX)
+        .startsWith("/logs") || messageEntity.getMessage().getText().matches(SECURITY_VALUE_SET_REGEX) || messageEntity.getMessage().getText()
+        .startsWith("/get")
         || (messageEntity.getMessage().isReply() && messageEntity
         .getMessage().getReplyToMessage().getText().startsWith("script()")));
   }
@@ -91,6 +92,11 @@ public class ScriptManagerProcessor implements MessageProcessor {
       messageEntity.getSender()
           .execute(
               SendMessage.builder().chatId(messageEntity.getChatId()).text(MetricCollector.getInstance().getLog(messageEntity.getChatId())).build());
+    } else if (messageEntity.getMessage().getText()
+        .startsWith("/get")) {
+      messageEntity.getSender()
+          .execute(
+              SendMessage.builder().chatId(messageEntity.getChatId()).text(scriptMessageProcessor.dataHelper.listSecretStorage(messageEntity.getChatId()).toString()).build());
     } else if (messageEntity.getMessage().isReply() && messageEntity.getMessage().getText()
         .startsWith("script(")) {
       if (scriptMessageProcessor
