@@ -86,7 +86,6 @@ public class TelegramBot extends TelegramLongPollingBot implements Bot {
       if (update.hasCallbackQuery()) {
         message = update.getCallbackQuery().getMessage();
       } else {
-        LOGGER.error("Incorrect message: {}", update.toString());
         return;
       }
     }
@@ -100,6 +99,8 @@ public class TelegramBot extends TelegramLongPollingBot implements Bot {
       LOGGER.error("Error occurred during execution: ", e);
     } catch (Exception e) {
       LOGGER.error("Error occurred during execution: ", e);
+    } catch (Throwable e) {
+      LOGGER.error("Throwable occurred during execution: ", e);
     }
   }
 
@@ -184,12 +185,16 @@ public class TelegramBot extends TelegramLongPollingBot implements Bot {
             }
           } catch (Exception e) {
             LOGGER.error("Error occurred during execution: ", e);
+          } catch (Throwable e) {
+            LOGGER.error("Throwable occurred during execution: ", e);
           }
         }
         try {
           commonMessageHandler.handleMessage(telegramMessageEntity);
         } catch (Exception e) {
           LOGGER.error("Error occurred during execution: ", e);
+        } catch (Throwable e) {
+          LOGGER.error("Throwable occurred during execution: ", e);
         }
       } else if (update.hasCallbackQuery()) {
         for (MessageProcessor messageProcessor : messageProcessors) {
@@ -201,6 +206,8 @@ public class TelegramBot extends TelegramLongPollingBot implements Bot {
             }
           } catch (Exception e) {
             LOGGER.error("Error occurred during execution: ", e);
+          } catch (Throwable e) {
+            LOGGER.error("Throwable occurred during execution: ", e);
           }
         }
       }

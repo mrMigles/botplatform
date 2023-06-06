@@ -11,6 +11,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.converter.StringHttpMessageConverter;
@@ -31,29 +32,23 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Request {
 
-  private static RestTemplate restTemplate = new RestTemplate();
+  private static RestTemplate restTemplate = new RestTemplateBuilder().setReadTimeout(5 * 60 * 1000).setConnectTimeout(5 * 60 * 1000).build();
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(RestTemplate.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(Request.class);
 
   static {
     SSLContext sslContext = SSLContexts.createDefault();
 
-    SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslContext,
-        new String[]{"TLSv1", "TLSv1.1", "TLSv1.2"},
-        null,
-        new NoopHostnameVerifier());
+    SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslContext, new String[]{"TLSv1", "TLSv1.1", "TLSv1.2"}, null, new NoopHostnameVerifier());
 
-    HttpClient httpClient = HttpClientBuilder.create()
-        .disableCookieManagement()
-        .useSystemProperties()
-        .setSSLSocketFactory(sslsf)
-        .build();
+    HttpClient httpClient = HttpClientBuilder.create().disableCookieManagement().useSystemProperties().setSSLSocketFactory(sslsf).build();
     HttpComponentsClientHttpRequestWithBodyFactory factory = new HttpComponentsClientHttpRequestWithBodyFactory();
     factory.setHttpClient(httpClient);
     restTemplate.setRequestFactory(factory);
@@ -135,17 +130,13 @@ public class Request {
 
   private Function<ScriptContext, String> performRequest() {
     return scriptContext -> {
-      final String url = this.url instanceof Function ? ((Function<ScriptContext, String>) this.url)
-          .apply(scriptContext) : String.valueOf(this.url);
-      final String body =
-          this.body instanceof Function ? ((Function<ScriptContext, String>) this.body)
-              .apply(scriptContext) : String.valueOf(this.body);
+      final String url = this.url instanceof Function ? ((Function<ScriptContext, String>) this.url).apply(scriptContext) : String.valueOf(this.url);
+      final String body = this.body instanceof Function ? ((Function<ScriptContext, String>) this.body).apply(scriptContext) : String.valueOf(this.body);
 
       MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
       for (Map.Entry<String, Object> param : this.params.entrySet()) {
         if (param.getValue() instanceof Function) {
-          params.add(param.getKey(), ((Function<ScriptContext, String>) param.getValue())
-              .apply(scriptContext));
+          params.add(param.getKey(), ((Function<ScriptContext, String>) param.getValue()).apply(scriptContext));
         } else {
           params.add(param.getKey(), String.valueOf(param.getValue()));
         }
@@ -154,8 +145,7 @@ public class Request {
       MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
       for (Map.Entry<String, Object> header : this.headers.entrySet()) {
         if (header.getValue() instanceof Function) {
-          headers.add(header.getKey(), ((Function<ScriptContext, String>) header.getValue())
-              .apply(scriptContext));
+          headers.add(header.getKey(), ((Function<ScriptContext, String>) header.getValue()).apply(scriptContext));
         } else {
           headers.add(header.getKey(), String.valueOf(header.getValue()));
         }
@@ -182,8 +172,7 @@ public class Request {
         response = scriptContext.getContextValue("request");
       } else {
         try {
-          response = restTemplate
-              .exchange(url, method, httpEntity, String.class).getBody();
+          response = restTemplate.exchange(url, method, httpEntity, String.class).getBody();
         } catch (RestClientException e) {
           LOGGER.error("failed response to {} with {} code", url, e.getMessage(), e);
           throw new RuntimeException(e);
@@ -200,8 +189,7 @@ public class Request {
   public TextJoiner asJson(Object jsonPath) {
     return TextJoiner.text(scriptContext -> {
       final String response = performRequest().apply(scriptContext);
-      String stringPath = jsonPath instanceof String ? String.valueOf(jsonPath)
-          : ((Function<ScriptContext, String>) jsonPath).apply(scriptContext);
+      String stringPath = jsonPath instanceof String ? String.valueOf(jsonPath) : ((Function<ScriptContext, String>) jsonPath).apply(scriptContext);
       Object res = JsonPath.read(response, stringPath);
       return String.valueOf(res);
     });
@@ -212,8 +200,7 @@ public class Request {
 
       final String response = performRequest().apply(scriptContext);
 
-      Pattern pattern = Pattern
-          .compile("^(.)*(" + startTag + ")(.*)(" + endTag + ")(.)*$", Pattern.MULTILINE);
+      Pattern pattern = Pattern.compile("^(.)*(" + startTag + ")(.*)(" + endTag + ")(.)*$", Pattern.MULTILINE);
 
       Matcher m = pattern.matcher(response.replaceAll(" ", "_"));
       if (m.find()) {

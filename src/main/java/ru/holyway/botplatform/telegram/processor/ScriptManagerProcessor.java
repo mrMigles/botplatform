@@ -38,6 +38,7 @@ public class ScriptManagerProcessor implements MessageProcessor {
         .startsWith("/logs") || messageEntity.getMessage().getText().matches(SECURITY_VALUE_SET_REGEX) || messageEntity.getMessage().getText()
         .startsWith("/get")
         || (messageEntity.getMessage().isReply() && messageEntity
+        .getMessage().getReplyToMessage().hasText() && messageEntity
         .getMessage().getReplyToMessage().getText().startsWith("script()")));
   }
 
@@ -89,9 +90,24 @@ public class ScriptManagerProcessor implements MessageProcessor {
               SendMessage.builder().chatId(messageEntity.getChatId()).text("Сохранено: secret[" + key + "]=" + value).build());
     } else if (messageEntity.getMessage().getText()
         .startsWith("/logs")) {
+
+      InlineKeyboardMarkup keyboardMarkup = new InlineKeyboardMarkup();
+
+      List<List<InlineKeyboardButton>> keyboard = new ArrayList<>();
+
+      List<InlineKeyboardButton> inlineKeyboardButtons = new ArrayList<>();
+
+      InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton();
+      inlineKeyboardButton.setText("Скрыть лог");
+      inlineKeyboardButton.setCallbackData("script:clear:" + messageEntity.getMessage().getMessageId());
+      inlineKeyboardButtons.add(inlineKeyboardButton);
+
+      keyboard.add(inlineKeyboardButtons);
+      keyboardMarkup.setKeyboard(keyboard);
+
       messageEntity.getSender()
           .execute(
-              SendMessage.builder().chatId(messageEntity.getChatId()).text(MetricCollector.getInstance().getLog(messageEntity.getChatId())).build());
+              SendMessage.builder().chatId(messageEntity.getChatId()).text(MetricCollector.getInstance().getLog(messageEntity.getChatId())).replyMarkup(keyboardMarkup).build());
     } else if (messageEntity.getMessage().getText()
         .startsWith("/get")) {
       messageEntity.getSender()

@@ -124,7 +124,7 @@ public class ScriptMessageProcessor implements MessageProcessor, MessagePostLoad
           return true;
         }
       }
-    } catch (Exception e) {
+    } catch (Throwable e) {
       LOGGER.error("Error during execution script:", e);
       MetricCollector.getInstance().saveLog(messageEntity.getChatId(), script, e);
     } finally {
@@ -149,10 +149,27 @@ public class ScriptMessageProcessor implements MessageProcessor, MessagePostLoad
     keyboard.add(inlineKeyboardButtons);
     keyboardMarkup.setKeyboard(keyboard);
 
-    return messageEntity.getSender()
-        .execute(SendMessage.builder().chatId(messageEntity.getChatId())
-            .text(scriptString)
-            .replyMarkup(keyboardMarkup).build()).getMessageId();
+    int attempts = 0;
+    while (attempts < 3) {
+      try {
+        return messageEntity.getSender()
+            .execute(SendMessage.builder().chatId(messageEntity.getChatId())
+                .text(scriptString)
+                .replyMarkup(keyboardMarkup).build()).getMessageId();
+      } catch (Throwable e) {
+        LOGGER.warn("Attempt {} to send message and failed", attempts, e);
+        attempts++;
+        if (attempts == 3) {
+          throw e;
+        }
+        try {
+          Thread.sleep(250);
+        } catch (InterruptedException ex) {
+          throw new RuntimeException(ex);
+        }
+      }
+    }
+    throw new RuntimeException("Should not reach here");
   }
 
   @Override
@@ -231,8 +248,9 @@ public class ScriptMessageProcessor implements MessageProcessor, MessagePostLoad
 
         try {
           script.execute(ctx);
-        } catch (Exception e) {
+        } catch (Throwable e) {
           MetricCollector.getInstance().saveLog(chat, script, e);
+          LOGGER.error("Error occurred during execution script: ", e);
         } finally {
           MetricCollector.getInstance().trackCall(chat, Math.toIntExact(System.currentTimeMillis() - start));
         }

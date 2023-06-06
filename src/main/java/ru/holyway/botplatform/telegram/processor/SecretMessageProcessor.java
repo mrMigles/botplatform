@@ -59,7 +59,7 @@ public class SecretMessageProcessor implements MessageProcessor {
         messages.add(messageEntity.getMessage().getMessageId());
         Message message = messageEntity.getSender().execute(
             SendMessage.builder().chatId(messageEntity.getChatId())
-                .text("Ах вы шалушники, так и придётся скрыть ваши разговоры.").build());
+                .text("Таки придётся скрыть ваши разговоры.").build());
         messages.add(message.getMessageId());
         secretMessages.put(messageEntity.getChatId(), messages);
       }

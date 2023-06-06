@@ -261,8 +261,10 @@ public abstract class AbstractTelegramEntity {
               );
         }
       } catch (TelegramApiException e) {
-        LOGGER.error("Error occurred during execution: ", e);
-        throw new RuntimeException(e);
+        if (!e.getMessage().contains("message is not modified")) {
+          LOGGER.error("Error occurred during execution: ", e);
+          throw new RuntimeException(e);
+        }
       }
     };
   }

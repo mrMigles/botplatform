@@ -34,6 +34,10 @@ public class SettingsHandler implements MessageHandler {
     final String mes = messageEntity.getText();
     final String chatId = messageEntity.getChatId();
 
+    if (mes == null || mes.isEmpty()) {
+      return null;
+    }
+
     if (StringUtils.containsIgnoreCase(mes, "Пахом, -")) {
       addToMute(chatId);
       return "Ну.. если хочешь, могу полочать!";

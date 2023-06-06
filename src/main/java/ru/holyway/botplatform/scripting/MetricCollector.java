@@ -2,11 +2,18 @@ package ru.holyway.botplatform.scripting;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import ru.holyway.botplatform.scripting.entity.AbstractTelegramEntity;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 public class MetricCollector {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(MetricCollector.class);
+
 
   private Map<String, String> logs;
   private Map<String, Cache<Integer, Long>> executions;
@@ -31,7 +38,7 @@ public class MetricCollector {
 
 
   public void saveLog(final String chatId, Script script, final Throwable exception) {
-    final String log = "{\"ts\": " + System.currentTimeMillis() + ", \"script\": \"" + script.getStringScript().replaceAll("\\\\\\$", "\\$").replaceAll("\\.owner\\(\\d*\\)", "") + "\", \"message\": \"" + getFullMessage(exception) + "\"}";
+    final String log = "{\n\"time\": " + new Date(System.currentTimeMillis()) + ", \n\"script\": \"" + script.getStringScript().replaceAll("\\\\\\$", "\\$").replaceAll("\\.owner\\(\\d*\\)", "") + "\", \n\"message\": \"" + getFullMessage(exception) + "\"\n}";
     logs.put(chatId, log);
   }
 
@@ -56,12 +63,15 @@ public class MetricCollector {
   }
 
   public void trackCall(final String chatId, final Integer executionTime) {
-    if (!executions.containsKey(chatId)) {
-      executions.put(chatId, CacheBuilder.newBuilder()
-          .expireAfterWrite(1, TimeUnit.HOURS)
-          .build());
+    try {
+      if (!executions.containsKey(chatId)) {
+        executions.put(chatId, CacheBuilder.newBuilder().expireAfterWrite(1, TimeUnit.HOURS).build());
+      }
+      executions.get(chatId).put(executionTime, System.currentTimeMillis());
+    } catch (Exception e) {
+      LOGGER.error("Error during saving track call", e);
     }
-    executions.get(chatId).put(executionTime, System.currentTimeMillis());
+
   }
 
   private List<Integer> getExecutions(final String chatId) {

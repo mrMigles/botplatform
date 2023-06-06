@@ -1,6 +1,7 @@
 package ru.holyway.botplatform.scripting.entity;
 
 import org.telegram.telegrambots.meta.api.objects.Message;
+import ru.holyway.botplatform.scripting.MetricCollector;
 import ru.holyway.botplatform.scripting.ScriptContext;
 
 import java.util.function.Function;
@@ -31,5 +32,9 @@ public class HistoryMessageEntity extends AbstractTelegramEntity {
 
   public static HistoryMessageEntity message(Function<ScriptContext, Number> messageIdFunction) {
     return new HistoryMessageEntity(null, messageIdFunction);
+  }
+
+  public static Function<ScriptContext, String> metrics() {
+    return scriptContext -> MetricCollector.getInstance().getExecutionInfo();
   }
 }

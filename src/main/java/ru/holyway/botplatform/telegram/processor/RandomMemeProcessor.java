@@ -19,8 +19,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Random;
 
-@Component
-@Order(50)
+//@Component
+//@Order(50)
 public class RandomMemeProcessor implements MessageProcessor {
 
   private BufferedImage dynoTemplate;

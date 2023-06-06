@@ -34,37 +34,93 @@ public abstract class AbstractText implements Function<ScriptContext, String> {
   }
 
   public Predicate<ScriptContext> eq(String text) {
-    return ctx -> value().apply(ctx).equals(text);
+    return ctx -> {
+      String value = value().apply(ctx);
+      if (value == null) {
+        return false;
+      }
+      return value.equals(text);
+    };
   }
 
   public Predicate<ScriptContext> eq(Function<ScriptContext, String> text) {
-    return ctx -> value().apply(ctx).equals(text.apply(ctx));
+    return ctx -> {
+      String value = value().apply(ctx);
+      if (value == null) {
+        return false;
+      }
+      return value.equals(text.apply(ctx));
+    };
   }
 
   public Predicate<ScriptContext> eqic(String text) {
-    return ctx -> value().apply(ctx).equalsIgnoreCase(text);
+    return ctx -> {
+      String value = value().apply(ctx);
+      if (value == null) {
+        return false;
+      }
+      return value.equalsIgnoreCase(text);
+    };
+  }
+
+  public Predicate<ScriptContext> eqic(Function<ScriptContext, String> text) {
+    return ctx -> {
+      String value = value().apply(ctx);
+      if (value == null) {
+        return false;
+      }
+      return value.equalsIgnoreCase(text.apply(ctx));
+    };
   }
 
   public Predicate<ScriptContext> contains(String text) {
-    return ctx -> value().apply(ctx).contains(text);
+    return ctx -> {
+      String value = value().apply(ctx);
+      if (value == null) {
+        return false;
+      }
+      return value.contains(text);
+    };
   }
 
   public Predicate<ScriptContext> cic(String text) {
-    return ctx -> StringUtils.containsIgnoreCase(value().apply(ctx), text);
+    return ctx -> {
+      String value = value().apply(ctx);
+      if (value == null) {
+        return false;
+      }
+      return StringUtils.containsIgnoreCase(value, text);
+    };
   }
 
   public Predicate<ScriptContext> cic(Function<ScriptContext, String> text) {
-    return ctx -> StringUtils.containsIgnoreCase(value().apply(ctx), text.apply(ctx));
+    return ctx -> {
+      String value = value().apply(ctx);
+      if (value == null) {
+        return false;
+      }
+      return StringUtils.containsIgnoreCase(value, text.apply(ctx));
+    };
   }
 
   public Predicate<ScriptContext> startWith(String text) {
-    return ctx -> value().apply(ctx).startsWith(text);
+    return ctx -> {
+      String value = value().apply(ctx);
+      if (value == null) {
+        return false;
+      }
+      return value.startsWith(text);
+    };
   }
 
   public Predicate<ScriptContext> matches(String text) {
     return ctx -> {
+      String value = value().apply(ctx);
+      if (value == null) {
+        return false;
+      }
       ctx.setContextValue("regexp", text);
-      return value().apply(ctx).matches(text);
+      return value.matches(text);
     };
   }
 
@@ -74,10 +130,13 @@ public abstract class AbstractText implements Function<ScriptContext, String> {
 
   public AbstractText regexp(final String regexp, final Integer group) {
     return new Text(scriptContext -> {
+      String value = value().apply(scriptContext);
+      if (value == null) {
+        return null;
+      }
       scriptContext.setContextValue("regexp", regexp);
       Pattern pattern = Pattern.compile(regexp);
-
-      Matcher m = pattern.matcher(value().apply(scriptContext));
+      Matcher m = pattern.matcher(value);
       m.find();
       return m.group(group);
     });
@@ -85,9 +144,16 @@ public abstract class AbstractText implements Function<ScriptContext, String> {
 
   public AbstractText group(final Integer group) {
     return new Text(scriptContext -> {
-      Pattern pattern = Pattern.compile(scriptContext.getContextValue("regexp"));
-
-      Matcher m = pattern.matcher(value().apply(scriptContext));
+      String regex = scriptContext.getContextValue("regexp");
+      if (regex == null) {
+        return null;
+      }
+      String value = value().apply(scriptContext);
+      if (value == null) {
+        return null;
+      }
+      Pattern pattern = Pattern.compile(regex);
+      Matcher m = pattern.matcher(value);
       m.find();
       return m.group(group);
     });
@@ -95,34 +161,76 @@ public abstract class AbstractText implements Function<ScriptContext, String> {
 
   public AbstractText split(final String deliniter, final Integer group) {
     return new Text(scriptContext -> {
-      return value().apply(scriptContext).split(deliniter)[group];
+      String value = value().apply(scriptContext);
+      if (value == null) {
+        return null;
+      }
+      String[] splits = value.split(deliniter);
+      if (group < 0 || group >= splits.length) {
+        return null;
+      }
+      return splits[group];
     });
   }
 
   public AbstractText replace(String from, String to) {
-    return new Text(scriptContext -> value().apply(scriptContext).replace(from, to));
+    return new Text(scriptContext -> {
+      String value = value().apply(scriptContext);
+      if (value == null) {
+        return null;
+      }
+      return value.replace(from, to);
+    });
   }
 
   public AbstractText path(final String path) {
     return new Text(scriptContext -> {
-      Object res = JsonPath.read(value().apply(scriptContext), path);
+      String value = value().apply(scriptContext);
+      if (value == null) {
+        return null;
+      }
+      Object res = JsonPath.read(value, path);
       return String.valueOf(res);
     });
   }
 
   public AbstractText trim() {
-    return new Text(scriptContext -> value().apply(scriptContext).trim());
+    return new Text(scriptContext -> {
+      String value = value().apply(scriptContext);
+      if (value == null) {
+        return null;
+      }
+      return value.trim();
+    });
   }
 
   public AbstractText replace(Function<ScriptContext, String> from, Function<ScriptContext, String> to) {
-    return new Text(scriptContext -> value().apply(scriptContext).replace(from.apply(scriptContext), to.apply(scriptContext)));
+    return new Text(scriptContext -> {
+      String value = value().apply(scriptContext);
+      if (value == null) {
+        return null;
+      }
+      return value.replace(from.apply(scriptContext), to.apply(scriptContext));
+    });
   }
 
   public AbstractText replace(String from, Function<ScriptContext, String> to) {
-    return new Text(scriptContext -> value().apply(scriptContext).replace(from, to.apply(scriptContext)));
+    return new Text(scriptContext -> {
+      String value = value().apply(scriptContext);
+      if (value == null) {
+        return null;
+      }
+      return value.replace(from, to.apply(scriptContext));
+    });
   }
 
   public AbstractText replace(Function<ScriptContext, String> from, String to) {
-    return new Text(scriptContext -> value().apply(scriptContext).replace(from.apply(scriptContext), to));
+    return new Text(scriptContext -> {
+      String value = value().apply(scriptContext);
+      if (value == null) {
+        return null;
+      }
+      return value.replace(from.apply(scriptContext), to);
+    });
   }
 }
