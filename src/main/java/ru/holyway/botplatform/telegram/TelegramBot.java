@@ -11,6 +11,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.inlinequery.InlineQuery;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 import ru.holyway.botplatform.core.Bot;
@@ -54,6 +55,9 @@ public class TelegramBot extends TelegramLongPollingBot implements Bot {
   private final List<Thread> consumers;
   private final Integer threadCount;
 
+  private BlockingQueue<InlineQuery> inlineQueryBlockingQueue;
+  private Thread inlineQueryWorker;
+
   private static final Logger LOGGER = LoggerFactory.getLogger(TelegramBot.class);
 
 //  public TelegramBot(DefaultBotOptions options) {
@@ -72,6 +76,10 @@ public class TelegramBot extends TelegramLongPollingBot implements Bot {
       consumer.start();
     }
     this.threadCount = threadCount;
+
+    inlineQueryBlockingQueue = new LinkedBlockingDeque<>(queueSize);
+    inlineQueryWorker = new Thread(new InlineWorker(this, inlineQueryBlockingQueue));
+    inlineQueryWorker.start();
   }
 
   @PostConstruct
@@ -85,6 +93,13 @@ public class TelegramBot extends TelegramLongPollingBot implements Bot {
     if (message == null) {
       if (update.hasCallbackQuery()) {
         message = update.getCallbackQuery().getMessage();
+      } else if (update.hasInlineQuery()) {
+        try {
+          inlineQueryBlockingQueue.put(update.getInlineQuery());
+        } catch (InterruptedException e) {
+          LOGGER.error("InterruptedException due to adding inline worker", e);
+        }
+        return;
       } else {
         return;
       }

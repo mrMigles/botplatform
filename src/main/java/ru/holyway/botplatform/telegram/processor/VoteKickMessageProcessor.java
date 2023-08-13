@@ -200,8 +200,8 @@ public class VoteKickMessageProcessor implements MessageProcessor {
                       .removeBannedAdmin(chatID, banInfo.getUser().getId());
                 } else {
                   sender.execute(RestrictChatMember.builder().permissions(ChatPermissions.builder().canSendMessages(true)
-                      .canSendOtherMessages(true).canAddWebPagePreviews(true)
-                      .canSendMediaMessages(true).build()).chatId(chatID)
+                          .canSendOtherMessages(true).canAddWebPagePreviews(true)
+                          .canSendMediaMessages(true).build()).chatId(chatID)
                       .userId(banInfo.getUser().getId()).build());
                 }
               } catch (TelegramApiException e) {

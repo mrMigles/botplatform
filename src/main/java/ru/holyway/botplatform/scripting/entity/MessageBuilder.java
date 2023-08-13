@@ -6,10 +6,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.holyway.botplatform.scripting.ScriptContext;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -44,7 +41,9 @@ public class MessageBuilder implements Function<ScriptContext, SendMessage> {
       sendMessage.setReplyMarkup(keyboardMarkup);
     }
     if (cleanButtons) {
-      sendMessage.setReplyMarkup(new InlineKeyboardMarkup());
+      InlineKeyboardMarkup keyboardMarkup = new InlineKeyboardMarkup();
+      keyboardMarkup.setKeyboard(Collections.emptyList());
+      sendMessage.setReplyMarkup(keyboardMarkup);
     }
 
     return sendMessage;

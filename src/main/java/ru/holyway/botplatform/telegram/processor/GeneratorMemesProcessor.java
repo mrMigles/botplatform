@@ -24,7 +24,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
-@Order(10)
+@Order(101)
 public class GeneratorMemesProcessor implements MessageProcessor {
 
   private Map<String, String> wordsToChat = new ConcurrentHashMap<>();
@@ -74,8 +74,8 @@ public class GeneratorMemesProcessor implements MessageProcessor {
     if (askImage.get(messageEntity.getSenderLogin()) != null && messageEntity.getMessage()
         .hasPhoto()) {
       final String url = messageEntity.getSender().execute(GetFile.builder().fileId(
-          messageEntity.getMessage().getPhoto()
-              .get(messageEntity.getMessage().getPhoto().size() - 1).getFileId()).build())
+              messageEntity.getMessage().getPhoto()
+                  .get(messageEntity.getMessage().getPhoto().size() - 1).getFileId()).build())
           .getFileUrl(token);
       try {
         BufferedImage bufferedImage = ImageIO.read(new URL(url));

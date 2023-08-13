@@ -1,11 +1,17 @@
 package ru.holyway.botplatform.telegram;
 
+import net.sf.cglib.proxy.Enhancer;
+import net.sf.cglib.proxy.MethodInterceptor;
+import net.sf.cglib.proxy.MethodProxy;
+import org.apache.logging.log4j.util.Strings;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.holyway.botplatform.core.MessageEntity;
+
+import java.lang.reflect.Method;
 
 /**
  * Created by Sergey on 1/17/2017.
@@ -19,14 +25,20 @@ public class TelegramMessageEntity implements MessageEntity {
   private final AbsSender sender;
 
   public TelegramMessageEntity(Message message, CallbackQuery callbackQuery, AbsSender sender) {
-    this.message = message;
+
+    Enhancer enhancer = new Enhancer();
+    enhancer.setClassLoader(Message.class.getClassLoader());
+    enhancer.setSuperclass(Message.class);
+    enhancer.setCallback(new CustomMethodInterceptor(message));
+
+    this.message = (Message) enhancer.create();
     this.callbackQuery = callbackQuery;
     this.sender = sender;
   }
 
   @Override
   public String getText() {
-    return message.getText();
+    return Strings.isNotBlank(message.getText()) ? message.getText() : message.getCaption();
   }
 
   @Override
@@ -58,6 +70,7 @@ public class TelegramMessageEntity implements MessageEntity {
   }
 
   public Message getMessage() {
+
     return message;
   }
 
@@ -67,5 +80,35 @@ public class TelegramMessageEntity implements MessageEntity {
 
   public AbsSender getSender() {
     return sender;
+  }
+}
+
+
+class CustomMethodInterceptor implements MethodInterceptor {
+  private final Message originalObject;
+
+  public CustomMethodInterceptor(Message originalObject) {
+    this.originalObject = originalObject;
+  }
+
+  @Override
+  public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable {
+    if (method.getName().equals("getText")) {
+      return Strings.isNotBlank(originalObject.getText()) ? originalObject.getText() : originalObject.getCaption();
+    } else if (method.getName().equals("getReplyToMessage")) {
+      Message replyToMessage = originalObject.getReplyToMessage();
+      if (replyToMessage != null) {
+        Enhancer enhancer = new Enhancer();
+        enhancer.setClassLoader(Message.class.getClassLoader());
+        enhancer.setSuperclass(Message.class);
+        enhancer.setCallback(new CustomMethodInterceptor(replyToMessage));
+
+        replyToMessage = (Message) enhancer.create();
+      }
+      return replyToMessage;
+    } else {
+      // Delegate the rest of the methods to the original object
+      return method.invoke(originalObject, args);
+    }
   }
 }
