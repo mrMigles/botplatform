@@ -5,9 +5,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
+import org.telegram.telegrambots.meta.api.methods.groupadministration.GetChatAdministrators;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
+import org.telegram.telegrambots.meta.api.objects.chatmember.ChatMember;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ForceReplyKeyboard;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
@@ -21,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Component
 @Order(98)
@@ -46,10 +49,17 @@ public class ScriptManagerProcessor implements MessageProcessor {
   public void process(TelegramMessageEntity messageEntity) throws TelegramApiException {
     if (messageEntity.getMessage().getText()
         .startsWith("/clear")) {
-      scriptMessageProcessor.clearScripts(messageEntity.getChatId());
-      messageEntity.getSender()
-          .execute(
-              SendMessage.builder().chatId(messageEntity.getChatId()).text("Скрипты очищены").build());
+      if (messageEntity.getMessage().getChat().isUserChat() || isAdmin(messageEntity.getSender(), messageEntity.getMessage().getChatId(), messageEntity.getMessage().getFrom().getId())) {
+        scriptMessageProcessor.clearScripts(messageEntity.getChatId());
+        messageEntity.getSender()
+            .execute(
+                SendMessage.builder().chatId(messageEntity.getChatId()).text("Скрипты очищены").build());
+      } else {
+        messageEntity.getSender()
+            .execute(
+                SendMessage.builder().chatId(messageEntity.getChatId()).text("Не хватает прав на очистку скриптов, обратитесь к администратору чата.").build());
+
+      }
     } else if (messageEntity.getMessage().getText()
         .startsWith("/list")) {
       Integer firstId = messageEntity.getSender().execute(SendMessage.builder().chatId(messageEntity.getChatId())
@@ -64,11 +74,25 @@ public class ScriptManagerProcessor implements MessageProcessor {
     } else if (messageEntity.getMessage().getText()
         .startsWith("/remove") || messageEntity.getMessage().getText()
         .equals("-")) {
-      final String script = messageEntity.getMessage().getReplyToMessage().getText();
-      if (scriptMessageProcessor.removeScript(messageEntity.getChatId(), script)) {
-        messageEntity.getSender()
-            .execute(
-                SendMessage.builder().chatId(messageEntity.getChatId()).text("Скрипт удален").build());
+      final String scriptString = messageEntity.getMessage().getReplyToMessage().getText();
+      final Script script = scriptMessageProcessor.getScript(messageEntity.getChatId(), scriptString);
+      if (script != null) {
+        if (messageEntity.getMessage().getChat().isUserChat() || script.getOwner() == 0 || script.getOwner() == messageEntity.getMessage().getFrom().getId() || isAdmin(messageEntity.getSender(), messageEntity.getMessage().getChatId(), messageEntity.getMessage().getFrom().getId())) {
+          if (scriptMessageProcessor.removeScript(messageEntity.getChatId(), scriptString)) {
+            messageEntity.getSender()
+                .execute(
+                    SendMessage.builder().chatId(messageEntity.getChatId()).text("Скрипт удален").build());
+          } else {
+            messageEntity.getSender()
+                .execute(
+                    SendMessage.builder().chatId(messageEntity.getChatId()).text("Скрипт не найден").build());
+          }
+        } else {
+          messageEntity.getSender()
+              .execute(
+                  SendMessage.builder().chatId(messageEntity.getChatId()).text("Не хватает прав на удаление скрипта, обратитесь к администратору чата или автору скрипта.").build());
+
+        }
       } else {
         messageEntity.getSender()
             .execute(
@@ -149,13 +173,24 @@ public class ScriptManagerProcessor implements MessageProcessor {
               .text(callbackQuery.getMessage().getText()).build());
     } else if (callbackQuery.getData().startsWith("script:delete:")) {
       final String scriptId = StringUtils.substringAfter(callbackQuery.getData(), "script:delete:");
-      if (scriptMessageProcessor.removeScript(
-          String.valueOf(callbackQuery.getMessage().getChatId()), Integer.valueOf(scriptId))) {
-        sender
-            .execute(
-                SendMessage.builder().chatId(String.valueOf(callbackQuery.getMessage().getChatId()))
-                    .text("Скрипт удален")
-                    .replyToMessageId(callbackQuery.getMessage().getMessageId()).build());
+      final Script script = scriptMessageProcessor.getScript(String.valueOf(callbackQuery.getMessage().getChatId()), Integer.valueOf(scriptId));
+      if (script != null) {
+        if (callbackQuery.getMessage().getChat().isUserChat() || script.getOwner() == 0 || script.getOwner() == callbackQuery.getFrom().getId() || isAdmin(sender, callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getFrom().getId())) {
+          if (scriptMessageProcessor.removeScript(
+              String.valueOf(callbackQuery.getMessage().getChatId()), Integer.valueOf(scriptId))) {
+            sender
+                .execute(
+                    SendMessage.builder().chatId(String.valueOf(callbackQuery.getMessage().getChatId()))
+                        .text("Скрипт удален")
+                        .replyToMessageId(callbackQuery.getMessage().getMessageId()).build());
+          } else {
+            sender.execute(AnswerCallbackQuery.builder().callbackQueryId(callbackQuery.getId())
+                .text("Скрипт не найден").build());
+          }
+        } else {
+          sender.execute(AnswerCallbackQuery.builder().callbackQueryId(callbackQuery.getId())
+              .text("Не хватает прав на удаление скрипта, обратитесь к администратору чата или автору скрипта.").build());
+        }
       } else {
         sender.execute(AnswerCallbackQuery.builder().callbackQueryId(callbackQuery.getId())
             .text("Скрипт не найден").build());
@@ -215,5 +250,12 @@ public class ScriptManagerProcessor implements MessageProcessor {
         .execute(SendMessage.builder().chatId(messageEntity.getChatId())
             .text("В списке ещё " + (scriptMessageProcessor.getScripts(messageEntity.getChatId()).size() - offset) + " скриптов")
             .replyMarkup(keyboardMarkup).build()).getMessageId();
+  }
+
+  private boolean isAdmin(AbsSender sender, final Long chatId, final Long userId) throws TelegramApiException {
+    List<ChatMember> chatMembers = sender
+        .execute(GetChatAdministrators.builder().chatId(chatId).build());
+    List<Long> adminUsers = chatMembers.stream().map(chatMember -> chatMember.getUser().getId()).collect(Collectors.toList());
+    return adminUsers.contains(userId);
   }
 }

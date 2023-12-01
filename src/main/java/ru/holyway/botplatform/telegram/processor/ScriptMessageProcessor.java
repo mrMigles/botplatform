@@ -214,6 +214,16 @@ public class ScriptMessageProcessor implements MessageProcessor, MessagePostLoad
     return false;
   }
 
+  public Script getScript(final String chatId, final String script) {
+    Optional<Script> s = scripts.get(chatId).stream()
+        .filter(script1 -> script1.getStringScript().equals(script)).findFirst();
+    if (s.isPresent()) {
+      s.get().cancel();
+      return s.get();
+    }
+    return null;
+  }
+
   public boolean removeScript(final String chatId, final Integer scriptCode) {
     Optional<Script> s = scripts.get(chatId).stream()
         .filter(script -> script.hashCode() == scriptCode).findFirst();
@@ -225,6 +235,16 @@ public class ScriptMessageProcessor implements MessageProcessor, MessagePostLoad
       return true;
     }
     return false;
+  }
+
+  public Script getScript(final String chatId, final Integer scriptCode) {
+    Optional<Script> s = scripts.get(chatId).stream()
+        .filter(script -> script.hashCode() == scriptCode).findFirst();
+    if (s.isPresent()) {
+      s.get().cancel();
+      return s.get();
+    }
+    return null;
   }
 
   @Override
