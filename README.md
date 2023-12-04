@@ -9,6 +9,6 @@ This bot has a lot of features:
 * Scripting: a very heavy and multifunctional engine which allows you to write your custom scenarios (scripts) for bot's behaviour in the chat in real time and without rebuild. 
 For example you can write script to remove all messages with word `F*ck` in the chat, or you can ask bot to call some REST API and post message with result to the chat. Use command `/help` for more information. 
 * Instagram/Youtube/Twitter posting to chat according on subscriptions
-* Some another minor features like random meme generation and notifying all participans in the chat by @all.
+* Some another minor features like random meme generation and notifying all participants in the chat by @all.
 
 I didn't try to write beautiful code so... it looks like a shit :)

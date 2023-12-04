@@ -175,7 +175,7 @@ public class ScriptManagerProcessor implements MessageProcessor {
       final String scriptId = StringUtils.substringAfter(callbackQuery.getData(), "script:delete:");
       final Script script = scriptMessageProcessor.getScript(String.valueOf(callbackQuery.getMessage().getChatId()), Integer.valueOf(scriptId));
       if (script != null) {
-        if (callbackQuery.getMessage().getChat().isUserChat() || script.getOwner() == 0 || script.getOwner() == callbackQuery.getFrom().getId() || isAdmin(sender, callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getFrom().getId())) {
+        if (callbackQuery.getMessage().getChat().isUserChat() || script.getOwner() == 0 || script.getOwner() == callbackQuery.getFrom().getId() || isAdmin(sender, callbackQuery.getMessage().getChatId(), callbackQuery.getFrom().getId())) {
           if (scriptMessageProcessor.removeScript(
               String.valueOf(callbackQuery.getMessage().getChatId()), Integer.valueOf(scriptId))) {
             sender
