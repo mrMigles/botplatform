@@ -25,14 +25,8 @@ public class AllNotifyMessageProseccor implements MessageProcessor {
 
   @Override
   public boolean isNeedToHandle(TelegramMessageEntity messageEntity) {
-    if (StringUtils.containsIgnoreCase(messageEntity.getText(), "@all") || StringUtils
-        .containsIgnoreCase(messageEntity.getText(), "/all")) {
+    if (StringUtils.containsIgnoreCase(messageEntity.getText(), "@all")) {
       return true;
-    } else if (messageEntity.getMessage().isReply()) {
-      return StringUtils
-          .containsIgnoreCase(messageEntity.getMessage().getReplyToMessage().getText(), "@all")
-          || StringUtils
-          .containsIgnoreCase(messageEntity.getMessage().getReplyToMessage().getText(), "/all");
     }
     return false;
   }
