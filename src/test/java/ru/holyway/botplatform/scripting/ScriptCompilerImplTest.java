@@ -6,6 +6,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -33,7 +34,7 @@ public class ScriptCompilerImplTest {
   public void compileShouldWrapGroovyErrors() {
     expectedException.expect(ScriptCompilationException.class);
     expectedException.expectMessage(is("Unable to compile script"));
-    expectedException.expectMessage(containsString("badMethod"));
+    expectedException.expectCause(hasProperty("message", containsString("badMethod")));
 
     compiler.compile("badMethod(");
   }
