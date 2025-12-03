@@ -1,20 +1,15 @@
 package ru.holyway.botplatform.scripting;
 
 import groovy.lang.GroovyShell;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.hasProperty;
-import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 public class ScriptCompilerImplTest {
-
-  @Rule
-  public ExpectedException expectedException = ExpectedException.none();
 
   private final ScriptCompilerImpl compiler = new ScriptCompilerImpl(new GroovyShell());
 
@@ -32,10 +27,13 @@ public class ScriptCompilerImplTest {
 
   @Test
   public void compileShouldWrapGroovyErrors() {
-    expectedException.expect(ScriptCompilationException.class);
-    expectedException.expectMessage(is("Unable to compile script"));
-    expectedException.expectCause(hasProperty("message", containsString("badMethod")));
-
-    compiler.compile("badMethod(");
+    try {
+      compiler.compile("badMethod(");
+      fail("Script compilation failure should be wrapped");
+    } catch (ScriptCompilationException ex) {
+      assertEquals("Unable to compile script", ex.getMessage());
+      assertNotNull(ex.getCause());
+      assertThat(ex.getCause().getMessage(), containsString("badMethod"));
+    }
   }
 }
