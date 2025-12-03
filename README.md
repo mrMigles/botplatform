@@ -12,3 +12,13 @@ For example you can write script to remove all messages with word `F*ck` in the 
 * Some another minor features like random meme generation and notifying all participants in the chat by @all.
 
 I didn't try to write beautiful code so... it looks like a shit :)
+
+## CI/CD
+
+The repository now contains the workflow `.github/workflows/portainer-deploy.yml` that builds the
+application, publishes an image to GitHub Container Registry and triggers a Portainer stack
+redeploy. Configure the following secrets before enabling the workflow:
+
+- `PORTAINER_URL` – base URL of the Portainer instance (for example `https://portainer.example.com`).
+- `PORTAINER_USERNAME` / `PORTAINER_PASSWORD` – credentials with rights to deploy the target stack.
+- `PORTAINER_STACK_ID` – identifier of the stack to redeploy.

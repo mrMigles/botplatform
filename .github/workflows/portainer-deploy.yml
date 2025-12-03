@@ -1,0 +1,89 @@
+name: Build and Deploy to Portainer
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch: {}
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  TAG: latest
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: Build application
+        run: ./mvnw -B package -DskipTests
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.TAG }}
+
+      - name: Deploy stack via Portainer API
+        env:
+          PORTAINER_URL: ${{ secrets.PORTAINER_URL }}
+          PORTAINER_USERNAME: ${{ secrets.PORTAINER_USERNAME }}
+          PORTAINER_PASSWORD: ${{ secrets.PORTAINER_PASSWORD }}
+          PORTAINER_STACK_ID: ${{ secrets.PORTAINER_STACK_ID }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import sys
+          from urllib import request
+
+          url = os.environ.get("PORTAINER_URL")
+          username = os.environ.get("PORTAINER_USERNAME")
+          password = os.environ.get("PORTAINER_PASSWORD")
+          stack_id = os.environ.get("PORTAINER_STACK_ID")
+
+          if not all([url, username, password, stack_id]):
+              sys.exit("Portainer secrets are not configured")
+
+          data = json.dumps({"Username": username, "Password": password}).encode()
+          req = request.Request(f"{url}/api/auth", data=data, headers={"Content-Type": "application/json"})
+          with request.urlopen(req) as resp:
+              token = json.loads(resp.read().decode()).get("jwt")
+
+          if not token:
+              sys.exit("Failed to obtain Portainer JWT token")
+
+          deploy_request = request.Request(
+              f"{url}/api/stacks/{stack_id}/deploy",
+              data=json.dumps({"prune": True, "pullImage": True}).encode(),
+              headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
+              method="POST",
+          )
+
+          with request.urlopen(deploy_request) as resp:
+              print(f"Deploy response status: {resp.status}")
+              print(resp.read().decode())
+          PY

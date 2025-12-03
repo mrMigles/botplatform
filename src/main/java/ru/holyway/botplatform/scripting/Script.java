@@ -1,5 +1,6 @@
 package ru.holyway.botplatform.scripting;
 
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -9,6 +10,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+@Slf4j
 public class Script implements Comparable<Script> {
 
   private final String name;
@@ -40,10 +42,9 @@ public class Script implements Comparable<Script> {
   public static Consumer<ScriptContext> sout(Object obj) {
     return scriptContext -> {
       if (obj instanceof Function) {
-        System.out
-            .println(((Function<ScriptContext, String>) obj).apply(scriptContext));
+        log.info(((Function<ScriptContext, String>) obj).apply(scriptContext));
       } else {
-        System.out.println(String.valueOf(obj));
+        log.info(String.valueOf(obj));
       }
     };
   }
