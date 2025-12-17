@@ -27,8 +27,11 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: '8'
           cache: maven
+
+      - name: Make Maven wrapper executable
+        run: chmod +x mvnw
 
       - name: Build application
         run: ./mvnw -B package -DskipTests
@@ -58,26 +61,47 @@ jobs:
           import json
           import os
           import sys
-          from urllib import request
+          from urllib import error, request
+
+          def exit_with_http_details(exc: error.HTTPError) -> None:
+              body = exc.read().decode(errors="replace") if exc.fp else ""
+              sys.exit(f"HTTP {exc.code} when calling {exc.url}: {body}")
+
           url = os.environ.get("PORTAINER_URL")
           username = os.environ.get("PORTAINER_USERNAME")
           password = os.environ.get("PORTAINER_PASSWORD")
           stack_id = os.environ.get("PORTAINER_STACK_ID")
           if not all([url, username, password, stack_id]):
               sys.exit("Portainer secrets are not configured")
-          data = json.dumps({"Username": username, "Password": password}).encode()
-          req = request.Request(f"{url}/api/auth", data=data, headers={"Content-Type": "application/json"})
-          with request.urlopen(req) as resp:
-              token = json.loads(resp.read().decode()).get("jwt")
+
+          auth_request = request.Request(
+              f"{url.rstrip('/')}/api/auth",
+              data=json.dumps({"Username": username, "Password": password}).encode(),
+              headers={"Content-Type": "application/json"},
+          )
+          try:
+              with request.urlopen(auth_request) as resp:
+                  token = json.loads(resp.read().decode()).get("jwt")
+          except error.HTTPError as exc:
+              exit_with_http_details(exc)
+          except error.URLError as exc:
+              sys.exit(f"Failed to reach Portainer auth endpoint: {exc.reason}")
+
           if not token:
               sys.exit("Failed to obtain Portainer JWT token")
+
           deploy_request = request.Request(
-              f"{url}/api/stacks/{stack_id}/deploy",
+              f"{url.rstrip('/')}/api/stacks/{stack_id}/deploy",
               data=json.dumps({"prune": True, "pullImage": True}).encode(),
               headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
               method="POST",
           )
-          with request.urlopen(deploy_request) as resp:
-              print(f"Deploy response status: {resp.status}")
-              print(resp.read().decode())
+          try:
+              with request.urlopen(deploy_request) as resp:
+                  print(f"Deploy response status: {resp.status}")
+                  print(resp.read().decode())
+          except error.HTTPError as exc:
+              exit_with_http_details(exc)
+          except error.URLError as exc:
+              sys.exit(f"Failed to reach Portainer deploy endpoint: {exc.reason}")
           PY
