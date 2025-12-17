@@ -1,4 +1,4 @@
-FROM openjdk:8-jdk-alpine
+FROM eclipse-temurin:8-jdk-alpine
 VOLUME /tmp
 COPY target/botplatform-0.0.1-SNAPSHOT.jar app.jar
 RUN apk update && apk add fontconfig ttf-dejavu && rm -rf /var/cache/apk/*
