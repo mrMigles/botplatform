@@ -183,6 +183,16 @@ public abstract class AbstractText implements Function<ScriptContext, String> {
     });
   }
 
+  public AbstractText replaceAll(String from, String to) {
+    return new Text(scriptContext -> {
+      String value = value().apply(scriptContext);
+      if (value == null) {
+        return null;
+      }
+      return value.replaceAll(from, to);
+    });
+  }
+
   public AbstractText path(final String path) {
     return new Text(scriptContext -> {
       String value = value().apply(scriptContext);
@@ -214,6 +224,16 @@ public abstract class AbstractText implements Function<ScriptContext, String> {
     });
   }
 
+  public AbstractText replaceAll(Function<ScriptContext, String> from, Function<ScriptContext, String> to) {
+    return new Text(scriptContext -> {
+      String value = value().apply(scriptContext);
+      if (value == null) {
+        return null;
+      }
+      return value.replaceAll(from.apply(scriptContext), to.apply(scriptContext));
+    });
+  }
+
   public AbstractText replace(String from, Function<ScriptContext, String> to) {
     return new Text(scriptContext -> {
       String value = value().apply(scriptContext);
@@ -224,6 +244,16 @@ public abstract class AbstractText implements Function<ScriptContext, String> {
     });
   }
 
+  public AbstractText replaceAll(String from, Function<ScriptContext, String> to) {
+    return new Text(scriptContext -> {
+      String value = value().apply(scriptContext);
+      if (value == null) {
+        return null;
+      }
+      return value.replaceAll(from, to.apply(scriptContext));
+    });
+  }
+
   public AbstractText replace(Function<ScriptContext, String> from, String to) {
     return new Text(scriptContext -> {
       String value = value().apply(scriptContext);
@@ -231,6 +261,16 @@ public abstract class AbstractText implements Function<ScriptContext, String> {
         return null;
       }
       return value.replace(from.apply(scriptContext), to);
+    });
+  }
+
+  public AbstractText replaceAll(Function<ScriptContext, String> from, String to) {
+    return new Text(scriptContext -> {
+      String value = value().apply(scriptContext);
+      if (value == null) {
+        return null;
+      }
+      return value.replaceAll(from.apply(scriptContext), to);
     });
   }
 }
