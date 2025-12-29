@@ -2,6 +2,9 @@ package ru.holyway.botplatform.scripting;
 
 import org.junit.Test;
 
+import java.util.concurrent.Delayed;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.Assert.*;
@@ -43,7 +46,7 @@ public class ScriptTest {
     assertTrue(first.compareTo(second) < 0);
 
     AtomicBoolean cancelled = new AtomicBoolean(false);
-    first.setTrigger(cancelled::set);
+    first.setTrigger(new TestScheduledFuture(cancelled));
     first.cancel();
     assertTrue(cancelled.get());
   }
@@ -57,5 +60,49 @@ public class ScriptTest {
 
     assertEquals(one, another);
     assertEquals(one.hashCode(), another.hashCode());
+  }
+
+  private static class TestScheduledFuture implements ScheduledFuture<Object> {
+    private final AtomicBoolean cancelled;
+
+    TestScheduledFuture(AtomicBoolean cancelled) {
+      this.cancelled = cancelled;
+    }
+
+    @Override
+    public long getDelay(TimeUnit unit) {
+      return 0;
+    }
+
+    @Override
+    public int compareTo(Delayed o) {
+      return 0;
+    }
+
+    @Override
+    public boolean cancel(boolean mayInterruptIfRunning) {
+      cancelled.set(true);
+      return true;
+    }
+
+    @Override
+    public boolean isCancelled() {
+      return cancelled.get();
+    }
+
+    @Override
+    public boolean isDone() {
+      return cancelled.get();
+    }
+
+    @Override
+    public Object get() {
+      return null;
+    }
+
+    @Override
+    public Object get(long timeout, TimeUnit unit) {
+      return null;
+    }
   }
 }
