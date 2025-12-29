@@ -14,7 +14,7 @@ public class MessageBuilder implements Function<ScriptContext, SendMessage> {
 
   private Function<ScriptContext, String> text;
   private Function<ScriptContext, String> chatId;
-  private Map<Function<ScriptContext, String>, Function<ScriptContext, String>> buttons = new HashMap<>();
+  private Map<Function<ScriptContext, String>, Function<ScriptContext, String>> buttons = new LinkedHashMap<>();
   private boolean cleanButtons = false;
 
   @Override
