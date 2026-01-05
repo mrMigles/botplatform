@@ -4,6 +4,8 @@ WORKDIR /workspace
 
 COPY pom.xml mvnw mvnw.cmd ./
 COPY .mvn ./.mvn
+RUN mkdir -p /root/.m2 \
+    && cp .mvn/toolchains.xml /root/.m2/toolchains.xml
 RUN chmod +x mvnw \
     && ./mvnw -B -DskipTests dependency:go-offline
 
