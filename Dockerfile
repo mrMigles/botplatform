@@ -1,5 +1,6 @@
 FROM maven:3.9.6-eclipse-temurin-21 as builder
 WORKDIR /workspace
+COPY .mvn ./.mvn
 COPY pom.xml .
 COPY src ./src
 RUN mvn -B -e -DskipTests clean package
