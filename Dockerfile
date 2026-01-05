@@ -1,4 +1,5 @@
 FROM maven:3.9.6-eclipse-temurin-21 as builder
+ENV JAVA_HOME=/opt/java/openjdk
 WORKDIR /workspace
 
 COPY pom.xml mvnw mvnw.cmd ./
