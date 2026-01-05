@@ -2,6 +2,8 @@ FROM maven:3.9.6-eclipse-temurin-21 as builder
 WORKDIR /workspace
 COPY .mvn ./.mvn
 COPY pom.xml .
+RUN mkdir -p /root/.m2 \
+    && echo '<toolchains>\n  <toolchain>\n    <type>jdk</type>\n    <provides>\n      <version>21</version>\n    </provides>\n    <configuration>\n      <jdkHome>/usr/lib/jvm/temurin-21-jdk-amd64</jdkHome>\n    </configuration>\n  </toolchain>\n</toolchains>' > /root/.m2/toolchains.xml
 COPY src ./src
 RUN mvn -B -e -DskipTests clean package
 
