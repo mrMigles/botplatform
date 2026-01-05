@@ -27,14 +27,14 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '8'
+          java-version: '21'
           cache: maven
 
       - name: Make Maven wrapper executable
         run: chmod +x mvnw
 
       - name: Build application
-        run: ./mvnw -B package -DskipTests
+        run: ./mvnw -B -ntp package -DskipTests
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
