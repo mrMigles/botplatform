@@ -26,6 +26,8 @@ public class AbstractTextAndNumberOperationsTest {
     assertTrue(text.contains("world").test(context));
     assertTrue(text.cic("HELLO").test(context));
     assertTrue(text.startWith(" ").test(context));
+    assertTrue(text.startWith(" h", true).test(context));
+    assertFalse(text.startWith(" h", false).test(context));
     assertTrue(text.trim().eq("Hello world").test(context));
 
     AbstractText regexGroup = text.regexp("(Hello) (world)", 2);
@@ -38,6 +40,11 @@ public class AbstractTextAndNumberOperationsTest {
     context.setContextValue("text", "a-b-c");
     assertEquals("b", text.split("-", 1).apply(context));
     assertNull(text.split("-", 5).apply(context));
+
+    context.setContextValue("text", "Hello WORLD world");
+    assertEquals("Hello there there", text.replace("world", "there", true).apply(context));
+    assertEquals("Hello WORLD world", text.replace("world", "there", false).apply(context));
+    assertEquals("Hello done done", text.replaceAll("w.rld", "done", true).apply(context));
 
     context.setContextValue("text", "json: {\"value\": 15}");
     AbstractText path = new AbstractText.Text(ctx -> ctx.getContextValue("text").substring(6)).path("$.value");
