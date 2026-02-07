@@ -113,6 +113,19 @@ public abstract class AbstractText implements Function<ScriptContext, String> {
     };
   }
 
+  public Predicate<ScriptContext> startWith(String text, boolean ignoreCase) {
+    return ctx -> {
+      String value = value().apply(ctx);
+      if (value == null) {
+        return false;
+      }
+      if (ignoreCase) {
+        return StringUtils.startsWithIgnoreCase(value, text);
+      }
+      return value.startsWith(text);
+    };
+  }
+
   public Predicate<ScriptContext> matches(String text) {
     return ctx -> {
       String value = value().apply(ctx);
@@ -183,6 +196,16 @@ public abstract class AbstractText implements Function<ScriptContext, String> {
     });
   }
 
+  public AbstractText replace(String from, String to, boolean ignoreCase) {
+    return new Text(scriptContext -> {
+      String value = value().apply(scriptContext);
+      if (value == null) {
+        return null;
+      }
+      return replaceLiteral(value, from, to, ignoreCase);
+    });
+  }
+
   public AbstractText replaceAll(String from, String to) {
     return new Text(scriptContext -> {
       String value = value().apply(scriptContext);
@@ -190,6 +213,16 @@ public abstract class AbstractText implements Function<ScriptContext, String> {
         return null;
       }
       return value.replaceAll(from, to);
+    });
+  }
+
+  public AbstractText replaceAll(String from, String to, boolean ignoreCase) {
+    return new Text(scriptContext -> {
+      String value = value().apply(scriptContext);
+      if (value == null) {
+        return null;
+      }
+      return replaceAllRegex(value, from, to, ignoreCase);
     });
   }
 
@@ -224,6 +257,16 @@ public abstract class AbstractText implements Function<ScriptContext, String> {
     });
   }
 
+  public AbstractText replace(Function<ScriptContext, String> from, Function<ScriptContext, String> to, boolean ignoreCase) {
+    return new Text(scriptContext -> {
+      String value = value().apply(scriptContext);
+      if (value == null) {
+        return null;
+      }
+      return replaceLiteral(value, from.apply(scriptContext), to.apply(scriptContext), ignoreCase);
+    });
+  }
+
   public AbstractText replaceAll(Function<ScriptContext, String> from, Function<ScriptContext, String> to) {
     return new Text(scriptContext -> {
       String value = value().apply(scriptContext);
@@ -231,6 +274,16 @@ public abstract class AbstractText implements Function<ScriptContext, String> {
         return null;
       }
       return value.replaceAll(from.apply(scriptContext), to.apply(scriptContext));
+    });
+  }
+
+  public AbstractText replaceAll(Function<ScriptContext, String> from, Function<ScriptContext, String> to, boolean ignoreCase) {
+    return new Text(scriptContext -> {
+      String value = value().apply(scriptContext);
+      if (value == null) {
+        return null;
+      }
+      return replaceAllRegex(value, from.apply(scriptContext), to.apply(scriptContext), ignoreCase);
     });
   }
 
@@ -244,6 +297,16 @@ public abstract class AbstractText implements Function<ScriptContext, String> {
     });
   }
 
+  public AbstractText replace(String from, Function<ScriptContext, String> to, boolean ignoreCase) {
+    return new Text(scriptContext -> {
+      String value = value().apply(scriptContext);
+      if (value == null) {
+        return null;
+      }
+      return replaceLiteral(value, from, to.apply(scriptContext), ignoreCase);
+    });
+  }
+
   public AbstractText replaceAll(String from, Function<ScriptContext, String> to) {
     return new Text(scriptContext -> {
       String value = value().apply(scriptContext);
@@ -251,6 +314,16 @@ public abstract class AbstractText implements Function<ScriptContext, String> {
         return null;
       }
       return value.replaceAll(from, to.apply(scriptContext));
+    });
+  }
+
+  public AbstractText replaceAll(String from, Function<ScriptContext, String> to, boolean ignoreCase) {
+    return new Text(scriptContext -> {
+      String value = value().apply(scriptContext);
+      if (value == null) {
+        return null;
+      }
+      return replaceAllRegex(value, from, to.apply(scriptContext), ignoreCase);
     });
   }
 
@@ -264,6 +337,16 @@ public abstract class AbstractText implements Function<ScriptContext, String> {
     });
   }
 
+  public AbstractText replace(Function<ScriptContext, String> from, String to, boolean ignoreCase) {
+    return new Text(scriptContext -> {
+      String value = value().apply(scriptContext);
+      if (value == null) {
+        return null;
+      }
+      return replaceLiteral(value, from.apply(scriptContext), to, ignoreCase);
+    });
+  }
+
   public AbstractText replaceAll(Function<ScriptContext, String> from, String to) {
     return new Text(scriptContext -> {
       String value = value().apply(scriptContext);
@@ -272,5 +355,31 @@ public abstract class AbstractText implements Function<ScriptContext, String> {
       }
       return value.replaceAll(from.apply(scriptContext), to);
     });
+  }
+
+  public AbstractText replaceAll(Function<ScriptContext, String> from, String to, boolean ignoreCase) {
+    return new Text(scriptContext -> {
+      String value = value().apply(scriptContext);
+      if (value == null) {
+        return null;
+      }
+      return replaceAllRegex(value, from.apply(scriptContext), to, ignoreCase);
+    });
+  }
+
+  private static String replaceLiteral(String value, String from, String to, boolean ignoreCase) {
+    if (ignoreCase) {
+      return StringUtils.replaceIgnoreCase(value, from, to);
+    }
+    return value.replace(from, to);
+  }
+
+  private static String replaceAllRegex(String value, String from, String to, boolean ignoreCase) {
+    if (!ignoreCase) {
+      return value.replaceAll(from, to);
+    }
+    Pattern pattern = Pattern.compile(from, Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
+    Matcher matcher = pattern.matcher(value);
+    return matcher.replaceAll(to);
   }
 }
