@@ -368,10 +368,12 @@ public abstract class AbstractText implements Function<ScriptContext, String> {
   }
 
   private static String replaceLiteral(String value, String from, String to, boolean ignoreCase) {
-    if (ignoreCase) {
-      return StringUtils.replaceIgnoreCase(value, from, to);
+    if (!ignoreCase) {
+      return value.replace(from, to);
     }
-    return value.replace(from, to);
+    Pattern pattern = Pattern.compile(Pattern.quote(from), Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
+    Matcher matcher = pattern.matcher(value);
+    return matcher.replaceAll(Matcher.quoteReplacement(to));
   }
 
   private static String replaceAllRegex(String value, String from, String to, boolean ignoreCase) {
