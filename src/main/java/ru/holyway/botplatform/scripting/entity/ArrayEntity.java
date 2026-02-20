@@ -17,11 +17,11 @@ public class ArrayEntity {
   }
 
   public Consumer<ScriptContext> forEachFrom(Consumer<ScriptContext> func, Function<ScriptContext, Number> startFrom) {
-    return scriptContext -> forEachFrom(func, Integer.parseInt(startFrom.apply(scriptContext).toString()));
+    return scriptContext -> forEachFrom(func, Integer.parseInt(startFrom.apply(scriptContext).toString())).accept(scriptContext);
   }
 
   public Consumer<ScriptContext> forEachLast(Consumer<ScriptContext> func, Function<ScriptContext, Number> last) {
-    return scriptContext -> forEachLast(func, Integer.parseInt(last.apply(scriptContext).toString()));
+    return scriptContext -> forEachLast(func, Integer.parseInt(last.apply(scriptContext).toString())).accept(scriptContext);
   }
 
   public Consumer<ScriptContext> forEachFrom(Consumer<ScriptContext> func, int startFrom) {

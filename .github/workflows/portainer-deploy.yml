@@ -94,8 +94,9 @@ jobs:
           if not all([url, username, password, stack_id]):
               sys.exit("Portainer secrets are not configured")
 
+          base = url.rstrip("/")
           auth_request = request.Request(
-              f"{url.rstrip('/')}/api/auth",
+              f"{base}/api/auth",
               data=json.dumps({"Username": username, "Password": password}).encode(),
               headers={"Content-Type": "application/json"},
           )
@@ -110,11 +111,42 @@ jobs:
           if not token:
               sys.exit("Failed to obtain Portainer JWT token")
 
+          headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+
+          # Get stack details (includes EndpointId)
+          inspect_request = request.Request(f"{base}/api/stacks/{stack_id}", headers=headers)
+          try:
+              with request.urlopen(inspect_request) as resp:
+                  stack = json.loads(resp.read().decode())
+          except error.HTTPError as exc:
+              exit_with_http_details(exc)
+          endpoint_id = stack.get("EndpointId")
+          if endpoint_id is None:
+              sys.exit("Stack response missing EndpointId")
+
+          # Get current stack file content
+          file_request = request.Request(f"{base}/api/stacks/{stack_id}/file", headers=headers)
+          try:
+              with request.urlopen(file_request) as resp:
+                  file_data = json.loads(resp.read().decode())
+          except error.HTTPError as exc:
+              exit_with_http_details(exc)
+          stack_file_content = file_data.get("StackFileContent") or file_data.get("stackFileContent", "")
+          env = file_data.get("Env") or file_data.get("env") or []
+
+          # Redeploy via PUT (Portainer has no POST .../deploy endpoint)
+          payload = {
+              "endpointId": endpoint_id,
+              "stackFileContent": stack_file_content,
+              "env": env,
+              "prune": True,
+              "pullImage": True,
+          }
           deploy_request = request.Request(
-              f"{url.rstrip('/')}/api/stacks/{stack_id}/deploy",
-              data=json.dumps({"prune": True, "pullImage": True}).encode(),
-              headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
-              method="POST",
+              f"{base}/api/stacks/{stack_id}",
+              data=json.dumps(payload).encode(),
+              headers=headers,
+              method="PUT",
           )
           try:
               with request.urlopen(deploy_request) as resp:
@@ -123,5 +155,5 @@ jobs:
           except error.HTTPError as exc:
               exit_with_http_details(exc)
           except error.URLError as exc:
-              sys.exit(f"Failed to reach Portainer deploy endpoint: {exc.reason}")
+              sys.exit(f"Failed to reach Portainer stack update endpoint: {exc.reason}")
           PY
