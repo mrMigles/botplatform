@@ -1,10 +1,11 @@
 package ru.holyway.botplatform.core;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import ru.holyway.botplatform.core.data.DataHelper;
 import ru.holyway.botplatform.core.handler.MessageHandler;
 
 import javax.annotation.PostConstruct;
@@ -16,8 +17,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class CommonMessageHandler implements CommonHandler {
 
-  @Autowired
-  private DataHelper dataHelper;
+  private static final Logger LOGGER = LoggerFactory.getLogger(CommonMessageHandler.class);
 
   @Autowired
   @Qualifier("orderedMessageHandlers")
@@ -29,7 +29,7 @@ public class CommonMessageHandler implements CommonHandler {
   @Value("${bot.config.silentPeriod}")
   private String silentPeriodString;
 
-  private long srartTime = 0;
+  private long startTime = 0;
   private long silentPeriod = TimeUnit.SECONDS.toMillis(60);
 
 
@@ -39,7 +39,7 @@ public class CommonMessageHandler implements CommonHandler {
 
   @PostConstruct
   public void postConstruct() {
-    srartTime = System.currentTimeMillis();
+    startTime = System.currentTimeMillis();
     if (StringUtils.isNotEmpty(silentPeriodString)) {
       silentPeriod = TimeUnit.SECONDS.toMillis(Long.parseLong(silentPeriodString));
     }
@@ -56,7 +56,7 @@ public class CommonMessageHandler implements CommonHandler {
             return message;
           }
         } catch (ProcessStopException e) {
-          System.out.println("Stop because: " + e.getMessage());
+          LOGGER.debug("Stop because: {}", e.getMessage());
           break;
         }
       }
@@ -72,15 +72,14 @@ public class CommonMessageHandler implements CommonHandler {
         sendMessage(messageEntity, answer);
       }
     } catch (Exception e) {
-      e.printStackTrace();
-      System.out.println(e);
+      LOGGER.error("Error handling message", e);
     }
 
   }
 
   private void sendMessage(MessageEntity messageEntity, String text) {
     long currentTime = System.currentTimeMillis();
-    if (currentTime - this.srartTime > silentPeriod) {
+    if (currentTime - this.startTime > silentPeriod) {
       sendMessageInternal(messageEntity, text);
       context.setLastStamp(System.currentTimeMillis());
       context.incrementCount();

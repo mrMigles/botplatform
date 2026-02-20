@@ -1,5 +1,7 @@
 package ru.holyway.botplatform.scripting;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
@@ -7,6 +9,8 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class TelegramScriptEntity {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(TelegramScriptEntity.class);
 
   public TelegramScriptEntity() {
 
@@ -18,7 +22,7 @@ public class TelegramScriptEntity {
         s.message.messageEntity.getSender()
             .execute(SendMessage.builder().text(text).chatId(chatId).build());
       } catch (TelegramApiException e) {
-        e.printStackTrace();
+        LOGGER.error("Error sending message to chat {}", chatId, e);
       }
     };
   }
@@ -29,7 +33,7 @@ public class TelegramScriptEntity {
         s.message.messageEntity.getSender()
             .execute(SendMessage.builder().text(text).chatId(String.valueOf(chatId)).build());
       } catch (TelegramApiException e) {
-        e.printStackTrace();
+        LOGGER.error("Error sending message to chat {}", chatId, e);
       }
     };
   }

@@ -1,6 +1,8 @@
 package ru.holyway.botplatform.telegram.processor;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -19,6 +21,8 @@ import java.util.Map;
 @Component
 @Order(1)
 public class SecretMessageProcessor implements MessageProcessor {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(SecretMessageProcessor.class);
 
   private Map<String, List<Integer>> secretMessages = new HashMap<>();
 
@@ -45,7 +49,7 @@ public class SecretMessageProcessor implements MessageProcessor {
             messageEntity.getSender().execute(
                 DeleteMessage.builder().chatId(messageEntity.getChatId()).messageId(integer).build());
           } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.warn("Could not delete secret message {} in chat {}", integer, messageEntity.getChatId(), e);
           }
           secretMessages.remove(messageEntity.getChatId());
         }

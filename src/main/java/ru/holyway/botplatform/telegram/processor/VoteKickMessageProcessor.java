@@ -1,6 +1,8 @@
 package ru.holyway.botplatform.telegram.processor;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.Order;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
@@ -34,6 +36,8 @@ import java.util.concurrent.TimeUnit;
 @Order(2)
 public class VoteKickMessageProcessor implements MessageProcessor {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(VoteKickMessageProcessor.class);
+
   private Map<String, BanInfo> banList = new HashMap<>();
   private Integer voteSize = 3;
 
@@ -48,15 +52,10 @@ public class VoteKickMessageProcessor implements MessageProcessor {
   public boolean isNeedToHandle(TelegramMessageEntity messageEntity) {
     final String mes = messageEntity.getText();
     if (StringUtils.isNotEmpty(mes) && (StringUtils.equalsIgnoreCase(mes, "кик") || StringUtils
-        .equalsIgnoreCase(mes, "бан"))) {
-      if (messageEntity.getMessage().getReplyToMessage() != null) {
-        return true;
-      }
-    }
-    if (StringUtils.containsIgnoreCase(mes, "/votestop")) {
+        .equalsIgnoreCase(mes, "бан")) && messageEntity.getMessage().getReplyToMessage() != null) {
       return true;
     }
-    return false;
+    return StringUtils.containsIgnoreCase(mes, "/votestop");
   }
 
   @Override
@@ -137,7 +136,7 @@ public class VoteKickMessageProcessor implements MessageProcessor {
         endVote(messageEntity.getChatId(), banList.get(messageEntity.getChatId()).getMessageID(),
             messageEntity.getSender());
       } catch (TelegramApiException e) {
-        e.printStackTrace();
+        LOGGER.error("Error ending vote for chat {}", messageEntity.getChatId(), e);
       }
     }, new Date(System.currentTimeMillis() + DELAY_TO_UPDATE));
   }
@@ -145,11 +144,8 @@ public class VoteKickMessageProcessor implements MessageProcessor {
   @Override
   public boolean isRegardingCallback(CallbackQuery callbackQuery) {
     final String callback = callbackQuery.getData();
-    if (banList.get(String.valueOf(callbackQuery.getMessage().getChatId())) != null && StringUtils
-        .containsIgnoreCase(callback, "kick:")) {
-      return true;
-    }
-    return false;
+    return banList.get(String.valueOf(callbackQuery.getMessage().getChatId())) != null
+        && StringUtils.containsIgnoreCase(callback, "kick:");
   }
 
   @Override
@@ -205,7 +201,7 @@ public class VoteKickMessageProcessor implements MessageProcessor {
                       .userId(banInfo.getUser().getId()).build());
                 }
               } catch (TelegramApiException e) {
-                e.printStackTrace();
+                LOGGER.error("Error lifting ban for user in chat {}", chatID, e);
               }
             }, new Date(System.currentTimeMillis() + DELAY_TO_UPDATE));
           }
@@ -227,7 +223,7 @@ public class VoteKickMessageProcessor implements MessageProcessor {
     try {
       sender.execute(UnpinChatMessage.builder().chatId(chatID).build());
     } catch (Exception e) {
-      e.printStackTrace();
+      LOGGER.warn("Could not unpin message in chat {}", chatID, e);
     }
 
 

@@ -1,6 +1,8 @@
 package ru.holyway.botplatform.telegram.processor;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -19,7 +21,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
+import java.net.URI;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -27,9 +29,11 @@ import java.util.concurrent.ConcurrentHashMap;
 @Order(101)
 public class GeneratorMemesProcessor implements MessageProcessor {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(GeneratorMemesProcessor.class);
+
   private Map<String, String> wordsToChat = new ConcurrentHashMap<>();
 
-  private Map<String, BufferedImage> inageToChat = new ConcurrentHashMap<>();
+  private Map<String, BufferedImage> imageToChat = new ConcurrentHashMap<>();
 
   private Map<String, Boolean> askWord = new ConcurrentHashMap<>();
 
@@ -78,8 +82,8 @@ public class GeneratorMemesProcessor implements MessageProcessor {
                   .get(messageEntity.getMessage().getPhoto().size() - 1).getFileId()).build())
           .getFileUrl(token);
       try {
-        BufferedImage bufferedImage = ImageIO.read(new URL(url));
-        inageToChat.put(messageEntity.getChatId(), bufferedImage);
+        BufferedImage bufferedImage = ImageIO.read(URI.create(url).toURL());
+        imageToChat.put(messageEntity.getChatId(), bufferedImage);
         messageEntity.getSender().execute(
             SendMessage.builder().text("Напишите фразу для мема")
                 .chatId(messageEntity.getChatId()).build());
@@ -87,7 +91,7 @@ public class GeneratorMemesProcessor implements MessageProcessor {
         askImage.remove(messageEntity.getSenderLogin());
         return;
       } catch (IOException e) {
-        e.printStackTrace();
+        LOGGER.error("Error reading image from URL", e);
       }
     }
     if (StringUtils.isNotEmpty(mes) && askWord.get(messageEntity.getSenderLogin()) != null) {
@@ -111,15 +115,18 @@ public class GeneratorMemesProcessor implements MessageProcessor {
   private void sendMeme(final String chatID, final String text,
                         TelegramMessageEntity telegramMessageEntity) throws TelegramApiException {
     try {
-      BufferedImage result = MemeImageOverlay.overlay(inageToChat.get(chatID), "", text);
+      BufferedImage result = MemeImageOverlay.overlay(imageToChat.get(chatID), "", text);
       ByteArrayOutputStream os = new ByteArrayOutputStream();
       ImageIO.write(result, "jpg", os);
       InputStream is = new ByteArrayInputStream(os.toByteArray());
       telegramMessageEntity.getSender().execute(
           SendPhoto.builder().photo(new InputFile(is, "new")).chatId(telegramMessageEntity.getChatId())
               .caption(text).build());
-    } catch (IOException | InterruptedException e) {
-      e.printStackTrace();
+    } catch (IOException e) {
+      LOGGER.error("Error generating meme for chat {}", chatID, e);
+    } catch (InterruptedException e) {
+      LOGGER.error("Meme generation interrupted for chat {}", chatID, e);
+      Thread.currentThread().interrupt();
     }
   }
 }

@@ -1,5 +1,7 @@
 package ru.holyway.botplatform.telegram.processor;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
@@ -20,6 +22,8 @@ import java.util.Random;
 //@Component
 //@Order(50)
 public class RandomMemeProcessor implements MessageProcessor {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(RandomMemeProcessor.class);
 
   private BufferedImage dynoTemplate;
   private BufferedImage catTemplate;
@@ -65,8 +69,11 @@ public class RandomMemeProcessor implements MessageProcessor {
           messageEntity.getSender().execute(
               SendPhoto.builder().photo(new InputFile(is, "new")).chatId(messageEntity.getChatId()).build());
         }
-      } catch (IOException | InterruptedException e) {
-        e.printStackTrace();
+      } catch (IOException e) {
+        LOGGER.error("Error generating random meme", e);
+      } catch (InterruptedException e) {
+        LOGGER.error("Random meme generation interrupted", e);
+        Thread.currentThread().interrupt();
       }
     }
   }

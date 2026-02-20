@@ -172,13 +172,13 @@ public abstract class AbstractText implements Function<ScriptContext, String> {
     });
   }
 
-  public AbstractText split(final String deliniter, final Integer group) {
+  public AbstractText split(final String delimiter, final Integer group) {
     return new Text(scriptContext -> {
       String value = value().apply(scriptContext);
       if (value == null) {
         return null;
       }
-      String[] splits = value.split(deliniter);
+      String[] splits = value.split(delimiter);
       if (group < 0 || group >= splits.length) {
         return null;
       }

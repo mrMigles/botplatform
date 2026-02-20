@@ -1,6 +1,8 @@
 package ru.holyway.botplatform.telegram.processor;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -28,6 +30,8 @@ import java.util.stream.Collectors;
 @Component
 @Order(98)
 public class ScriptManagerProcessor implements MessageProcessor {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(ScriptManagerProcessor.class);
 
   public static final String SECURITY_VALUE_SET_REGEX = "(\\/put)(\\s)(\\\")(.*)(\\\")(\\s)(\\\")(.*)(\\\")";
   @Autowired
@@ -166,7 +170,6 @@ public class ScriptManagerProcessor implements MessageProcessor {
   public void processCallBack(CallbackQuery callbackQuery, AbsSender sender)
       throws TelegramApiException {
     if (callbackQuery.getData().startsWith("script:edit:")) {
-      final String scriptId = StringUtils.substringAfter(callbackQuery.getData(), "script:edit:");
       sender
           .execute(SendMessage.builder().replyMarkup(new ForceReplyKeyboard())
               .chatId(String.valueOf(callbackQuery.getMessage().getChatId()))
@@ -201,7 +204,7 @@ public class ScriptManagerProcessor implements MessageProcessor {
         try {
           sender.execute(DeleteMessage.builder().chatId(String.valueOf(callbackQuery.getMessage().getChatId())).messageId(i).build());
         } catch (Exception e) {
-          e.printStackTrace();
+          LOGGER.warn("Could not delete message {} in chat {}", i, callbackQuery.getMessage().getChatId(), e);
         }
       }
     } else if (callbackQuery.getData().startsWith("script:more:")) {
@@ -219,7 +222,7 @@ public class ScriptManagerProcessor implements MessageProcessor {
         try {
           scriptMessageProcessor.sendScriptMenu(messageEntity, script.getStringScript().replaceAll("\\\\\\$", "\\$").replaceAll("\\.owner\\(\\d*\\)", ""), script);
         } catch (Exception e) {
-          e.printStackTrace();
+          LOGGER.error("Error sending script menu for script at index {}", i, e);
         }
       }
       sendControlButtons(messageEntity, max, firstMessage);

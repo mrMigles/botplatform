@@ -1,5 +1,7 @@
 package ru.holyway.botplatform.core.education;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.holyway.botplatform.core.data.DataHelper;
@@ -16,6 +18,8 @@ import static ru.holyway.botplatform.core.education.EducationUtils.getTokenizeMe
  */
 @Component
 public class EducationCache {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(EducationCache.class);
 
   private ConcurrentMap<String, List<List<String>>> learningTokenizedDictionary = new ConcurrentHashMap<>();
 
@@ -35,7 +39,7 @@ public class EducationCache {
   private DataHelper dataHelper;
 
   @PostConstruct
-  private void postConstruct() {
+  public void postConstruct() {
     init();
   }
 
@@ -55,7 +59,7 @@ public class EducationCache {
       simpleWords = dataHelper.getSimple();
 
     } catch (Exception e) {
-      e.printStackTrace();
+      LOGGER.error("Error loading learning data", e);
     }
     for (Map.Entry<String, List<String>> line : learnWords.entrySet()) {
       final List<List<String>> tokenizedAnswers = new ArrayList<>();

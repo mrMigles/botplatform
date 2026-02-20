@@ -54,6 +54,8 @@ public class InlineWorker implements Runnable {
         }
       } catch (InterruptedException e) {
         LOGGER.error("Interrupt Error occurred during execution main: ", e);
+        Thread.currentThread().interrupt();
+        return;
       } catch (Exception e) {
         LOGGER.error("Error occurred during execution main: ", e);
       }

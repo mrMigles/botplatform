@@ -1,5 +1,7 @@
 package ru.holyway.botplatform.scripting.entity;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
@@ -11,6 +13,8 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class MessageBuilder implements Function<ScriptContext, SendMessage> {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(MessageBuilder.class);
 
   private Function<ScriptContext, String> text;
   private Function<ScriptContext, String> chatId;
@@ -56,7 +60,7 @@ public class MessageBuilder implements Function<ScriptContext, SendMessage> {
             .execute(apply(s))
             .getMessageId().toString());
       } catch (TelegramApiException e) {
-        e.printStackTrace();
+        LOGGER.error("Error sending message", e);
       }
     };
   }
