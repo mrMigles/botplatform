@@ -1,6 +1,8 @@
 package ru.holyway.botplatform.telegram.processor;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.groupadministration.GetChatAdministrators;
@@ -18,6 +20,8 @@ import java.util.List;
 @Component
 @Order(2)
 public class RemoveLastMessageProcessor implements MessageProcessor {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(RemoveLastMessageProcessor.class);
 
   @Override
   public boolean isNeedToHandle(TelegramMessageEntity messageEntity) {
@@ -41,7 +45,7 @@ public class RemoveLastMessageProcessor implements MessageProcessor {
             messageEntity.getSender()
                 .execute(DeleteMessage.builder().chatId(messageEntity.getChatId()).messageId(i).build());
           } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.warn("Could not delete message {} in chat {}", i, messageEntity.getChatId(), e);
           }
         }
       }
@@ -49,7 +53,7 @@ public class RemoveLastMessageProcessor implements MessageProcessor {
     } catch (Exception e) {
       messageEntity.getSender()
           .execute(SendMessage.builder().chatId(messageEntity.getChatId()).text("Нимагу").build());
-      e.printStackTrace();
+      LOGGER.error("Error deleting messages in chat {}", messageEntity.getChatId(), e);
     }
   }
 

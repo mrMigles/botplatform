@@ -1,6 +1,8 @@
 package ru.holyway.botplatform.web;
 
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +17,6 @@ import ru.holyway.botplatform.core.entity.UserAccessInfo;
 import ru.holyway.botplatform.web.entities.SimpleRequest;
 import ru.holyway.botplatform.web.entities.SimpleResponse;
 
-import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +26,8 @@ import java.util.Map;
  */
 @RestController
 public class CommonController {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(CommonController.class);
 
   @Autowired
   List<Bot> bots;
@@ -39,14 +42,13 @@ public class CommonController {
 
   @PreAuthorize("permitAll()")
   @RequestMapping(value = "/", method = RequestMethod.GET)
-  public ResponseEntity echo() {
-    return new ResponseEntity(HttpStatus.OK);
+  public ResponseEntity<Void> echo() {
+    return new ResponseEntity<>(HttpStatus.OK);
   }
 
   @PreAuthorize("permitAll()")
   @RequestMapping(value = "/command", method = RequestMethod.POST)
-  public ResponseEntity<SimpleResponse> test(@RequestBody SimpleRequest simpleRequest)
-      throws UnsupportedEncodingException {
+  public ResponseEntity<SimpleResponse> test(@RequestBody SimpleRequest simpleRequest) {
 
     final String action = simpleRequest.getResult().getAction();
     if ("whatis".equals(action)) {
@@ -63,7 +65,7 @@ public class CommonController {
           result = result.substring(start + 10, end);
           result = StringEscapeUtils.escapeHtml4(result);
           result = result.replaceAll("&[^\\s]*;", "");
-          if (result.length() > 0) {
+          if (!result.isEmpty()) {
             result = "Это " + result;
             return new ResponseEntity<>(new SimpleResponse(result, result), HttpStatus.OK);
           }
@@ -72,21 +74,16 @@ public class CommonController {
       return new ResponseEntity<>(new SimpleResponse("Я многое понимаю, но этого я не понимаю...",
           "Я многое понимаю, но этого я не понимаю..."), HttpStatus.OK);
     }
-    System.out.println("New request: " + simpleRequest.getResult().getAction());
-    try {
-      return new ResponseEntity<>(
-          new SimpleResponse("Ответ пришёл к тебе для " + simpleRequest.getResult().getParameters(),
-              "Ответ пришёл к тебе для "), HttpStatus.OK);
-    } catch (Exception e) {
-      return new ResponseEntity<>(new SimpleResponse("Плохо, очень плохо!", "Плохо, очень плохо!"),
-          HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+    LOGGER.info("New request: {}", simpleRequest.getResult().getAction());
+    return new ResponseEntity<>(
+        new SimpleResponse("Ответ пришёл к тебе для " + simpleRequest.getResult().getParameters(),
+            "Ответ пришёл к тебе для "), HttpStatus.OK);
   }
 
   @PreAuthorize("hasAuthority('USER')")
   @RequestMapping(value = "/send", method = RequestMethod.GET)
   public ResponseEntity<String> restart(@RequestParam("chatId") String chatId,
-                                        @RequestParam("entity") String message) throws UnsupportedEncodingException {
+                                        @RequestParam("entity") String message) {
     for (Bot bot : bots) {
       bot.sendMessage(message, chatId);
     }
@@ -96,7 +93,7 @@ public class CommonController {
   @PreAuthorize("permitAll()")
   @RequestMapping(value = "/mes", method = RequestMethod.GET)
   public ResponseEntity<String> message(@RequestParam("id") String chatId,
-                                        @RequestParam("entity") String message) throws UnsupportedEncodingException {
+                                        @RequestParam("entity") String message) {
 
     MessageEntity messageEntity = new WebMessageEntity(chatId, "web", message);
     final String answer = commonHandler.generateAnswer(messageEntity);

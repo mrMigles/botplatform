@@ -1,6 +1,6 @@
 package ru.holyway.botplatform.scripting.entity;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.scheduling.support.CronTrigger;
 import ru.holyway.botplatform.scripting.ScriptContext;
 

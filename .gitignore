@@ -1,5 +1,11 @@
 target/
-!.mvn/wrapper/maven-wrapper.jar
+
+### VS Code ###
+.vscode/
+
+### Maven (keep wrapper, ignore local config) ###
+.mvn/*
+!.mvn/wrapper/
 
 ### STS ###
 .apt_generated
@@ -10,7 +16,7 @@ target/
 .springBeans
 
 ### IntelliJ IDEA ###
-.idea
+.idea/
 *.iws
 *.iml
 *.ipr

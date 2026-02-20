@@ -1,6 +1,8 @@
 package ru.holyway.botplatform.telegram.processor;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.scheduling.TaskScheduler;
@@ -31,6 +33,8 @@ import java.util.concurrent.TimeUnit;
 @Component
 @Order(2)
 public class ReconnaissanceMessageProcessor implements MessageProcessor {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(ReconnaissanceMessageProcessor.class);
 
   private Map<String, List<String>> currentReconChatMembers = new HashMap<>();
 
@@ -118,18 +122,14 @@ public class ReconnaissanceMessageProcessor implements MessageProcessor {
       try {
         showResult(message.getChatId(), mes.getMessageId(), messageEntity.getSender());
       } catch (TelegramApiException e) {
-        e.printStackTrace();
+        LOGGER.error("Error showing recon result for chat {}", message.getChatId(), e);
       }
     }, new Date(System.currentTimeMillis() + DELAY_TO_UPDATE));
   }
 
   @Override
   public boolean isRegardingCallback(CallbackQuery callbackQuery) {
-    final String callback = callbackQuery.getData();
-    if (StringUtils.containsIgnoreCase(callback, "who:")) {
-      return true;
-    }
-    return false;
+    return StringUtils.containsIgnoreCase(callbackQuery.getData(), "who:");
   }
 
   @Override
@@ -192,7 +192,7 @@ public class ReconnaissanceMessageProcessor implements MessageProcessor {
     try {
       sender.execute(UnpinChatMessage.builder().chatId(chatId).build());
     } catch (Exception e) {
-      e.printStackTrace();
+      LOGGER.warn("Could not unpin message in chat {}", chatId, e);
     }
 
     if (currentReconChatMembers.get(chatId) != null && !currentReconChatMembers.get(chatId)

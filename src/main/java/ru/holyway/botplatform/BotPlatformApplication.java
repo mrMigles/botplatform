@@ -31,7 +31,7 @@ public class BotPlatformApplication {
   }
 
   @PostConstruct
-  private void init() {
+  public void init() {
     bots.init();
   }
 }

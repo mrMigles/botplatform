@@ -52,7 +52,10 @@ public class ScriptMessageProcessor implements MessageProcessor, MessagePostLoad
         } catch (Exception e) {
           LOGGER.error("Error during loading script:", e);
         }
-        scripts.get(chatScripts.getKey()).sort(Script::compareTo);
+      }
+      List<Script> list = scripts.get(chatScripts.getKey());
+      if (list != null) {
+        list.sort(Script::compareTo);
       }
     }
   }

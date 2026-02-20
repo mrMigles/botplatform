@@ -1,6 +1,6 @@
 package ru.holyway.botplatform.telegram;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,9 +21,7 @@ import ru.holyway.botplatform.telegram.processor.MessageProcessor;
 
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
 
@@ -46,10 +44,6 @@ public class TelegramBot extends TelegramLongPollingBot implements Bot {
 
   @Autowired
   private CommonHandler commonMessageHandler;
-
-  private Map<Integer, String> locations = new HashMap<>();
-
-  private Map<Integer, String> realAddresses = new HashMap<>();
 
   private final List<BlockingQueue<Update>> queues;
   private final List<Thread> consumers;
@@ -111,11 +105,10 @@ public class TelegramBot extends TelegramLongPollingBot implements Bot {
       }
       queues.get(partition).put(update);
     } catch (InterruptedException e) {
-      LOGGER.error("Error occurred during execution: ", e);
-    } catch (Exception e) {
-      LOGGER.error("Error occurred during execution: ", e);
+      LOGGER.error("Interrupted while queuing update: ", e);
+      Thread.currentThread().interrupt();
     } catch (Throwable e) {
-      LOGGER.error("Throwable occurred during execution: ", e);
+      LOGGER.error("Error occurred during execution: ", e);
     }
   }
 
@@ -198,18 +191,14 @@ public class TelegramBot extends TelegramLongPollingBot implements Bot {
               messageProcessor.process(telegramMessageEntity);
               break;
             }
-          } catch (Exception e) {
-            LOGGER.error("Error occurred during execution: ", e);
           } catch (Throwable e) {
-            LOGGER.error("Throwable occurred during execution: ", e);
+            LOGGER.error("Error occurred during execution: ", e);
           }
         }
         try {
           commonMessageHandler.handleMessage(telegramMessageEntity);
-        } catch (Exception e) {
-          LOGGER.error("Error occurred during execution: ", e);
         } catch (Throwable e) {
-          LOGGER.error("Throwable occurred during execution: ", e);
+          LOGGER.error("Error occurred during execution: ", e);
         }
       } else if (update.hasCallbackQuery()) {
         for (MessageProcessor messageProcessor : messageProcessors) {
@@ -219,10 +208,8 @@ public class TelegramBot extends TelegramLongPollingBot implements Bot {
               messageProcessor.processCallBack(callbackQuery, sender);
               return;
             }
-          } catch (Exception e) {
-            LOGGER.error("Error occurred during execution: ", e);
           } catch (Throwable e) {
-            LOGGER.error("Throwable occurred during execution: ", e);
+            LOGGER.error("Error occurred during execution: ", e);
           }
         }
       }

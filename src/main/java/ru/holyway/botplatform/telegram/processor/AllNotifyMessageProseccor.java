@@ -1,6 +1,8 @@
 package ru.holyway.botplatform.telegram.processor;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -20,15 +22,14 @@ import java.util.List;
 @Order(3)
 public class AllNotifyMessageProseccor implements MessageProcessor {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(AllNotifyMessageProseccor.class);
+
   @Autowired
   DataHelper dataHelper;
 
   @Override
   public boolean isNeedToHandle(TelegramMessageEntity messageEntity) {
-    if (StringUtils.containsIgnoreCase(messageEntity.getText(), "@all")) {
-      return true;
-    }
-    return false;
+    return StringUtils.containsIgnoreCase(messageEntity.getText(), "@all");
   }
 
   @Override
@@ -44,7 +45,7 @@ public class AllNotifyMessageProseccor implements MessageProcessor {
         }
         users.add("@" + nameOfUser);
       } catch (TelegramApiException e) {
-        e.printStackTrace();
+        LOGGER.error("Error fetching chat member {}", userId, e);
       }
     });
     if (!users.isEmpty()) {
