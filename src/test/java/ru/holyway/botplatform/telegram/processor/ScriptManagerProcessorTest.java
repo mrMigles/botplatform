@@ -1,7 +1,7 @@
 package ru.holyway.botplatform.telegram.processor;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import ru.holyway.botplatform.telegram.TelegramMessageEntity;
@@ -9,7 +9,7 @@ import ru.holyway.botplatform.telegram.TelegramMessageEntity;
 import java.lang.reflect.Field;
 import java.util.regex.Pattern;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 public class ScriptManagerProcessorTest {
@@ -17,7 +17,7 @@ public class ScriptManagerProcessorTest {
   private ScriptManagerProcessor managerProcessor;
   private ScriptMessageProcessor scriptMessageProcessor;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     scriptMessageProcessor = mock(ScriptMessageProcessor.class);
     managerProcessor = new ScriptManagerProcessor();

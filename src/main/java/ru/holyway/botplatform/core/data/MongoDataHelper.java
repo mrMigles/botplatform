@@ -7,7 +7,7 @@ import ru.holyway.botplatform.core.entity.ChatMembers;
 import ru.holyway.botplatform.core.entity.JSettings;
 import ru.holyway.botplatform.core.entity.Record;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import java.util.*;
 
 /**
@@ -54,12 +54,12 @@ public class MongoDataHelper implements DataHelper {
     for (Map.Entry<String, List<String>> entry : learnMap.entrySet()) {
       chats.add(new Chat(entry.getKey(), entry.getValue()));
     }
-    repository.save(chats);
+    repository.saveAll(chats);
   }
 
   public List<String> getSimple() {
     try {
-      return simpleRepository.findOne("1").dictionary;
+      return simpleRepository.findById("1").map(s -> s.dictionary).orElse(new ArrayList<>());
     } catch (Exception e) {
       return new ArrayList<>();
     }
@@ -67,7 +67,7 @@ public class MongoDataHelper implements DataHelper {
 
   public JSettings getSettings() {
     if (this.settings == null) {
-      JSettings settings = settingsRepository.findOne("1");
+      JSettings settings = settingsRepository.findById("1").orElse(null);
       if (settings == null) {
         settings = new JSettings();
         settings.id = "1";
@@ -88,12 +88,12 @@ public class MongoDataHelper implements DataHelper {
   }
 
   public void updateRecords(List<Record> records) {
-    recordRepository.save(records);
+    recordRepository.saveAll(records);
   }
 
   @Override
   public List<String> getChatMembers(String chatId) {
-    ChatMembers chatMembers = chatMemberRepository.findById(chatId);
+    ChatMembers chatMembers = chatMemberRepository.findById(chatId).orElse(null);
     if (chatMembers != null) {
       return chatMembers.members;
     }

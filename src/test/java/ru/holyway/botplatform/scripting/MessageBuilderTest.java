@@ -1,6 +1,6 @@
 package ru.holyway.botplatform.scripting;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -8,7 +8,7 @@ import ru.holyway.botplatform.scripting.entity.MessageScriptEntity;
 import ru.holyway.botplatform.scripting.entity.MessageBuilder;
 import ru.holyway.botplatform.telegram.TelegramMessageEntity;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
 public class MessageBuilderTest {

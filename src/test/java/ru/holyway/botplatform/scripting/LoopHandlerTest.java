@@ -1,13 +1,13 @@
 package ru.holyway.botplatform.scripting;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import ru.holyway.botplatform.scripting.entity.LoopHandler;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class LoopHandlerTest {
 

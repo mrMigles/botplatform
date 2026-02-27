@@ -9,7 +9,7 @@ import ru.holyway.botplatform.core.entity.JSettings;
 import ru.holyway.botplatform.scripting.MetricCollector;
 import ru.holyway.botplatform.telegram.TelegramMessageEntity;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 /**
  * Created by seiv0814 on 10-10-17.

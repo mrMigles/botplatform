@@ -1,13 +1,13 @@
 package ru.holyway.botplatform.config;
 
-import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
-import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import java.net.URI;
 
 @Component
@@ -22,7 +22,7 @@ public class RequestFactory {
   public static final class HttpComponentsClientHttpRequestWithBodyFactory extends
       HttpComponentsClientHttpRequestFactory {
     @Override
-    protected HttpUriRequest createHttpUriRequest(HttpMethod httpMethod, URI uri) {
+    protected ClassicHttpRequest createHttpUriRequest(HttpMethod httpMethod, URI uri) {
       if (httpMethod == HttpMethod.GET) {
         return new HttpGetRequestWithEntity(uri);
       }
@@ -30,9 +30,9 @@ public class RequestFactory {
     }
   }
 
-  private static final class HttpGetRequestWithEntity extends HttpEntityEnclosingRequestBase {
+  private static final class HttpGetRequestWithEntity extends HttpUriRequestBase {
     public HttpGetRequestWithEntity(final URI uri) {
-      super.setURI(uri);
+      super("GET", uri);
     }
 
     @Override

@@ -1,6 +1,6 @@
 package ru.holyway.botplatform.scripting;
 
-import javax.annotation.Nonnull;
+import jakarta.annotation.Nonnull;
 
 public interface ScriptCompiler {
 

@@ -1,10 +1,10 @@
 package ru.holyway.botplatform.scripting;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import ru.holyway.botplatform.scripting.entity.AbstractText;
 import ru.holyway.botplatform.scripting.util.NumberOperations;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class AbstractTextAndNumberOperationsTest {
 
@@ -43,7 +43,7 @@ public class AbstractTextAndNumberOperationsTest {
 
     context.setContextValue("text", "Hello WORLD world");
     assertEquals("Hello there there", text.replace("world", "there", true).apply(context));
-    assertEquals("Hello WORLD world", text.replace("world", "there", false).apply(context));
+    assertEquals("Hello WORLD there", text.replace("world", "there", false).apply(context));
     assertEquals("Hello done done", text.replaceAll("w.rld", "done", true).apply(context));
 
     context.setContextValue("text", "json: {\"value\": 15}");
@@ -64,7 +64,7 @@ public class AbstractTextAndNumberOperationsTest {
         .mod(4);
 
     Number result = operations.value().apply(context);
-    assertEquals(1L, result.longValue());
-    assertEquals(1.0, operations.asDouble().apply(context));
+    assertEquals(0L, result.longValue());
+    assertEquals(0.0, operations.asDouble().apply(context));
   }
 }

@@ -18,7 +18,7 @@ public class CallbackScriptEntity {
     return new MessageScriptEntity() {
       @Override
       public Function<ScriptContext, Message> entity() {
-        return scriptContext -> scriptContext.message.messageEntity.getCallbackQuery().getMessage();
+        return scriptContext -> (Message) scriptContext.message.messageEntity.getCallbackQuery().getMessage();
       }
     };
   }

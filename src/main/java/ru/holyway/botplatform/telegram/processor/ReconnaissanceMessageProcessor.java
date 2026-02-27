@@ -135,8 +135,8 @@ public class ReconnaissanceMessageProcessor implements MessageProcessor {
   @Override
   public void processCallBack(CallbackQuery callbackQuery, AbsSender sender)
       throws TelegramApiException {
-
-    final String chatID = String.valueOf(callbackQuery.getMessage().getChatId());
+    final Message cbMessage = (Message) callbackQuery.getMessage();
+    final String chatID = String.valueOf(cbMessage.getChatId());
     List<String> currentChatMembers = currentReconChatMembers.get(chatID);
     if (currentChatMembers == null) {
       currentChatMembers = new ArrayList<>();
@@ -152,14 +152,14 @@ public class ReconnaissanceMessageProcessor implements MessageProcessor {
       currentChatMembers.add(userID);
       currentReconChatMembers.put(chatID, currentChatMembers);
 
-      if (callbackQuery.getMessage().getChat().isUserChat()) {
-        showResult(String.valueOf(callbackQuery.getMessage().getChatId()),
-            callbackQuery.getMessage().getMessageId(), sender);
+      if (cbMessage.getChat().isUserChat()) {
+        showResult(String.valueOf(cbMessage.getChatId()),
+            cbMessage.getMessageId(), sender);
       } else {
         Integer userCount = sender.execute(GetChatMemberCount.builder().chatId(chatID).build());
         if (userCount - 1 == currentChatMembers.size()) {
-          showResult(String.valueOf(callbackQuery.getMessage().getChatId()),
-              callbackQuery.getMessage().getMessageId(), sender);
+          showResult(String.valueOf(cbMessage.getChatId()),
+              cbMessage.getMessageId(), sender);
         }
       }
     }

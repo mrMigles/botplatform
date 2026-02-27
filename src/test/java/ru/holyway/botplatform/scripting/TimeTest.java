@@ -1,9 +1,9 @@
 package ru.holyway.botplatform.scripting;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import ru.holyway.botplatform.scripting.util.Time;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class TimeTest {
 
@@ -137,8 +137,8 @@ public class TimeTest {
     String result = time.asString().apply(ctx);
 
     assertNotNull(result);
-    assertTrue("Expected HH:mm:ss format but got: " + result,
-        result.matches("\\d{2}:\\d{2}:\\d{2}"));
+    assertTrue(result.matches("\\d{2}:\\d{2}:\\d{2}"),
+        "Expected HH:mm:ss format but got: " + result);
   }
 
   @Test
