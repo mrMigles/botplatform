@@ -13,7 +13,7 @@ import ru.holyway.botplatform.scripting.*;
 import ru.holyway.botplatform.scripting.entity.*;
 import ru.holyway.botplatform.scripting.util.*;
 
-import javax.annotation.Nonnull;
+import jakarta.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

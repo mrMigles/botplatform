@@ -10,7 +10,7 @@ import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.holyway.botplatform.telegram.TelegramMessageEntity;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;

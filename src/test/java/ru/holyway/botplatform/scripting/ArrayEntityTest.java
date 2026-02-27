@@ -1,13 +1,13 @@
 package ru.holyway.botplatform.scripting;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import ru.holyway.botplatform.scripting.entity.ArrayEntity;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ArrayEntityTest {
 

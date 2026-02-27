@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import ru.holyway.botplatform.core.handler.MessageHandler;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 

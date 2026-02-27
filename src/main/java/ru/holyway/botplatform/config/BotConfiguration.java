@@ -1,13 +1,14 @@
 package ru.holyway.botplatform.config;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.TrustStrategy;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
+import org.apache.hc.core5.ssl.SSLContexts;
+import org.apache.hc.core5.ssl.TrustStrategy;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -19,6 +20,7 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.DefaultUriBuilderFactory;
 import ru.holyway.botplatform.core.Bot;
 import ru.holyway.botplatform.core.CommonHandler;
 import ru.holyway.botplatform.core.CommonMessageHandler;
@@ -41,9 +43,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Created by Sergey on 1/17/2017.
- */
 @Configuration
 public class BotConfiguration {
 
@@ -104,12 +103,6 @@ public class BotConfiguration {
       final Map<String, MessageHandler> messageHandlers) {
     final List<MessageHandler> orderedMessageHandlers = new ArrayList<>();
     orderedMessageHandlers.add(messageHandlers.get("settingsHandler"));
-    //orderedMessageHandlers.add(messageHandlers.get("authenticationHandler"));
-    //orderedMessageHandlers.add(messageHandlers.get("skiperHandler"));
-    //orderedMessageHandlers.add(messageHandlers.get("messageAnalyzerHandler"));
-    //orderedMessageHandlers.add(messageHandlers.get("recordsHandler"));
-    //orderedMessageHandlers.add(messageHandlers.get("wikiHandler"));
-    //orderedMessageHandlers.add(messageHandlers.get("simpleQuestionHandler"));
     return orderedMessageHandlers;
   }
 
@@ -136,19 +129,20 @@ public class BotConfiguration {
       throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException {
     TrustStrategy acceptingTrustStrategy = (X509Certificate[] chain, String authType) -> true;
 
-    SSLContext sslContext = org.apache.http.ssl.SSLContexts.custom()
+    SSLContext sslContext = SSLContexts.custom()
         .loadTrustMaterial(null, acceptingTrustStrategy)
         .build();
 
-    SSLConnectionSocketFactory csf = new SSLConnectionSocketFactory(sslContext);
-
     CloseableHttpClient httpClient = HttpClients.custom()
-        .setSSLSocketFactory(csf)
+        .setConnectionManager(PoolingHttpClientConnectionManagerBuilder.create()
+            .setSSLSocketFactory(SSLConnectionSocketFactoryBuilder.create()
+                .setSslContext(sslContext)
+                .build())
+            .build())
         .build();
 
     HttpComponentsClientHttpRequestFactory requestFactory =
         new HttpComponentsClientHttpRequestFactory();
-
     requestFactory.setHttpClient(httpClient);
     return requestFactory;
   }
@@ -157,8 +151,9 @@ public class BotConfiguration {
   public RestTemplate instaproviderTemplate()
       throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
     HttpComponentsClientHttpRequestFactory requestFactory = buildRequestFactory();
-    return new RestTemplateBuilder().requestFactory(requestFactory).rootUri(instaproviderUrl)
-        .build();
+    RestTemplate template = new RestTemplate(requestFactory);
+    template.setUriTemplateHandler(new DefaultUriBuilderFactory(instaproviderUrl));
+    return template;
   }
 
   private void setProxy(final String host, final String port, final String user,
@@ -186,28 +181,6 @@ public class BotConfiguration {
       return auth;
     }
   }
-
-//  @Bean
-//  public DefaultBotOptions botOptions() {
-//    if (!org.apache.commons.lang3.StringUtils
-//        .isEmpty(proxyUser) && !org.apache.commons.lang3.StringUtils.isEmpty(proxyPass)) {
-//      Authenticator.setDefault(new Authenticator() {
-//        @Override
-//        protected PasswordAuthentication getPasswordAuthentication() {
-//          return new PasswordAuthentication(proxyUser, proxyPass.toCharArray());
-//        }
-//      });
-//    }
-//
-//    DefaultBotOptions botOptions = ApiContext.getInstance(DefaultBotOptions.class);
-//
-//    if (!StringUtils.isEmpty(proxyHost) && !StringUtils.isEmpty(proxyPort)) {
-//      botOptions.setProxyHost(proxyHost);
-//      botOptions.setProxyPort(Integer.valueOf(proxyPort));
-//      botOptions.setProxyType(DefaultBotOptions.ProxyType.SOCKS5);
-//    }
-//    return botOptions;
-//  }
 
   @Bean
   public RetryTemplate retryTemplate() {

@@ -184,7 +184,7 @@ public class ScriptMessageProcessor implements MessageProcessor, MessagePostLoad
   public void processCallBack(CallbackQuery callbackQuery, AbsSender sender)
       throws TelegramApiException {
 
-    TelegramMessageEntity messageEntity = new TelegramMessageEntity(callbackQuery.getMessage(), callbackQuery, sender);
+    TelegramMessageEntity messageEntity = new TelegramMessageEntity((Message) callbackQuery.getMessage(), callbackQuery, sender);
 
     for (Script script : scripts.get(messageEntity.getChatId())) {
       if (executeScript(messageEntity, script)) {

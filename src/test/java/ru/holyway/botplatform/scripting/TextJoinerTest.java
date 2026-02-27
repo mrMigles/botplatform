@@ -1,9 +1,9 @@
 package ru.holyway.botplatform.scripting;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import ru.holyway.botplatform.scripting.util.TextJoiner;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class TextJoinerTest {
 
@@ -63,7 +63,7 @@ public class TextJoinerTest {
 
     for (int i = 0; i < 30; i++) {
       int value = Integer.parseInt(TextJoiner.random(5, 10).apply(ctx));
-      assertTrue("Expected " + value + " to be in range [5,10]", value >= 5 && value <= 10);
+      assertTrue(value >= 5 && value <= 10, "Expected " + value + " to be in range [5,10]");
     }
   }
 

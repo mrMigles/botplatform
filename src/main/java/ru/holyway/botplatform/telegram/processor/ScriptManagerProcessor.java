@@ -11,6 +11,7 @@ import org.telegram.telegrambots.meta.api.methods.groupadministration.GetChatAdm
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.chatmember.ChatMember;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ForceReplyKeyboard;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -169,23 +170,24 @@ public class ScriptManagerProcessor implements MessageProcessor {
   @Override
   public void processCallBack(CallbackQuery callbackQuery, AbsSender sender)
       throws TelegramApiException {
+    final Message cbMessage = (Message) callbackQuery.getMessage();
     if (callbackQuery.getData().startsWith("script:edit:")) {
       sender
           .execute(SendMessage.builder().replyMarkup(new ForceReplyKeyboard())
-              .chatId(String.valueOf(callbackQuery.getMessage().getChatId()))
-              .text(callbackQuery.getMessage().getText()).build());
+              .chatId(String.valueOf(cbMessage.getChatId()))
+              .text(cbMessage.getText()).build());
     } else if (callbackQuery.getData().startsWith("script:delete:")) {
       final String scriptId = StringUtils.substringAfter(callbackQuery.getData(), "script:delete:");
-      final Script script = scriptMessageProcessor.getScript(String.valueOf(callbackQuery.getMessage().getChatId()), Integer.valueOf(scriptId));
+      final Script script = scriptMessageProcessor.getScript(String.valueOf(cbMessage.getChatId()), Integer.valueOf(scriptId));
       if (script != null) {
-        if (callbackQuery.getMessage().getChat().isUserChat() || script.getOwner() == 0 || script.getOwner() == callbackQuery.getFrom().getId() || isAdmin(sender, callbackQuery.getMessage().getChatId(), callbackQuery.getFrom().getId())) {
+        if (cbMessage.getChat().isUserChat() || script.getOwner() == 0 || script.getOwner() == callbackQuery.getFrom().getId() || isAdmin(sender, cbMessage.getChatId(), callbackQuery.getFrom().getId())) {
           if (scriptMessageProcessor.removeScript(
-              String.valueOf(callbackQuery.getMessage().getChatId()), Integer.valueOf(scriptId))) {
+              String.valueOf(cbMessage.getChatId()), Integer.valueOf(scriptId))) {
             sender
                 .execute(
-                    SendMessage.builder().chatId(String.valueOf(callbackQuery.getMessage().getChatId()))
+                    SendMessage.builder().chatId(String.valueOf(cbMessage.getChatId()))
                         .text("Скрипт удален")
-                        .replyToMessageId(callbackQuery.getMessage().getMessageId()).build());
+                        .replyToMessageId(cbMessage.getMessageId()).build());
           } else {
             sender.execute(AnswerCallbackQuery.builder().callbackQueryId(callbackQuery.getId())
                 .text("Скрипт не найден").build());
@@ -200,23 +202,23 @@ public class ScriptManagerProcessor implements MessageProcessor {
       }
     } else if (callbackQuery.getData().startsWith("script:clear:")) {
       final int firstMessage = Integer.parseInt(StringUtils.substringAfterLast(callbackQuery.getData(), ":"));
-      for (int i = firstMessage; i <= callbackQuery.getMessage().getMessageId(); i++) {
+      for (int i = firstMessage; i <= cbMessage.getMessageId(); i++) {
         try {
-          sender.execute(DeleteMessage.builder().chatId(String.valueOf(callbackQuery.getMessage().getChatId())).messageId(i).build());
+          sender.execute(DeleteMessage.builder().chatId(String.valueOf(cbMessage.getChatId())).messageId(i).build());
         } catch (Exception e) {
-          LOGGER.warn("Could not delete message {} in chat {}", i, callbackQuery.getMessage().getChatId(), e);
+          LOGGER.warn("Could not delete message {} in chat {}", i, cbMessage.getChatId(), e);
         }
       }
     } else if (callbackQuery.getData().startsWith("script:more:")) {
       final int firstMessage = Integer.parseInt(StringUtils.substringAfterLast(callbackQuery.getData(), ":"));
       final int offset = Integer.parseInt(StringUtils.substringBetween(callbackQuery.getData(), "script:more:", ":"));
-      List<Script> scripts = scriptMessageProcessor.getScripts(callbackQuery.getMessage().getChatId().toString());
+      List<Script> scripts = scriptMessageProcessor.getScripts(cbMessage.getChatId().toString());
       int max = Math.min(scripts.size(), offset + 8);
       if (max == offset) {
         return;
       }
-      sender.execute(DeleteMessage.builder().chatId(String.valueOf(callbackQuery.getMessage().getChatId())).messageId(callbackQuery.getMessage().getMessageId()).build());
-      TelegramMessageEntity messageEntity = new TelegramMessageEntity(callbackQuery.getMessage(), callbackQuery, sender);
+      sender.execute(DeleteMessage.builder().chatId(String.valueOf(cbMessage.getChatId())).messageId(cbMessage.getMessageId()).build());
+      TelegramMessageEntity messageEntity = new TelegramMessageEntity(cbMessage, callbackQuery, sender);
       for (int i = offset; i < max; i++) {
         Script script = scripts.get(i);
         try {

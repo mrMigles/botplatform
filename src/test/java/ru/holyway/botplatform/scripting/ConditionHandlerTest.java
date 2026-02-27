@@ -1,11 +1,11 @@
 package ru.holyway.botplatform.scripting;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import ru.holyway.botplatform.scripting.entity.ConditionHandler;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ConditionHandlerTest {
 

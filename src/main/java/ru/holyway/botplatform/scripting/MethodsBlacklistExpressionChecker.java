@@ -5,7 +5,7 @@ import org.codehaus.groovy.ast.expr.GStringExpression;
 import org.codehaus.groovy.ast.expr.MethodCallExpression;
 import org.codehaus.groovy.control.customizers.SecureASTCustomizer;
 
-import javax.annotation.Nonnull;
+import jakarta.annotation.Nonnull;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;

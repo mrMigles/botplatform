@@ -1,7 +1,7 @@
 package ru.holyway.botplatform.telegram.processor;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.scheduling.TaskScheduler;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
@@ -16,7 +16,7 @@ import ru.holyway.botplatform.telegram.TelegramMessageEntity;
 
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
@@ -29,7 +29,7 @@ public class ScriptMessageProcessorTest {
   private JSettings settings;
   private ScriptMessageProcessor processor;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     scriptCompiler = mock(ScriptCompiler.class);
     dataHelper = mock(DataHelper.class);
@@ -297,7 +297,7 @@ public class ScriptMessageProcessorTest {
 
     processor.process(entity);
 
-    assertFalse("Second script should not execute because first is stopable", secondExecuted[0]);
+    assertFalse(secondExecuted[0], "Second script should not execute because first is stopable");
   }
 
   @Test
@@ -321,7 +321,7 @@ public class ScriptMessageProcessorTest {
 
     processor.process(entity);
 
-    assertTrue("Second script should execute because first is not stopable", secondExecuted[0]);
+    assertTrue(secondExecuted[0], "Second script should execute because first is not stopable");
   }
 
   @Test

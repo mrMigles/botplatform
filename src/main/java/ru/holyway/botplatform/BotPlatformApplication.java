@@ -6,17 +6,14 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration;
 import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import ru.holyway.botplatform.core.Bot;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
-@EnableWebSecurity
-@EnableGlobalMethodSecurity(prePostEnabled = true)
+@EnableMethodSecurity
 @EnableCaching
-@SpringBootApplication
-@EnableAutoConfiguration(exclude = {GroovyTemplateAutoConfiguration.class})
+@SpringBootApplication(exclude = {GroovyTemplateAutoConfiguration.class})
 public class BotPlatformApplication {
 
   private final Bot bots;

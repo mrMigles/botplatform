@@ -5,5 +5,4 @@ import ru.holyway.botplatform.core.entity.ChatMembers;
 
 public interface ChatMemberRepository extends MongoRepository<ChatMembers, String> {
 
-  public ChatMembers findById(String id);
 }

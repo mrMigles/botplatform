@@ -4,19 +4,20 @@ import org.codehaus.groovy.ast.expr.ArgumentListExpression;
 import org.codehaus.groovy.ast.expr.ConstantExpression;
 import org.codehaus.groovy.ast.expr.GStringExpression;
 import org.codehaus.groovy.ast.expr.MethodCallExpression;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
+import java.util.List;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@SuppressWarnings("null")
 public class MethodsBlacklistExpressionCheckerTest {
 
   @Test
   public void shouldRejectBlacklistedMethod() {
     MethodsBlacklistExpressionChecker checker =
-        new MethodsBlacklistExpressionChecker(Arrays.asList("getClass", "exit"));
+        new MethodsBlacklistExpressionChecker(List.of("getClass", "exit"));
     MethodCallExpression expression = new MethodCallExpression(
         new ConstantExpression("obj"), "getClass", new ArgumentListExpression());
 
@@ -26,7 +27,7 @@ public class MethodsBlacklistExpressionCheckerTest {
   @Test
   public void shouldRejectGStringMethodName() {
     MethodsBlacklistExpressionChecker checker =
-        new MethodsBlacklistExpressionChecker(Arrays.asList("smth"));
+        new MethodsBlacklistExpressionChecker(List.of("smth"));
     MethodCallExpression expression = new MethodCallExpression(
         new ConstantExpression("obj"), (String) null, new ArgumentListExpression());
     expression.setMethod(new GStringExpression("${dynamic}"));
@@ -37,7 +38,7 @@ public class MethodsBlacklistExpressionCheckerTest {
   @Test
   public void shouldAllowNonBlacklistedMethod() {
     MethodsBlacklistExpressionChecker checker =
-        new MethodsBlacklistExpressionChecker(Arrays.asList("getClass"));
+        new MethodsBlacklistExpressionChecker(List.of("getClass"));
     MethodCallExpression expression = new MethodCallExpression(
         new ConstantExpression("obj"), "otherMethod", new ArgumentListExpression());
 

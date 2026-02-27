@@ -3,7 +3,7 @@ package ru.holyway.botplatform.scripting;
 import groovy.lang.GroovyShell;
 import lombok.RequiredArgsConstructor;
 
-import javax.annotation.Nonnull;
+import jakarta.annotation.Nonnull;
 
 @RequiredArgsConstructor
 public class ScriptCompilerImpl implements ScriptCompiler {

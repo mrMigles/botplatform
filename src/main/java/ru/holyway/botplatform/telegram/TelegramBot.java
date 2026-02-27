@@ -19,7 +19,7 @@ import ru.holyway.botplatform.core.CommonHandler;
 import ru.holyway.botplatform.telegram.processor.MessagePostLoader;
 import ru.holyway.botplatform.telegram.processor.MessageProcessor;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
@@ -86,7 +86,7 @@ public class TelegramBot extends TelegramLongPollingBot implements Bot {
     Message message = update.hasChannelPost() ? update.getChannelPost() : update.getMessage();
     if (message == null) {
       if (update.hasCallbackQuery()) {
-        message = update.getCallbackQuery().getMessage();
+        message = (Message) update.getCallbackQuery().getMessage();
       } else if (update.hasInlineQuery()) {
         try {
           inlineQueryBlockingQueue.put(update.getInlineQuery());

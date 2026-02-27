@@ -1,19 +1,19 @@
 package ru.holyway.botplatform.scripting.util;
 
 import com.jayway.jsonpath.JsonPath;
-import org.apache.http.client.HttpClient;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.ssl.SSLContexts;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
+import org.apache.hc.core5.ssl.SSLContexts;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -39,22 +39,41 @@ import java.util.regex.Pattern;
 
 public class Request {
 
-  private static RestTemplate restTemplate = new RestTemplateBuilder().setReadTimeout(5 * 60 * 1000).setConnectTimeout(5 * 60 * 1000).build();
+  private static RestTemplate restTemplate;
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Request.class);
 
   static {
-    SSLContext sslContext = SSLContexts.createDefault();
+    try {
+      SSLContext sslContext = SSLContexts.createDefault();
 
-    SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslContext, new String[]{"TLSv1", "TLSv1.1", "TLSv1.2"}, null, new NoopHostnameVerifier());
+      var connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
+          .setSSLSocketFactory(SSLConnectionSocketFactoryBuilder.create()
+              .setSslContext(sslContext)
+              .setHostnameVerifier(NoopHostnameVerifier.INSTANCE)
+              .setTlsVersions("TLSv1.2", "TLSv1.3")
+              .build())
+          .build();
 
-    HttpClient httpClient = HttpClientBuilder.create().disableCookieManagement().useSystemProperties().setSSLSocketFactory(sslsf).build();
-    HttpComponentsClientHttpRequestWithBodyFactory factory = new HttpComponentsClientHttpRequestWithBodyFactory();
-    factory.setHttpClient(httpClient);
-    restTemplate.setRequestFactory(factory);
+      var httpClient = HttpClientBuilder.create()
+          .disableCookieManagement()
+          .useSystemProperties()
+          .setConnectionManager(connectionManager)
+          .build();
 
-    restTemplate.getMessageConverters().add(0, new StringHttpMessageConverter(StandardCharsets.UTF_8));
+      HttpComponentsClientHttpRequestWithBodyFactory factory =
+          new HttpComponentsClientHttpRequestWithBodyFactory();
+      factory.setHttpClient(httpClient);
+      factory.setConnectTimeout(5 * 60 * 1000);
 
+      restTemplate = new RestTemplate();
+      restTemplate.setRequestFactory(factory);
+      restTemplate.getMessageConverters().add(0,
+          new StringHttpMessageConverter(StandardCharsets.UTF_8));
+    } catch (Exception e) {
+      LOGGER.error("Failed to initialize Request RestTemplate", e);
+      restTemplate = new RestTemplate();
+    }
   }
 
   private Map<String, Object> params = new HashMap<>();
@@ -156,7 +175,7 @@ public class Request {
       if (!this.params.isEmpty()) {
         headers.add("Content-Type", "application/x-www-form-urlencoded");
       }
-      if (StringUtils.isEmpty(body)) {
+      if (!StringUtils.hasText(body)) {
         if (params == null || params.isEmpty()) {
           httpEntity = new HttpEntity(headers);
         } else {
