@@ -3,9 +3,9 @@ package ru.holyway.botplatform.telegram.processor;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.methods.groupadministration.GetChatAdministrators;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
@@ -13,6 +13,7 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.chatmember.ChatMember;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import ru.holyway.botplatform.telegram.ChatAdminService;
 import ru.holyway.botplatform.telegram.TelegramMessageEntity;
 
 import java.util.List;
@@ -22,6 +23,9 @@ import java.util.List;
 public class RemoveLastMessageProcessor implements MessageProcessor {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RemoveLastMessageProcessor.class);
+
+  @Autowired
+  private ChatAdminService chatAdminService;
 
   @Override
   public boolean isNeedToHandle(TelegramMessageEntity messageEntity) {
@@ -58,8 +62,8 @@ public class RemoveLastMessageProcessor implements MessageProcessor {
   }
 
   private boolean hasGrants(TelegramMessageEntity messageEntity) throws TelegramApiException {
-    List<ChatMember> chatMembers = messageEntity.getSender()
-        .execute(GetChatAdministrators.builder().chatId(messageEntity.getChatId()).build());
+    List<ChatMember> chatMembers =
+        chatAdminService.getAdministrators(messageEntity.getSender(), messageEntity.getChatId());
     for (ChatMember chatMember : chatMembers) {
       if (chatMember.getUser().getId().equals(messageEntity.getMessage().getFrom().getId())) {
         if (chatMember.getStatus().equals("creator") || chatMember.getUser().getCanReadAllGroupMessages()) {

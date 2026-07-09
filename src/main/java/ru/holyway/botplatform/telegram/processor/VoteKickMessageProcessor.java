@@ -3,12 +3,12 @@ package ru.holyway.botplatform.telegram.processor;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
-import org.telegram.telegrambots.meta.api.methods.groupadministration.GetChatAdministrators;
 import org.telegram.telegrambots.meta.api.methods.groupadministration.GetChatMemberCount;
 import org.telegram.telegrambots.meta.api.methods.groupadministration.RestrictChatMember;
 import org.telegram.telegrambots.meta.api.methods.pinnedmessages.PinChatMessage;
@@ -19,12 +19,12 @@ import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.ChatPermissions;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.User;
-import org.telegram.telegrambots.meta.api.objects.chatmember.ChatMember;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.holyway.botplatform.core.data.ProcessorsContext;
+import ru.holyway.botplatform.telegram.ChatAdminService;
 import ru.holyway.botplatform.telegram.TelegramMessageEntity;
 
 import java.util.*;
@@ -37,6 +37,9 @@ import java.util.concurrent.TimeUnit;
 public class VoteKickMessageProcessor implements MessageProcessor {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(VoteKickMessageProcessor.class);
+
+  @Autowired
+  private ChatAdminService chatAdminService;
 
   private Map<String, BanInfo> banList = new HashMap<>();
   private Integer voteSize = 3;
@@ -231,14 +234,7 @@ public class VoteKickMessageProcessor implements MessageProcessor {
 
   private boolean isAdmin(TelegramMessageEntity messageEntity, User banUser)
       throws TelegramApiException {
-    List<ChatMember> chatMembers = messageEntity.getSender()
-        .execute(GetChatAdministrators.builder().chatId(messageEntity.getChatId()).build());
-    for (ChatMember chatMember : chatMembers) {
-      if (chatMember.getUser().getId().equals(banUser.getId())) {
-        return true;
-      }
-    }
-    return false;
+    return chatAdminService.isAdmin(messageEntity.getSender(), messageEntity.getChatId(), banUser.getId());
   }
 
   private static class BanInfo {

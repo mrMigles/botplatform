@@ -4,8 +4,8 @@ server:
 spring:
   data:
     mongodb:
-      database: ${DATABASE:localhost}
-      password: ${PASSWORD:password}
+      database: ${DATABASE:botplatform}
+      password: ${PASSWORD}
       host: ${MONGO_HOST:localhost}
       port: ${MONGO_PORT:8050}
       username: ${USERNAME:test}
@@ -20,7 +20,7 @@ credential:
     login: ${TELEGRAM_BOT_NAME:}
     token: ${TELEGRAM_BOT_TOKEN:}
   ai:
-    token: ${AI_TOKEN:token}
+    token: ${AI_TOKEN:}
 bot:
   config:
     datatype: ${DATATYPE:mongo}

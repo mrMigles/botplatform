@@ -7,12 +7,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
-import org.telegram.telegrambots.meta.api.methods.groupadministration.GetChatAdministrators;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.chatmember.ChatMember;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ForceReplyKeyboard;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
@@ -20,13 +18,13 @@ import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.holyway.botplatform.scripting.MetricCollector;
 import ru.holyway.botplatform.scripting.Script;
+import ru.holyway.botplatform.telegram.ChatAdminService;
 import ru.holyway.botplatform.telegram.TelegramMessageEntity;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 @Component
 @Order(98)
@@ -37,6 +35,9 @@ public class ScriptManagerProcessor implements MessageProcessor {
   public static final String SECURITY_VALUE_SET_REGEX = "(\\/put)(\\s)(\\\")(.*)(\\\")(\\s)(\\\")(.*)(\\\")";
   @Autowired
   private ScriptMessageProcessor scriptMessageProcessor;
+
+  @Autowired
+  private ChatAdminService chatAdminService;
 
   @Override
   public boolean isNeedToHandle(TelegramMessageEntity messageEntity) {
@@ -54,7 +55,7 @@ public class ScriptManagerProcessor implements MessageProcessor {
   public void process(TelegramMessageEntity messageEntity) throws TelegramApiException {
     if (messageEntity.getMessage().getText()
         .startsWith("/clear")) {
-      if (messageEntity.getMessage().getChat().isUserChat() || isAdmin(messageEntity.getSender(), messageEntity.getMessage().getChatId(), messageEntity.getMessage().getFrom().getId())) {
+      if (messageEntity.getMessage().getChat().isUserChat() || chatAdminService.isAdmin(messageEntity.getSender(), messageEntity.getMessage().getChatId(), messageEntity.getMessage().getFrom().getId())) {
         scriptMessageProcessor.clearScripts(messageEntity.getChatId());
         messageEntity.getSender()
             .execute(
@@ -82,7 +83,7 @@ public class ScriptManagerProcessor implements MessageProcessor {
       final String scriptString = messageEntity.getMessage().getReplyToMessage().getText();
       final Script script = scriptMessageProcessor.getScript(messageEntity.getChatId(), scriptString);
       if (script != null) {
-        if (messageEntity.getMessage().getChat().isUserChat() || script.getOwner() == 0 || script.getOwner() == messageEntity.getMessage().getFrom().getId() || isAdmin(messageEntity.getSender(), messageEntity.getMessage().getChatId(), messageEntity.getMessage().getFrom().getId())) {
+        if (messageEntity.getMessage().getChat().isUserChat() || script.getOwner() == 0 || script.getOwner() == messageEntity.getMessage().getFrom().getId() || chatAdminService.isAdmin(messageEntity.getSender(), messageEntity.getMessage().getChatId(), messageEntity.getMessage().getFrom().getId())) {
           if (scriptMessageProcessor.removeScript(messageEntity.getChatId(), scriptString)) {
             messageEntity.getSender()
                 .execute(
@@ -116,7 +117,7 @@ public class ScriptManagerProcessor implements MessageProcessor {
       scriptMessageProcessor.dataHelper.putToSecretStorage(messageEntity.getChatId(), key, value);
       messageEntity.getSender()
           .execute(
-              SendMessage.builder().chatId(messageEntity.getChatId()).text("Сохранено: secret[" + key + "]=" + value).build());
+              SendMessage.builder().chatId(messageEntity.getChatId()).text("Сохранено: secret[" + key + "]").build());
     } else if (messageEntity.getMessage().getText()
         .startsWith("/logs")) {
 
@@ -141,7 +142,7 @@ public class ScriptManagerProcessor implements MessageProcessor {
         .startsWith("/get")) {
       messageEntity.getSender()
           .execute(
-              SendMessage.builder().chatId(messageEntity.getChatId()).text(scriptMessageProcessor.dataHelper.listSecretStorage(messageEntity.getChatId()).toString()).build());
+              SendMessage.builder().chatId(messageEntity.getChatId()).text("Сохранённые ключи: " + scriptMessageProcessor.dataHelper.listSecretStorage(messageEntity.getChatId()).keySet()).build());
     } else if (messageEntity.getMessage().isReply() && messageEntity.getMessage().getText()
         .startsWith("script(")) {
       if (scriptMessageProcessor
@@ -180,7 +181,7 @@ public class ScriptManagerProcessor implements MessageProcessor {
       final String scriptId = StringUtils.substringAfter(callbackQuery.getData(), "script:delete:");
       final Script script = scriptMessageProcessor.getScript(String.valueOf(cbMessage.getChatId()), Integer.valueOf(scriptId));
       if (script != null) {
-        if (cbMessage.getChat().isUserChat() || script.getOwner() == 0 || script.getOwner() == callbackQuery.getFrom().getId() || isAdmin(sender, cbMessage.getChatId(), callbackQuery.getFrom().getId())) {
+        if (cbMessage.getChat().isUserChat() || script.getOwner() == 0 || script.getOwner() == callbackQuery.getFrom().getId() || chatAdminService.isAdmin(sender, cbMessage.getChatId(), callbackQuery.getFrom().getId())) {
           if (scriptMessageProcessor.removeScript(
               String.valueOf(cbMessage.getChatId()), Integer.valueOf(scriptId))) {
             sender
@@ -257,10 +258,4 @@ public class ScriptManagerProcessor implements MessageProcessor {
             .replyMarkup(keyboardMarkup).build()).getMessageId();
   }
 
-  private boolean isAdmin(AbsSender sender, final Long chatId, final Long userId) throws TelegramApiException {
-    List<ChatMember> chatMembers = sender
-        .execute(GetChatAdministrators.builder().chatId(chatId).build());
-    List<Long> adminUsers = chatMembers.stream().map(chatMember -> chatMember.getUser().getId()).collect(Collectors.toList());
-    return adminUsers.contains(userId);
-  }
 }

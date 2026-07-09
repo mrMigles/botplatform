@@ -1,5 +1,7 @@
 package ru.holyway.botplatform.core.data;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
 import ru.holyway.botplatform.core.entity.Chat;
@@ -14,6 +16,8 @@ import java.util.*;
  * Created by seiv0814 on 12-10-17.
  */
 public class MongoDataHelper implements DataHelper {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(MongoDataHelper.class);
 
   private JSettings settings;
 
@@ -61,6 +65,7 @@ public class MongoDataHelper implements DataHelper {
     try {
       return simpleRepository.findById("1").map(s -> s.dictionary).orElse(new ArrayList<>());
     } catch (Exception e) {
+      LOGGER.error("Error loading simple dictionary", e);
       return new ArrayList<>();
     }
   }

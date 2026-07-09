@@ -12,7 +12,6 @@ import ru.holyway.botplatform.scripting.entity.*;
 import ru.holyway.botplatform.scripting.util.*;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -27,7 +26,9 @@ public final class DefaultShellRules {
           BytecodeSequence.class);
 
   public static final String[] starImportsWhiteArray =
-      new String[]{"ru.holyway"};
+      new String[]{
+          "ru.holyway.botplatform.scripting.entity",
+          "ru.holyway.botplatform.scripting.util"};
 
   public static final List<String> starImportsWhitelist = Arrays.asList(starImportsWhiteArray);
 
@@ -72,9 +73,19 @@ public final class DefaultShellRules {
       ParseMode.class.getName());
 
   public static final List<String> receiversBlackList =
-      Collections.singletonList(Thread.class.getName());
+      Arrays.asList(
+          Thread.class.getName(),
+          Runtime.class.getName(),
+          ProcessBuilder.class.getName(),
+          System.class.getName(),
+          Class.class.getName(),
+          ClassLoader.class.getName());
 
   public static List<String> methodsBlacklist = Arrays.asList("getClass", "class", "forName",
-      "wait", "notify", "notifyAll", "invokeMethod", "finalize", "sleep", "exit");
+      "wait", "notify", "notifyAll", "invokeMethod", "finalize", "sleep", "exit",
+      "exec", "getRuntime", "halt", "load", "loadLibrary", "addShutdownHook",
+      "newInstance", "getMethod", "getDeclaredMethod", "getField", "getDeclaredField",
+      "setAccessible", "getMetaClass", "setMetaClass", "define", "defineClass",
+      "evaluate", "getClassLoader");
 
 }

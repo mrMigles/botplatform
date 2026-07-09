@@ -1,11 +1,12 @@
 package ru.holyway.botplatform.scripting.util;
 
 import com.jayway.jsonpath.JsonPath;
+import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
-import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
 import org.apache.hc.core5.ssl.SSLContexts;
+import org.apache.hc.core5.util.Timeout;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -13,7 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -26,13 +26,14 @@ import us.codecraft.xsoup.Xsoup;
 
 import javax.net.ssl.SSLContext;
 import java.io.UnsupportedEncodingException;
+import java.net.InetAddress;
+import java.net.URI;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -43,6 +44,9 @@ public class Request {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Request.class);
 
+  private static final int CONNECT_TIMEOUT_MS = 10_000;
+  private static final int READ_TIMEOUT_MS = 30_000;
+
   static {
     try {
       SSLContext sslContext = SSLContexts.createDefault();
@@ -50,21 +54,26 @@ public class Request {
       var connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
           .setSSLSocketFactory(SSLConnectionSocketFactoryBuilder.create()
               .setSslContext(sslContext)
-              .setHostnameVerifier(NoopHostnameVerifier.INSTANCE)
               .setTlsVersions("TLSv1.2", "TLSv1.3")
               .build())
+          .build();
+
+      RequestConfig requestConfig = RequestConfig.custom()
+          .setConnectionRequestTimeout(Timeout.ofMilliseconds(CONNECT_TIMEOUT_MS))
+          .setResponseTimeout(Timeout.ofMilliseconds(READ_TIMEOUT_MS))
           .build();
 
       var httpClient = HttpClientBuilder.create()
           .disableCookieManagement()
           .useSystemProperties()
           .setConnectionManager(connectionManager)
+          .setDefaultRequestConfig(requestConfig)
           .build();
 
       HttpComponentsClientHttpRequestWithBodyFactory factory =
           new HttpComponentsClientHttpRequestWithBodyFactory();
       factory.setHttpClient(httpClient);
-      factory.setConnectTimeout(5 * 60 * 1000);
+      factory.setConnectTimeout(CONNECT_TIMEOUT_MS);
 
       restTemplate = new RestTemplate();
       restTemplate.setRequestFactory(factory);
@@ -190,6 +199,7 @@ public class Request {
       if (isLast && scriptContext.getContextValue("request") != null) {
         response = scriptContext.getContextValue("request");
       } else {
+        assertUrlAllowed(url);
         try {
           response = restTemplate.exchange(url, method, httpEntity, String.class).getBody();
         } catch (RestClientException e) {
@@ -203,6 +213,33 @@ public class Request {
       }
       return response;
     };
+  }
+
+  private static void assertUrlAllowed(String url) {
+    URI uri;
+    try {
+      uri = URI.create(url);
+    } catch (Exception e) {
+      throw new IllegalArgumentException("Invalid URL: " + url, e);
+    }
+    final String scheme = uri.getScheme();
+    if (scheme == null || !(scheme.equalsIgnoreCase("http") || scheme.equalsIgnoreCase("https"))) {
+      throw new IllegalArgumentException("Only http/https URLs are allowed: " + url);
+    }
+    final String host = uri.getHost();
+    if (host == null) {
+      throw new IllegalArgumentException("URL has no host: " + url);
+    }
+    try {
+      for (InetAddress address : InetAddress.getAllByName(host)) {
+        if (address.isLoopbackAddress() || address.isLinkLocalAddress()
+            || address.isAnyLocalAddress() || address.isMulticastAddress()) {
+          throw new IllegalArgumentException("Requests to loopback/link-local addresses are not allowed: " + url);
+        }
+      }
+    } catch (java.net.UnknownHostException e) {
+      throw new IllegalArgumentException("Cannot resolve host: " + host, e);
+    }
   }
 
   public TextJoiner asJson(Object jsonPath) {

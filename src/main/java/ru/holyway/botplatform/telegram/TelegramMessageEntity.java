@@ -4,6 +4,8 @@ import net.sf.cglib.proxy.Enhancer;
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
 import org.apache.logging.log4j.util.Strings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
@@ -17,6 +19,8 @@ import java.lang.reflect.Method;
  * Created by Sergey on 1/17/2017.
  */
 public class TelegramMessageEntity implements MessageEntity {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(TelegramMessageEntity.class);
 
   private final Message message;
 
@@ -64,8 +68,8 @@ public class TelegramMessageEntity implements MessageEntity {
     sendMessage.setText(text);
     try {
       sender.execute(sendMessage);
-    } catch (TelegramApiException telegramApiException) {
-      telegramApiException.printStackTrace();
+    } catch (TelegramApiException e) {
+      LOGGER.error("Error occurred while replying to chat {}", getChatId(), e);
     }
   }
 

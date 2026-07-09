@@ -1,12 +1,11 @@
 package ru.holyway.botplatform.config;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
-import org.apache.hc.core5.ssl.SSLContexts;
-import org.apache.hc.core5.ssl.TrustStrategy;
+import org.apache.hc.core5.util.Timeout;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -32,13 +31,6 @@ import ru.holyway.botplatform.core.handler.MessageHandler;
 import ru.holyway.botplatform.security.AnonymousChatTokenSecurityFilter;
 import ru.holyway.botplatform.telegram.TelegramBot;
 
-import javax.net.ssl.SSLContext;
-import java.net.Authenticator;
-import java.net.PasswordAuthentication;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -48,18 +40,6 @@ public class BotConfiguration {
 
   @Value("${bot.config.datatype}")
   private String dataType;
-
-  @Value("${proxy.config.host}")
-  private String proxyHost;
-
-  @Value("${proxy.config.port}")
-  private String proxyPort;
-
-  @Value("${proxy.config.user}")
-  private String proxyUser;
-
-  @Value("${proxy.config.pass}")
-  private String proxyPass;
 
   @Value("${instaprovider.url}")
   private String instaproviderUrl;
@@ -116,70 +96,43 @@ public class BotConfiguration {
     return new ConcurrentTaskScheduler();
   }
 
+  private static final int CONNECT_TIMEOUT_MS = 10_000;
+  private static final int READ_TIMEOUT_MS = 30_000;
+
   @Bean
   @Primary
-  public RestTemplate restTemplate()
-      throws KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
+  public RestTemplate restTemplate() {
     HttpComponentsClientHttpRequestFactory requestFactory = buildRequestFactory();
     return new RestTemplate(requestFactory);
   }
 
   @NotNull
-  private HttpComponentsClientHttpRequestFactory buildRequestFactory()
-      throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException {
-    TrustStrategy acceptingTrustStrategy = (X509Certificate[] chain, String authType) -> true;
-
-    SSLContext sslContext = SSLContexts.custom()
-        .loadTrustMaterial(null, acceptingTrustStrategy)
+  private HttpComponentsClientHttpRequestFactory buildRequestFactory() {
+    RequestConfig requestConfig = RequestConfig.custom()
+        .setConnectionRequestTimeout(Timeout.ofMilliseconds(CONNECT_TIMEOUT_MS))
+        .setResponseTimeout(Timeout.ofMilliseconds(READ_TIMEOUT_MS))
         .build();
 
     CloseableHttpClient httpClient = HttpClients.custom()
+        .setDefaultRequestConfig(requestConfig)
         .setConnectionManager(PoolingHttpClientConnectionManagerBuilder.create()
-            .setSSLSocketFactory(SSLConnectionSocketFactoryBuilder.create()
-                .setSslContext(sslContext)
-                .build())
+            .setSSLSocketFactory(SSLConnectionSocketFactoryBuilder.create().build())
             .build())
         .build();
 
     HttpComponentsClientHttpRequestFactory requestFactory =
         new HttpComponentsClientHttpRequestFactory();
     requestFactory.setHttpClient(httpClient);
+    requestFactory.setConnectTimeout(CONNECT_TIMEOUT_MS);
     return requestFactory;
   }
 
   @Bean("instaproviderTemplate")
-  public RestTemplate instaproviderTemplate()
-      throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
+  public RestTemplate instaproviderTemplate() {
     HttpComponentsClientHttpRequestFactory requestFactory = buildRequestFactory();
     RestTemplate template = new RestTemplate(requestFactory);
     template.setUriTemplateHandler(new DefaultUriBuilderFactory(instaproviderUrl));
     return template;
-  }
-
-  private void setProxy(final String host, final String port, final String user,
-                        final String pass) {
-    System.setProperty("socksProxyHost", host);
-    System.setProperty("socksProxyPort", port);
-    if (StringUtils.isNotEmpty(user) && StringUtils.isNotEmpty(pass)) {
-      System.setProperty("java.net.socks.username", user);
-      System.setProperty("java.net.socks.password", pass);
-    }
-
-    Authenticator.setDefault(new ProxyAuth(user, pass));
-  }
-
-  public static class ProxyAuth extends Authenticator {
-
-    private PasswordAuthentication auth;
-
-    private ProxyAuth(String user, String password) {
-      auth = new PasswordAuthentication(user,
-          password == null ? new char[]{} : password.toCharArray());
-    }
-
-    protected PasswordAuthentication getPasswordAuthentication() {
-      return auth;
-    }
   }
 
   @Bean
