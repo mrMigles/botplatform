@@ -51,15 +51,15 @@ public class EducationCache {
     list2Easy.clear();
     dictionarySize.clear();
 
-    Map<String, List<String>> learnWords = null;
+    Map<String, List<String>> learnWords;
 
-    List<String> simpleWords = null;
+    List<String> simpleWords;
     try {
       learnWords = dataHelper.getLearn();
       simpleWords = dataHelper.getSimple();
-
     } catch (Exception e) {
       LOGGER.error("Error loading learning data", e);
+      return;
     }
     for (Map.Entry<String, List<String>> line : learnWords.entrySet()) {
       final List<List<String>> tokenizedAnswers = new ArrayList<>();

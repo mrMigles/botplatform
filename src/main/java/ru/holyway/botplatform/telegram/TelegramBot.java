@@ -20,15 +20,24 @@ import ru.holyway.botplatform.telegram.processor.MessagePostLoader;
 import ru.holyway.botplatform.telegram.processor.MessageProcessor;
 
 import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by Sergey on 1/17/2017.
  */
 public class TelegramBot extends TelegramLongPollingBot implements Bot {
+
+  private static final long ENQUEUE_OFFER_TIMEOUT_MS = 2_000;
+  private static final long SHUTDOWN_AWAIT_TIMEOUT_MS = 10_000;
 
   @Value("${credential.telegram.login}")
   private String botName;
@@ -46,17 +55,13 @@ public class TelegramBot extends TelegramLongPollingBot implements Bot {
   private CommonHandler commonMessageHandler;
 
   private final List<BlockingQueue<Update>> queues;
-  private final List<Thread> consumers;
+  private final List<ExecutorService> consumers;
   private final Integer threadCount;
 
-  private BlockingQueue<InlineQuery> inlineQueryBlockingQueue;
-  private Thread inlineQueryWorker;
+  private final BlockingQueue<InlineQuery> inlineQueryBlockingQueue;
+  private final ExecutorService inlineQueryWorker;
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TelegramBot.class);
-
-//  public TelegramBot(DefaultBotOptions options) {
-//    super(options);
-//  }
 
   public TelegramBot(final Integer threadCount, final Integer queueSize) {
     queues = new ArrayList<>(threadCount);
@@ -65,15 +70,24 @@ public class TelegramBot extends TelegramLongPollingBot implements Bot {
     for (int i = 0; i < threadCount; i++) {
       BlockingQueue<Update> queue = new LinkedBlockingDeque<>(queueSize);
       queues.add(queue);
-      Thread consumer = new Thread(new WorkerThread(queue, this));
+      ExecutorService consumer = Executors.newSingleThreadExecutor(namedThreadFactory("telegram-worker-" + i));
+      consumer.submit(new WorkerThread(queue, this));
       consumers.add(consumer);
-      consumer.start();
     }
     this.threadCount = threadCount;
 
     inlineQueryBlockingQueue = new LinkedBlockingDeque<>(queueSize);
-    inlineQueryWorker = new Thread(new InlineWorker(this, inlineQueryBlockingQueue));
-    inlineQueryWorker.start();
+    inlineQueryWorker = Executors.newSingleThreadExecutor(namedThreadFactory("telegram-inline-worker"));
+    inlineQueryWorker.submit(new InlineWorker(this, inlineQueryBlockingQueue));
+  }
+
+  private static ThreadFactory namedThreadFactory(String name) {
+    AtomicInteger count = new AtomicInteger();
+    return runnable -> {
+      Thread thread = new Thread(runnable, name + "-" + count.incrementAndGet());
+      thread.setDaemon(true);
+      return thread;
+    };
   }
 
   @PostConstruct
@@ -88,27 +102,28 @@ public class TelegramBot extends TelegramLongPollingBot implements Bot {
       if (update.hasCallbackQuery()) {
         message = (Message) update.getCallbackQuery().getMessage();
       } else if (update.hasInlineQuery()) {
-        try {
-          inlineQueryBlockingQueue.put(update.getInlineQuery());
-        } catch (InterruptedException e) {
-          LOGGER.error("InterruptedException due to adding inline worker", e);
-        }
+        offerWithTimeout(inlineQueryBlockingQueue, update.getInlineQuery(), "inline query");
         return;
       } else {
         return;
       }
     }
     int partition = partition(message.getChatId().toString(), threadCount);
+    BlockingQueue<Update> queue = queues.get(partition);
+    if (queue.remainingCapacity() < 10) {
+      LOGGER.error("Critical remaining capacity for chat: {}", message.getChatId());
+    }
+    offerWithTimeout(queue, update, "chat " + message.getChatId());
+  }
+
+  private <T> void offerWithTimeout(BlockingQueue<T> queue, T item, String description) {
     try {
-      if (queues.get(partition).remainingCapacity() < 10) {
-        LOGGER.error("Critical remaining capacity: " + message.getChatId());
+      if (!queue.offer(item, ENQUEUE_OFFER_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
+        LOGGER.error("Queue full, dropping update for {}", description);
       }
-      queues.get(partition).put(update);
     } catch (InterruptedException e) {
-      LOGGER.error("Interrupted while queuing update: ", e);
+      LOGGER.error("Interrupted while queuing update for {}: ", description, e);
       Thread.currentThread().interrupt();
-    } catch (Throwable e) {
-      LOGGER.error("Error occurred during execution: ", e);
     }
   }
 
@@ -135,8 +150,22 @@ public class TelegramBot extends TelegramLongPollingBot implements Bot {
   }
 
   @Override
+  @PreDestroy
   public void destroy() {
+    consumers.forEach(ExecutorService::shutdownNow);
+    inlineQueryWorker.shutdownNow();
+    consumers.forEach(this::awaitTermination);
+    awaitTermination(inlineQueryWorker);
+  }
 
+  private void awaitTermination(ExecutorService executor) {
+    try {
+      if (!executor.awaitTermination(SHUTDOWN_AWAIT_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
+        LOGGER.warn("Worker did not terminate within {} ms", SHUTDOWN_AWAIT_TIMEOUT_MS);
+      }
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+    }
   }
 
   @Override
@@ -152,7 +181,7 @@ public class TelegramBot extends TelegramLongPollingBot implements Bot {
   }
 
   public int partition(String key, int numPartitions) {
-    return Math.abs(key.hashCode() % numPartitions);
+    return Math.floorMod(key.hashCode(), numPartitions);
   }
 
   private class WorkerThread implements Runnable {
@@ -167,13 +196,12 @@ public class TelegramBot extends TelegramLongPollingBot implements Bot {
 
     @Override
     public void run() {
-      while (true) {
+      while (!Thread.currentThread().isInterrupted()) {
         try {
-          // Dequeue a chat ID from the priority queue
           Update update = queue.take();
           onUpdateReceivedInternal(update);
         } catch (InterruptedException e) {
-          LOGGER.error("Interrupt Error occurred during execution main: ", e);
+          Thread.currentThread().interrupt();
         } catch (Exception e) {
           LOGGER.error("Error occurred during execution main: ", e);
         }
